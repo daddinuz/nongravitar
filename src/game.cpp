@@ -29,36 +29,37 @@
 #include "assets.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
-    window.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
-    window.setVerticalSyncEnabled(true);
-    window.setFramerateLimit(60);
-    window.setActive(true);
+    mAssetsManager.initialize();
 
-    if (soundtrack.openFromFile(soundtrack_path("opening.wav"))) { // if fails do nothing
-        soundtrack.setLoop(true);
-        soundtrack.play();
-    }
+    mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+    mWindow.setVerticalSyncEnabled(true);
+    mWindow.setFramerateLimit(60);
+    mWindow.setActive(true);
 
-    state = State::OpeningScreen;
+    mAssetsManager.soundtracks().playTitleSoundtrack();
+    mState = State::TitleScreen;
 
     return *this;
 }
 
 void gravitar::Game::run() {
-    for (clock.restart(); window.isOpen(); clock.restart()) {
-        window.display();
+    for (mClock.restart(); mWindow.isOpen(); mClock.restart()) {
+        mWindow.display();
 
-        while (window.pollEvent(event)) {
-            switch (event.type) {
-                case sf::Event::Closed: window.close();
+        while (mWindow.pollEvent(mEvent)) {
+            switch (mEvent.type) {
+                case sf::Event::Closed: mWindow.close();
                     break;
 
                 case sf::Event::KeyPressed:
-                    switch (event.key.code) {
-                        case sf::Keyboard::F11: window.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+                    switch (mEvent.key.code) {
+                        case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
                             break;
 
-                        case sf::Keyboard::Escape: window.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
+                        case sf::Keyboard::F6: mAssetsManager.soundtracks().togglePlaying();
+                            break;
+
+                        case sf::Keyboard::Escape: mWindow.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
                             break;
 
                         default: break;
@@ -68,6 +69,6 @@ void gravitar::Game::run() {
             }
         }
 
-        window.clear();
+        mWindow.clear();
     }
 }

@@ -30,5 +30,5 @@ include_directories(${SFML_INCLUDE_DIR})
 # Executable
 ###
 
-add_executable(gravitar src/game.cpp src/game.hpp src/main.cpp src/assets.hpp)
+add_executable(gravitar src/assets.hpp src/assets.cpp src/game.cpp src/game.hpp src/main.cpp)
 target_link_libraries(gravitar PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})

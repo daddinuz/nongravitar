@@ -27,8 +27,8 @@
 
 #pragma once
 
+#include "assets.hpp"
 #include <entt/entt.hpp>
-#include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar {
@@ -46,15 +46,15 @@ namespace gravitar {
 
         enum class State {
             Uninitialized,
-            OpeningScreen,
+            TitleScreen,
         };
 
     private:
-        sf::RenderWindow window;
-        entt::registry registry;
-        sf::Music soundtrack;
-        sf::Clock clock;
-        sf::Event event{};
-        State state{State::Uninitialized};
+        sf::RenderWindow mWindow;
+        entt::registry mRegistry;
+        sf::Clock mClock{};
+        sf::Event mEvent{};
+        AssetsManager mAssetsManager;
+        State mState{State::Uninitialized};
     };
 }

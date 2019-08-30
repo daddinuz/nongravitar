@@ -27,8 +27,67 @@
 
 #pragma once
 
-#define fonts_path(filename) \
-    (GRAVITAR_DIRECTORY "/assets/fonts/" filename)
+#include <SFML/Audio.hpp>
+#include <SFML/Graphics.hpp>
 
-#define soundtrack_path(filename) \
-    (GRAVITAR_DIRECTORY "/assets/soundtracks/" filename)
+namespace gravitar {
+    class FontsManager final {
+    public:
+        friend class AssetsManager;
+
+        FontsManager(const FontsManager &) = delete; // no copy-constructible
+
+        FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
+
+        void initialize();
+
+        const sf::Font &mechanicalFont() const noexcept;
+
+    private:
+        FontsManager() = default; // private default constructor, only AssetsManager can construct this class
+
+        sf::Font mMechanicalFont;
+    };
+
+    class SoundtracksManager final {
+    public:
+        friend class AssetsManager;
+
+        SoundtracksManager(const SoundtracksManager &) = delete; // no copy-constructible
+
+        SoundtracksManager &operator=(const SoundtracksManager &) = delete; // no copy-assignable
+
+        void initialize();
+
+        void togglePlaying() noexcept;
+
+        void playTitleSoundtrack() noexcept;
+
+    private:
+        SoundtracksManager() = default; // private default constructor, only AssetsManager can construct this class
+
+        sf::Music mTitleSoundtrack;
+        sf::Music *mCurrentlyPlaying{nullptr};
+    };
+
+    class AssetsManager final {
+    public:
+        friend class Game;
+
+        AssetsManager(const AssetsManager &) = delete; // no copy-constructible
+
+        AssetsManager &operator=(const AssetsManager &) = delete; // no copy-assignable
+
+        void initialize();
+
+        [[nodiscard]] const FontsManager &fonts() const noexcept;
+
+        [[nodiscard]] SoundtracksManager &soundtracks() noexcept;
+
+    private:
+        AssetsManager() = default; // private default constructor, only Game can construct this class
+
+        FontsManager mFontsManager;
+        SoundtracksManager mSoundtracksManager;
+    };
+}
