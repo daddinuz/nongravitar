@@ -23,12 +23,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/;${CMAKE_MODULE_PATH}")
 
 # Find any version 2.X of SFML
 # See the FindSFML.CMake file for additional details and instructions
-find_package(SFML 2 COMPONENTS system window graphics audio REQUIRED)
+find_package(SFML 2.4 COMPONENTS system window graphics audio REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 
 #################
 # Executable
 ###
 
-add_executable(gravitar src/game.cpp src/game.hpp src/main.cpp)
+add_executable(gravitar src/game.cpp src/game.hpp src/main.cpp src/assets.hpp)
 target_link_libraries(gravitar PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
