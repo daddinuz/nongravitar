@@ -26,6 +26,7 @@
  */
 
 #include "game.hpp"
+#include "assets.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
     window.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
@@ -33,7 +34,12 @@ gravitar::Game &gravitar::Game::initialize() {
     window.setFramerateLimit(60);
     window.setActive(true);
 
-    state = State::Initialized;
+    if (soundtrack.openFromFile(soundtrack_path("opening.wav"))) { // if fails do nothing
+        soundtrack.setLoop(true);
+        soundtrack.play();
+    }
+
+    state = State::OpeningScreen;
 
     return *this;
 }
