@@ -53,13 +53,13 @@ void gravitar::Game::run() {
 
                 case sf::Event::KeyPressed:
                     switch (mEvent.key.code) {
+                        case sf::Keyboard::Escape: mWindow.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
+                            break;
+
                         case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
                             break;
 
                         case sf::Keyboard::F6: mAssetsManager.soundtracks().togglePlaying();
-                            break;
-
-                        case sf::Keyboard::Escape: mWindow.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
                             break;
 
                         default: break;
