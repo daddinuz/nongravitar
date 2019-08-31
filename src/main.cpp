@@ -27,8 +27,10 @@
 
 #include "game.hpp"
 
+using namespace gravitar;
+
 int main() {
-    auto game = gravitar::Game();
+    auto game = Game();
     game.initialize().run();
     return 0;
 }
