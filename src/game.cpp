@@ -30,14 +30,15 @@
 #include "assets.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
-    mAssetsManager.initialize();
+    mSoundtracksManager.initialize();
+    mFontsManager.initialize();
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
     mWindow.setFramerateLimit(60);
     mWindow.setActive(true);
 
-    mAssetsManager.soundtracks().playMainTheme();
+    mSoundtracksManager.playMainTheme();
     mScene = Scene::Curtain;
 
     return *this;
@@ -74,7 +75,7 @@ void gravitar::Game::run() {
                         case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
                             break;
 
-                        case sf::Keyboard::F6: mAssetsManager.soundtracks().togglePlaying();
+                        case sf::Keyboard::F6: mSoundtracksManager.togglePlaying();
                             break;
 
                         default: break;
@@ -104,7 +105,7 @@ void gravitar::Game::updateCurtainScene() {
         \/                                             \/
 
         )",
-                mAssetsManager.fonts().mechanicalFont(), 16);
+                mFontsManager.mechanicalFont(), 16);
         auto textRect = title.getGlobalBounds();
 
         title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
@@ -112,7 +113,7 @@ void gravitar::Game::updateCurtainScene() {
 
         title.setStyle(sf::Text::Italic);
         title.setFillColor(sf::Color::White);
-        title.setOutlineColor(sf::Color(0, 0, 224));
+        title.setOutlineColor(sf::Color(0, 32, 232));
         title.setOutlineThickness(6.0f);
 
         textRect = title.getGlobalBounds();
@@ -138,14 +139,14 @@ void gravitar::Game::updateCurtainScene() {
     }
 
     {
-        auto exitDialog = sf::Text("press [DELETE] to exit", mAssetsManager.fonts().mechanicalFont(), 18);
+        auto exitDialog = sf::Text("press [DELETE] to exit", mFontsManager.mechanicalFont(), 18);
         auto exitRect = exitDialog.getGlobalBounds();
 
         exitDialog.setOrigin(exitRect.left + exitRect.width / 2.0f, exitRect.top + exitRect.height / 2.0f);
         exitDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
         exitDialog.setFillColor(sf::Color::White);
 
-        auto playDialog = sf::Text("press [SPACE] to play", mAssetsManager.fonts().mechanicalFont(), 18);
+        auto playDialog = sf::Text("press [SPACE] to play", mFontsManager.mechanicalFont(), 18);
         auto playRect = playDialog.getGlobalBounds();
 
         playDialog.setOrigin(playRect.left + playRect.width / 2.0f, playRect.top + playRect.height / 2.0f);

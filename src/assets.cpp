@@ -87,16 +87,3 @@ void gravitar::SoundtracksManager::playMainTheme() noexcept {
     mTitleSoundtrack.play();
     mCurrentlyPlaying = &mTitleSoundtrack;
 }
-
-void gravitar::AssetsManager::initialize() {
-    mFontsManager.initialize();
-    mSoundtracksManager.initialize();
-}
-
-const gravitar::FontsManager &gravitar::AssetsManager::fonts() const noexcept {
-    return mFontsManager;
-}
-
-gravitar::SoundtracksManager &gravitar::AssetsManager::soundtracks() noexcept {
-    return mSoundtracksManager;
-}

@@ -59,7 +59,8 @@ namespace gravitar {
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};
         sf::Event mEvent{};
-        AssetsManager mAssetsManager;
         Scene mScene{Scene::Curtain};
+        FontsManager mFontsManager;
+        SoundtracksManager mSoundtracksManager;
     };
 }

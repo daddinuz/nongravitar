@@ -33,7 +33,7 @@
 namespace gravitar {
     class FontsManager final {
     public:
-        friend class AssetsManager;
+        friend class Game;
 
         FontsManager(const FontsManager &) = delete; // no copy-constructible
 
@@ -51,7 +51,7 @@ namespace gravitar {
 
     class SoundtracksManager final {
     public:
-        friend class AssetsManager;
+        friend class Game;
 
         SoundtracksManager(const SoundtracksManager &) = delete; // no copy-constructible
 
@@ -68,26 +68,5 @@ namespace gravitar {
 
         sf::Music mTitleSoundtrack;
         sf::Music *mCurrentlyPlaying{nullptr};
-    };
-
-    class AssetsManager final {
-    public:
-        friend class Game;
-
-        AssetsManager(const AssetsManager &) = delete; // no copy-constructible
-
-        AssetsManager &operator=(const AssetsManager &) = delete; // no copy-assignable
-
-        void initialize();
-
-        [[nodiscard]] const FontsManager &fonts() const noexcept;
-
-        [[nodiscard]] SoundtracksManager &soundtracks() noexcept;
-
-    private:
-        AssetsManager() = default; // private default constructor, only Game can construct this class
-
-        FontsManager mFontsManager;
-        SoundtracksManager mSoundtracksManager;
     };
 }
