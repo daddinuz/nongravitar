@@ -28,12 +28,18 @@
 #pragma once
 
 #include "assets.hpp"
-#include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar {
     class Game final {
     public:
+        enum class State {
+            TitleScreen,
+            ExploringUniverse,
+            AssaultingPlanet,
+            Done,
+        };
+
         Game() = default; // default constructor
 
         Game(const Game &) = delete; // no copy-constructible
@@ -42,19 +48,17 @@ namespace gravitar {
 
         Game &initialize();
 
+        void update();
+
         void run();
 
-        enum class State {
-            Uninitialized,
-            TitleScreen,
-        };
-
     private:
+        void handleTitleScreenState();
+
         sf::RenderWindow mWindow;
-        entt::registry mRegistry;
-        sf::Clock mClock{};
+        sf::Clock mTimer{};
         sf::Event mEvent{};
         AssetsManager mAssetsManager;
-        State mState{State::Uninitialized};
+        State mState{State::TitleScreen};
     };
 }

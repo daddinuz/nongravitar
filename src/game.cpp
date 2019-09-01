@@ -26,6 +26,7 @@
  */
 
 #include "game.hpp"
+#include "trace.hpp"
 #include "assets.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
@@ -42,13 +43,30 @@ gravitar::Game &gravitar::Game::initialize() {
     return *this;
 }
 
+void gravitar::Game::update() {
+    switch (mState) {
+        case State::TitleScreen: handleTitleScreenState();
+            break;
+
+        case State::ExploringUniverse: break;
+
+        case State::AssaultingPlanet: break;
+
+        case State::Done: throw std::invalid_argument(trace("Got an unexpected state"));;
+    }
+}
+
 void gravitar::Game::run() {
-    for (mClock.restart(); mWindow.isOpen(); mClock.restart()) {
+    for (mTimer.restart(); mState != State::Done; mTimer.restart()) {
+        update();
         mWindow.display();
 
         while (mWindow.pollEvent(mEvent)) {
             switch (mEvent.type) {
-                case sf::Event::Closed: mWindow.close();
+                case sf::Event::Closed: {
+                    mWindow.close();
+                    mState = State::Done;
+                }
                     break;
 
                 case sf::Event::KeyPressed:
@@ -70,5 +88,58 @@ void gravitar::Game::run() {
         }
 
         mWindow.clear();
+    }
+}
+
+void gravitar::Game::handleTitleScreenState() {
+    const auto windowSize = mWindow.getSize();
+
+    {
+        auto title = sf::Text(
+                "  _________________    ________    ____.___________________ __________ \n"
+                " /  _____|______   \\  /  _  \\  \\  /   /|   \\__    ___/  _  \\\\______   \\\n"
+                "/   \\  ___|       _/ /  /_\\  \\  \\/   / |   | |    | /  /_\\  \\|       _/\n"
+                "\\    \\_\\  \\    |   \\/    |    \\     /  |   | |    |/    |    \\    |   \\\n"
+                " \\______  /____|_  /\\____|__  /\\___/   |___| |____|\\____|__  /____|_  /\n"
+                "        \\/       \\/         \\/                            \\/       \\/",
+                mAssetsManager.fonts().mechanicalFont(), 16);
+        auto textRect = title.getGlobalBounds();
+
+        title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+        title.setPosition({windowSize.x / 2.0f, windowSize.y / 3.0f});
+
+        title.setStyle(sf::Text::Italic);
+        title.setOutlineColor(sf::Color::Blue);
+        title.setOutlineThickness(4.0f);
+
+        textRect = title.getGlobalBounds();
+        auto left = sf::Vector2f{textRect.left + 32.0f, textRect.top + textRect.height};
+        auto right = sf::Vector2f{textRect.left + textRect.width, textRect.top + textRect.height};
+        auto center = sf::Vector2f{windowSize.x / 2.0f, windowSize.y / 2.0f};
+        const auto points = 16;
+        const auto diff = (right.x - left.x) / points;
+        sf::Vertex line[2] = {center,};
+        line->color = sf::Color::Red;
+
+        for (auto i = 0; i < points; i++) {
+            line[1] = sf::Vertex({left.x + i * diff, left.y});
+            mWindow.draw(line, 2, sf::Lines);
+        }
+
+        mWindow.draw(title);
+    }
+
+    {
+        auto playDialog = sf::Text("press [SPACE] to play", mAssetsManager.fonts().mechanicalFont(), 16);
+        auto textRect = playDialog.getLocalBounds();
+
+        playDialog.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+        playDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.5f});
+
+        mWindow.draw(playDialog);
+    }
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+        mState = State::Done;
     }
 }
