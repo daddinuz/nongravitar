@@ -26,11 +26,12 @@
  */
 
 #include "assets.hpp"
+#include "trace.hpp"
 
-#define fonts_path(filename) \
+#define fontsPath(filename) \
     GRAVITAR_DIRECTORY "/assets/fonts/" filename
 
-#define soundtrack_path(filename) \
+#define soundtrackPath(filename) \
     GRAVITAR_DIRECTORY "/assets/soundtracks/" filename
 
 class AssetsInitializationError final : public std::exception {
@@ -48,8 +49,8 @@ private:
 };
 
 void gravitar::FontsManager::initialize() {
-    if (!mMechanicalFont.loadFromFile(fonts_path("mechanical.otf"))) {
-        throw AssetsInitializationError("Unable to load file: " fonts_path("mechanical.otf"));
+    if (!mMechanicalFont.loadFromFile(fontsPath("mechanical.otf"))) {
+        throw AssetsInitializationError(trace("Unable to load file: " fontsPath("mechanical.otf")));
     }
 }
 
@@ -58,10 +59,10 @@ const sf::Font &gravitar::FontsManager::mechanicalFont() const noexcept {
 }
 
 void gravitar::SoundtracksManager::initialize() {
-    if (mTitleSoundtrack.openFromFile(soundtrack_path("opening.wav"))) {
+    if (mTitleSoundtrack.openFromFile(soundtrackPath("opening.wav"))) {
         mTitleSoundtrack.setLoop(true);
     } else {
-        throw AssetsInitializationError("Unable to load file: " soundtrack_path("opening.wav"));
+        throw AssetsInitializationError(trace("Unable to load file: " soundtrackPath("opening.wav")));
     }
 }
 
