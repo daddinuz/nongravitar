@@ -33,8 +33,8 @@
 namespace gravitar {
     class Game final {
     public:
-        enum class View {
-            Title,
+        enum class Scene {
+            Curtain,
             SolarSystem,
             PlanetAssault,
         };
@@ -52,14 +52,14 @@ namespace gravitar {
         void run();
 
     private:
-        void updateTitleView();
-        void updateSolarSystemView();
-        void updatePlanetAssaultView();
+        void updateCurtainScene();
+        void updateSolarSystemScene();
+        void updatePlanetAssaultScene();
 
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};
         sf::Event mEvent{};
         AssetsManager mAssetsManager;
-        View mView{View::Title};
+        Scene mView{Scene::Curtain};
     };
 }

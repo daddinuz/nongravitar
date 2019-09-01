@@ -38,20 +38,20 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setActive(true);
 
     mAssetsManager.soundtracks().playTitleSoundtrack();
-    mView = View::Title;
+    mView = Scene::Curtain;
 
     return *this;
 }
 
 void gravitar::Game::update() {
     switch (mView) {
-        case View::Title: updateTitleView();
+        case Scene::Curtain: updateCurtainScene();
             break;
 
-        case View::SolarSystem: updateSolarSystemView();
+        case Scene::SolarSystem: updateSolarSystemScene();
             break;
 
-        case View::PlanetAssault: updatePlanetAssaultView();
+        case Scene::PlanetAssault: updatePlanetAssaultScene();
             break;
     }
 }
@@ -88,7 +88,7 @@ void gravitar::Game::run() {
     }
 }
 
-void gravitar::Game::updateTitleView() {
+void gravitar::Game::updateCurtainScene() {
     const auto windowSize = mWindow.getSize();
 
     {
@@ -147,14 +147,14 @@ void gravitar::Game::updateTitleView() {
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-        mView = View::SolarSystem;
+        mView = Scene::SolarSystem;
     }
 }
 
-void gravitar::Game::updateSolarSystemView() {
+void gravitar::Game::updateSolarSystemScene() {
     throw std::runtime_error(trace("unimplemented"));
 }
 
-void gravitar::Game::updatePlanetAssaultView() {
+void gravitar::Game::updatePlanetAssaultScene() {
     throw std::runtime_error(trace("unimplemented"));
 }
