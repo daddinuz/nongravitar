@@ -61,6 +61,7 @@ namespace gravitar {
         sf::Event mEvent{};
         Scene mScene{Scene::Curtain};
         FontsManager mFontsManager;
+        TextureManager mTextureManager;
         SoundtracksManager mSoundtracksManager;
     };
 }

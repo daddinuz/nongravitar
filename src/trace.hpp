@@ -31,4 +31,4 @@
 #define __stringify(x)          __stringifyImpl(x)
 
 #define __TRACE__               "At: " __FILE__ ":" __stringify(__LINE__) "\r\n"
-#define trace(msg)              __TRACE__
+#define trace(msg)              __TRACE__ msg

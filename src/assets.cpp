@@ -28,11 +28,14 @@
 #include "assets.hpp"
 #include "trace.hpp"
 
-#define fontsPath(filename) \
+#define fontPath(filename) \
     GRAVITAR_DIRECTORY "/assets/fonts/" filename
 
 #define soundtrackPath(filename) \
     GRAVITAR_DIRECTORY "/assets/soundtracks/" filename
+
+#define texturePath(filename) \
+    GRAVITAR_DIRECTORY "/assets/textures/" filename
 
 class AssetsInitializationError final : public std::exception {
 public:
@@ -49,8 +52,9 @@ private:
 };
 
 void gravitar::FontsManager::initialize() {
-    if (!mMechanicalFont.loadFromFile(fontsPath("mechanical.otf"))) {
-        throw AssetsInitializationError(trace("Unable to load file: " fontsPath("mechanical.otf")));
+    if (!mMechanicalFont.loadFromFile(fontPath("mechanical.otf"))) {
+        throw AssetsInitializationError(trace("Unable to load file: "
+                                                      fontPath("mechanical.otf")));
     }
 }
 
@@ -62,7 +66,8 @@ void gravitar::SoundtracksManager::initialize() {
     if (mTitleSoundtrack.openFromFile(soundtrackPath("main-theme.wav"))) {
         mTitleSoundtrack.setLoop(true);
     } else {
-        throw AssetsInitializationError(trace("Unable to load file: " soundtrackPath("main-theme.wav")));
+        throw AssetsInitializationError(trace("Unable to load file: "
+                                                      soundtrackPath("main-theme.wav")));
     }
 }
 
@@ -86,4 +91,11 @@ void gravitar::SoundtracksManager::playMainTheme() noexcept {
 
     mTitleSoundtrack.play();
     mCurrentlyPlaying = &mTitleSoundtrack;
+}
+
+void gravitar::TextureManager::initialize() {
+    if (!mAirCraftTexture.loadFromFile(texturePath("aircraft.png"))) {
+        throw AssetsInitializationError(trace("Unable to load file: "
+                                                      texturePath("aircraft.png")));
+    }
 }

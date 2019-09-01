@@ -44,7 +44,7 @@ namespace gravitar {
         const sf::Font &mechanicalFont() const noexcept;
 
     private:
-        FontsManager() = default; // private default constructor, only AssetsManager can construct this class
+        FontsManager() = default; // private default constructor, only Game can construct this class
 
         sf::Font mMechanicalFont;
     };
@@ -64,9 +64,25 @@ namespace gravitar {
         void playMainTheme() noexcept;
 
     private:
-        SoundtracksManager() = default; // private default constructor, only AssetsManager can construct this class
+        SoundtracksManager() = default; // private default constructor, only Game can construct this class
 
         sf::Music mTitleSoundtrack;
         sf::Music *mCurrentlyPlaying{nullptr};
+    };
+
+    class TextureManager final {
+    public:
+        friend class Game;
+
+        TextureManager(const TextureManager &) = delete; // no copy-constructible
+
+        TextureManager &operator=(const TextureManager &) = delete; // no copy-assignable
+
+        void initialize();
+
+    private:
+        TextureManager() = default; // private default constructor, only Game can construct this class
+
+        sf::Texture mAirCraftTexture;
     };
 }

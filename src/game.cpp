@@ -31,6 +31,7 @@
 
 gravitar::Game &gravitar::Game::initialize() {
     mSoundtracksManager.initialize();
+    mTextureManager.initialize();
     mFontsManager.initialize();
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
