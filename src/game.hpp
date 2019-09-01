@@ -33,11 +33,10 @@
 namespace gravitar {
     class Game final {
     public:
-        enum class State {
-            TitleScreen,
-            ExploringUniverse,
-            AssaultingPlanet,
-            Done,
+        enum class View {
+            Title,
+            SolarSystem,
+            PlanetAssault,
         };
 
         Game() = default; // default constructor
@@ -53,12 +52,14 @@ namespace gravitar {
         void run();
 
     private:
-        void handleTitleScreenState();
+        void updateTitleView();
+        void updateSolarSystemView();
+        void updatePlanetAssaultView();
 
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};
         sf::Event mEvent{};
         AssetsManager mAssetsManager;
-        State mState{State::TitleScreen};
+        View mView{View::Title};
     };
 }

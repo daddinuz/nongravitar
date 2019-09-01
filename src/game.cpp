@@ -38,35 +38,32 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setActive(true);
 
     mAssetsManager.soundtracks().playTitleSoundtrack();
-    mState = State::TitleScreen;
+    mView = View::Title;
 
     return *this;
 }
 
 void gravitar::Game::update() {
-    switch (mState) {
-        case State::TitleScreen: handleTitleScreenState();
+    switch (mView) {
+        case View::Title: updateTitleView();
             break;
 
-        case State::ExploringUniverse: break;
+        case View::SolarSystem: updateSolarSystemView();
+            break;
 
-        case State::AssaultingPlanet: break;
-
-        case State::Done: throw std::invalid_argument(trace("Got an unexpected state"));;
+        case View::PlanetAssault: updatePlanetAssaultView();
+            break;
     }
 }
 
 void gravitar::Game::run() {
-    for (mTimer.restart(); mState != State::Done; mTimer.restart()) {
+    for (mTimer.restart(); mWindow.isOpen(); mTimer.restart()) {
         update();
         mWindow.display();
 
         while (mWindow.pollEvent(mEvent)) {
             switch (mEvent.type) {
-                case sf::Event::Closed: {
-                    mWindow.close();
-                    mState = State::Done;
-                }
+                case sf::Event::Closed: mWindow.close();
                     break;
 
                 case sf::Event::KeyPressed:
@@ -91,38 +88,48 @@ void gravitar::Game::run() {
     }
 }
 
-void gravitar::Game::handleTitleScreenState() {
+void gravitar::Game::updateTitleView() {
     const auto windowSize = mWindow.getSize();
 
     {
         auto title = sf::Text(
-                "  _________________    ________    ____.___________________ __________ \n"
-                " /  _____|______   \\  /  _  \\  \\  /   /|   \\__    ___/  _  \\\\______   \\\n"
-                "/   \\  ___|       _/ /  /_\\  \\  \\/   / |   | |    | /  /_\\  \\|       _/\n"
-                "\\    \\_\\  \\    |   \\/    |    \\     /  |   | |    |/    |    \\    |   \\\n"
-                " \\______  /____|_  /\\____|__  /\\___/   |___| |____|\\____|__  /____|_  /\n"
-                "        \\/       \\/         \\/                            \\/       \\/",
+                R"(
+                    ____           ___________
+         ________  / _  \___   ____\__     __/__
+  _______\____   \/ /_\  \  \ /   /  /    |/ _  \________
+ /  _____/|     _/   |    \  .   /   |    / /_\  \____   \
+/   \  ___|  |   \___|____/     /    \___/   |    \     _/
+\    \_\  \__|_  /        _____/\___/    \___|__  |  |   \
+ _______  /    \/                               \/\__|_  /
+        \/                                             \/
+
+        )",
                 mAssetsManager.fonts().mechanicalFont(), 16);
         auto textRect = title.getGlobalBounds();
 
         title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-        title.setPosition({windowSize.x / 2.0f, windowSize.y / 3.0f});
+        title.setPosition({windowSize.x / 2.0f, windowSize.y / 3.14f});
 
         title.setStyle(sf::Text::Italic);
         title.setOutlineColor(sf::Color::Blue);
         title.setOutlineThickness(4.0f);
 
         textRect = title.getGlobalBounds();
-        auto left = sf::Vector2f{textRect.left + 32.0f, textRect.top + textRect.height};
-        auto right = sf::Vector2f{textRect.left + textRect.width, textRect.top + textRect.height};
+        auto left = sf::Vector2f{textRect.left + 42.0f, textRect.top + textRect.height};
+        auto right = sf::Vector2f{textRect.left - 42.0f + textRect.width, textRect.top + textRect.height};
         auto center = sf::Vector2f{windowSize.x / 2.0f, windowSize.y / 2.0f};
         const auto points = 16;
         const auto diff = (right.x - left.x) / points;
         sf::Vertex line[2] = {center,};
         line->color = sf::Color::Red;
 
-        for (auto i = 0; i < points; i++) {
-            line[1] = sf::Vertex({left.x + i * diff, left.y});
+        for (auto i = 0; i < points / 2; i++) {
+            line[1] = sf::Vertex({left.x + i * diff, left.y - i * 4.28f});
+            mWindow.draw(line, 2, sf::Lines);
+        }
+
+        for (auto i = 0; i <= points / 2; i++) {
+            line[1] = sf::Vertex({right.x - i * diff, left.y - i * 4.28f});
             mWindow.draw(line, 2, sf::Lines);
         }
 
@@ -140,6 +147,14 @@ void gravitar::Game::handleTitleScreenState() {
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-        mState = State::Done;
+        mView = View::SolarSystem;
     }
+}
+
+void gravitar::Game::updateSolarSystemView() {
+    throw std::runtime_error(trace("unimplemented"));
+}
+
+void gravitar::Game::updatePlanetAssaultView() {
+    throw std::runtime_error(trace("unimplemented"));
 }
