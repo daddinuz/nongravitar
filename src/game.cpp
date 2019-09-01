@@ -112,8 +112,8 @@ void gravitar::Game::updateCurtainScene() {
 
         title.setStyle(sf::Text::Italic);
         title.setFillColor(sf::Color::White);
-        title.setOutlineColor(sf::Color::Blue);
-        title.setOutlineThickness(4.0f);
+        title.setOutlineColor(sf::Color(0, 0, 224));
+        title.setOutlineThickness(6.0f);
 
         textRect = title.getGlobalBounds();
         auto left = sf::Vector2f{textRect.left + 42.0f, textRect.top + textRect.height};
