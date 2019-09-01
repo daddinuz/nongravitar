@@ -61,7 +61,7 @@ namespace gravitar {
 
         void togglePlaying() noexcept;
 
-        void playTitleSoundtrack() noexcept;
+        void playMainTheme() noexcept;
 
     private:
         SoundtracksManager() = default; // private default constructor, only AssetsManager can construct this class

@@ -59,10 +59,10 @@ const sf::Font &gravitar::FontsManager::mechanicalFont() const noexcept {
 }
 
 void gravitar::SoundtracksManager::initialize() {
-    if (mTitleSoundtrack.openFromFile(soundtrackPath("opening.wav"))) {
+    if (mTitleSoundtrack.openFromFile(soundtrackPath("main-theme.wav"))) {
         mTitleSoundtrack.setLoop(true);
     } else {
-        throw AssetsInitializationError(trace("Unable to load file: " soundtrackPath("opening.wav")));
+        throw AssetsInitializationError(trace("Unable to load file: " soundtrackPath("main-theme.wav")));
     }
 }
 
@@ -79,7 +79,7 @@ void gravitar::SoundtracksManager::togglePlaying() noexcept {
     }
 }
 
-void gravitar::SoundtracksManager::playTitleSoundtrack() noexcept {
+void gravitar::SoundtracksManager::playMainTheme() noexcept {
     if (mCurrentlyPlaying) {
         mCurrentlyPlaying->stop();
     }

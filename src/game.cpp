@@ -37,7 +37,7 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setFramerateLimit(60);
     mWindow.setActive(true);
 
-    mAssetsManager.soundtracks().playTitleSoundtrack();
+    mAssetsManager.soundtracks().playMainTheme();
     mView = Scene::Curtain;
 
     return *this;
