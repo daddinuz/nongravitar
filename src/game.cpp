@@ -38,13 +38,13 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setActive(true);
 
     mAssetsManager.soundtracks().playMainTheme();
-    mView = Scene::Curtain;
+    mScene = Scene::Curtain;
 
     return *this;
 }
 
 void gravitar::Game::update() {
-    switch (mView) {
+    switch (mScene) {
         case Scene::Curtain: updateCurtainScene();
             break;
 
@@ -111,6 +111,7 @@ void gravitar::Game::updateCurtainScene() {
         title.setPosition({windowSize.x / 2.0f, windowSize.y / 3.14f});
 
         title.setStyle(sf::Text::Italic);
+        title.setFillColor(sf::Color::White);
         title.setOutlineColor(sf::Color::Blue);
         title.setOutlineThickness(4.0f);
 
@@ -124,12 +125,12 @@ void gravitar::Game::updateCurtainScene() {
         line->color = sf::Color::Red;
 
         for (auto i = 0; i < points / 2; i++) {
-            line[1] = sf::Vertex({left.x + i * diff, left.y - i * 4.28f});
+            line[1] = sf::Vertex({left.x + i * diff, left.y - i * 4.64f});
             mWindow.draw(line, 2, sf::Lines);
         }
 
         for (auto i = 0; i <= points / 2; i++) {
-            line[1] = sf::Vertex({right.x - i * diff, left.y - i * 4.28f});
+            line[1] = sf::Vertex({right.x - i * diff, left.y - i * 4.64f});
             mWindow.draw(line, 2, sf::Lines);
         }
 
@@ -137,17 +138,28 @@ void gravitar::Game::updateCurtainScene() {
     }
 
     {
-        auto playDialog = sf::Text("press [SPACE] to play", mAssetsManager.fonts().mechanicalFont(), 16);
-        auto textRect = playDialog.getLocalBounds();
+        auto exitDialog = sf::Text("press [DELETE] to exit", mAssetsManager.fonts().mechanicalFont(), 18);
+        auto exitRect = exitDialog.getGlobalBounds();
 
-        playDialog.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-        playDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.5f});
+        exitDialog.setOrigin(exitRect.left + exitRect.width / 2.0f, exitRect.top + exitRect.height / 2.0f);
+        exitDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
+        exitDialog.setFillColor(sf::Color::White);
 
+        auto playDialog = sf::Text("press [SPACE] to play", mAssetsManager.fonts().mechanicalFont(), 18);
+        auto playRect = playDialog.getGlobalBounds();
+
+        playDialog.setOrigin(playRect.left + playRect.width / 2.0f, playRect.top + playRect.height / 2.0f);
+        playDialog.setPosition({windowSize.x / 2.0f, exitDialog.getPosition().y + 32.0f});
+        playDialog.setFillColor(sf::Color::White);
+
+        mWindow.draw(exitDialog);
         mWindow.draw(playDialog);
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-        mView = Scene::SolarSystem;
+        mScene = Scene::SolarSystem;
+    } else if (sf::Keyboard::isKeyPressed((sf::Keyboard::Delete))) {
+        mWindow.close();
     }
 }
 

@@ -60,6 +60,6 @@ namespace gravitar {
         sf::Clock mTimer{};
         sf::Event mEvent{};
         AssetsManager mAssetsManager;
-        Scene mView{Scene::Curtain};
+        Scene mScene{Scene::Curtain};
     };
 }
