@@ -82,7 +82,7 @@ namespace gravitar {
 
         const sf::Texture &getAirCraftTexture() const;
 
-        const sf::Texture &getTestTexture() const;
+        const sf::Texture &getSquaresTexture() const;
 
     private:
         TextureManager() = default; // private default constructor, only Game can construct this class

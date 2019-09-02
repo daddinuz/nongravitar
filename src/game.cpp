@@ -27,7 +27,7 @@
 
 #include "game.hpp"
 #include "trace.hpp"
-#include "assets.hpp"
+#include "animation.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
     mSoundtracksManager.initialize();
@@ -60,8 +60,8 @@ void gravitar::Game::update() {
 
 void gravitar::Game::run() {
     for (mTimer.restart(); mWindow.isOpen(); mTimer.restart()) {
-        update();
         mWindow.display();
+        mWindow.clear();
 
         while (mWindow.pollEvent(mEvent)) {
             switch (mEvent.type) {
@@ -70,6 +70,9 @@ void gravitar::Game::run() {
 
                 case sf::Event::KeyPressed:
                     switch (mEvent.key.code) {
+                        case sf::Keyboard::Delete: mWindow.close();
+                            break;
+
                         case sf::Keyboard::Escape: mWindow.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
                             break;
 
@@ -86,7 +89,7 @@ void gravitar::Game::run() {
             }
         }
 
-        mWindow.clear();
+        update();
     }
 }
 
@@ -160,13 +163,13 @@ void gravitar::Game::updateCurtainScene() {
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
         mScene = Scene::SolarSystem;
-    } else if (sf::Keyboard::isKeyPressed((sf::Keyboard::Delete))) {
-        mWindow.close();
     }
 }
 
 void gravitar::Game::updateSolarSystemScene() {
-    throw std::runtime_error(trace("unimplemented"));
+    static auto squares = SpriteAnimation(mTextureManager.getSquaresTexture(), {0, 0}, {8, 1}, {32, 32}, sf::seconds(0.1));
+    squares.update(mTimer.getElapsedTime());
+    mWindow.draw(squares);
 }
 
 void gravitar::Game::updatePlanetAssaultScene() {

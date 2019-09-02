@@ -99,9 +99,9 @@ void gravitar::TextureManager::initialize() {
                                                       texturePath("aircraft.png")));
     }
 
-    if (!mTestTexture.loadFromFile(texturePath("test.png"))) {
+    if (!mTestTexture.loadFromFile(texturePath("squares.png"))) {
         throw AssetsInitializationError(trace("Unable to load file: "
-                                                      texturePath("test.png")));
+                                                      texturePath("squares.png")));
     }
 }
 
@@ -109,6 +109,6 @@ const sf::Texture &gravitar::TextureManager::getAirCraftTexture() const {
     return mAirCraftTexture;
 }
 
-const sf::Texture &gravitar::TextureManager::getTestTexture() const {
+const sf::Texture &gravitar::TextureManager::getSquaresTexture() const {
     return mTestTexture;
 }
