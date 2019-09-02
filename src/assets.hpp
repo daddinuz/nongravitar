@@ -41,7 +41,7 @@ namespace gravitar {
 
         void initialize();
 
-        const sf::Font &mechanicalFont() const noexcept;
+        const sf::Font &getMechanicalFont() const noexcept;
 
     private:
         FontsManager() = default; // private default constructor, only Game can construct this class
@@ -80,9 +80,14 @@ namespace gravitar {
 
         void initialize();
 
+        const sf::Texture &getAirCraftTexture() const;
+
+        const sf::Texture &getTestTexture() const;
+
     private:
         TextureManager() = default; // private default constructor, only Game can construct this class
 
         sf::Texture mAirCraftTexture;
+        sf::Texture mTestTexture;
     };
 }

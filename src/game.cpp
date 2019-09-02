@@ -106,7 +106,7 @@ void gravitar::Game::updateCurtainScene() {
         \/                                             \/
 
         )",
-                mFontsManager.mechanicalFont(), 16);
+                mFontsManager.getMechanicalFont(), 16);
         auto textRect = title.getGlobalBounds();
 
         title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
@@ -140,14 +140,14 @@ void gravitar::Game::updateCurtainScene() {
     }
 
     {
-        auto exitDialog = sf::Text("press [DELETE] to exit", mFontsManager.mechanicalFont(), 18);
+        auto exitDialog = sf::Text("press [DELETE] to exit", mFontsManager.getMechanicalFont(), 18);
         auto exitRect = exitDialog.getGlobalBounds();
 
         exitDialog.setOrigin(exitRect.left + exitRect.width / 2.0f, exitRect.top + exitRect.height / 2.0f);
         exitDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
         exitDialog.setFillColor(sf::Color::White);
 
-        auto playDialog = sf::Text("press [SPACE] to play", mFontsManager.mechanicalFont(), 18);
+        auto playDialog = sf::Text("press [SPACE] to play", mFontsManager.getMechanicalFont(), 18);
         auto playRect = playDialog.getGlobalBounds();
 
         playDialog.setOrigin(playRect.left + playRect.width / 2.0f, playRect.top + playRect.height / 2.0f);

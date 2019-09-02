@@ -58,7 +58,7 @@ void gravitar::FontsManager::initialize() {
     }
 }
 
-const sf::Font &gravitar::FontsManager::mechanicalFont() const noexcept {
+const sf::Font &gravitar::FontsManager::getMechanicalFont() const noexcept {
     return mMechanicalFont;
 }
 
@@ -98,4 +98,17 @@ void gravitar::TextureManager::initialize() {
         throw AssetsInitializationError(trace("Unable to load file: "
                                                       texturePath("aircraft.png")));
     }
+
+    if (!mTestTexture.loadFromFile(texturePath("test.png"))) {
+        throw AssetsInitializationError(trace("Unable to load file: "
+                                                      texturePath("test.png")));
+    }
+}
+
+const sf::Texture &gravitar::TextureManager::getAirCraftTexture() const {
+    return mAirCraftTexture;
+}
+
+const sf::Texture &gravitar::TextureManager::getTestTexture() const {
+    return mTestTexture;
 }
