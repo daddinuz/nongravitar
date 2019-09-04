@@ -27,54 +27,111 @@
 
 #pragma once
 
+#include <functional>
 #include <SFML/Graphics.hpp>
+#include "spritesheet.hpp"
 
 namespace gravitar {
-    struct Animation : public sf::Drawable, public sf::Transformable {
-        virtual void update(const sf::Time &elapsed) = 0;
+    class Animation : virtual public sf::Drawable {
+    public:
+        virtual void update(const sf::Time &time) = 0;
+
+        void resetTimer(bool keepReminder = false);
+
+        const sf::Time &elapse(const sf::Time &time);
+
+        [[nodiscard]] const sf::Time &getTimer() const;
+
+        void setFrameTime(sf::Time time);
+
+        [[nodiscard]] const sf::Time &getFrameTime() const;
+
+        void setLoop(bool loop);
+
+        [[nodiscard]] bool getLoop() const;;
+
+    private:
+        sf::Time mTimer, mFrameTime;
+        bool mLoop{true};
     };
 
-    class SpriteAnimation final : public Animation {
+    class SpriteAnimation final : public Animation, public SpriteSheet {
     public:
         SpriteAnimation() = delete;
 
-        explicit SpriteAnimation(const sf::Texture &texture);
-
-        SpriteAnimation(const sf::Texture &texture, sf::Vector2i coord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime = sf::Time::Zero);
-
-        SpriteAnimation(const SpriteAnimation &) = delete;
-
         const SpriteAnimation &operator=(const SpriteAnimation &) = delete;
 
-        void update(const sf::Time &elapsed) final;
+        explicit SpriteAnimation(const sf::Texture &texture);
 
-        sf::FloatRect getLocalBounds() const;
+        static SpriteAnimation from(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime = sf::Time::Zero);
 
-        sf::FloatRect getGlobalBounds() const;
+        void update(const sf::Time &time) final;
 
-        size_t addFrame(sf::IntRect frame);
+    private:
+        SpriteAnimation(const SpriteAnimation &) = default;
 
-        void setFrame(size_t frame, bool resetTime = true);
+        SpriteAnimation(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime);
+    };
 
-        const sf::IntRect &getFrame(size_t frame) const;
+    template<typename T, typename F>
+    class DelegateAnimation final : public Animation {
+    public:
+        static_assert(std::is_base_of_v<sf::Drawable, T>);
 
-        const std::vector<sf::IntRect> &frames() const;
+        DelegateAnimation(std::function<void(T &, const F &)> update, T t, F f, sf::Time frameTime = sf::Time::Zero)
+                : mUpdate(update), mF(f), mT(t) {
+            setFrameTime(frameTime);
+        }
 
-        void setFrameTime(sf::Time frameTime);
+        void update(const sf::Time &time) final;
 
-        const sf::Time &getFrameTime() const;
+        T &operator*();
 
-        void setLoop(bool loop);
+        const T &operator*() const;
+
+        T *operator->();
+
+        const T *operator->() const;
 
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::vector<sf::IntRect> mFrames;
-        const sf::Texture &mTexture;
-        sf::Vertex mVertices[4];
-        sf::Time mFrameTime;
-        sf::Time mElapsed;
-        size_t mCurrentFrame{0};
-        bool mLoop{true};
+        std::function<void(T &, const F &)> mUpdate;
+        F mF;
+        T mT;
     };
+
+    template<typename T, typename F>
+    void DelegateAnimation<T, F>::update(const sf::Time &time) {
+        if (elapse(time) >= getFrameTime()) {
+            mUpdate(mT, mF);
+            resetTimer(true);
+        }
+    }
+
+    template<typename T, typename F>
+    T &DelegateAnimation<T, F>::operator*() {
+        return mT;
+    }
+
+    template<typename T, typename F>
+    const T &DelegateAnimation<T, F>::operator*() const {
+        return mT;
+    }
+
+    template<typename T, typename F>
+    T *DelegateAnimation<T, F>::operator->() {
+        return &mT;
+    }
+
+    template<typename T, typename F>
+    const T *DelegateAnimation<T, F>::operator->() const {
+        return &mT;
+    }
+
+    template<typename T, typename F>
+    void DelegateAnimation<T, F>::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+        (void) states;
+        target.draw(mT);
+    }
 }

@@ -27,101 +27,62 @@
 
 #include "animation.hpp"
 
-gravitar::SpriteAnimation::SpriteAnimation(const sf::Texture &texture) : mTexture{texture} {
-    setFrame(0, false);
+using namespace gravitar;
+
+void Animation::setLoop(bool loop) {
+    mLoop = loop;
 }
 
-gravitar::SpriteAnimation::SpriteAnimation(const sf::Texture &texture, sf::Vector2i coord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime)
-        : mTexture{texture}, mFrameTime{frameTime} {
-    for (auto y = 0; y < table.y; y++) {
-        const auto top = static_cast<int>(coord.y + y * frame.y);
-
-        for (auto x = 0; x < table.x; x++) {
-            addFrame({static_cast<int>(coord.x + x * frame.x), top, frame.x, frame.y});
-        }
-    }
-
-    setFrame(0, false);
+bool Animation::getLoop() const {
+    return mLoop;
 }
 
-void gravitar::SpriteAnimation::update(const sf::Time &elapsed) {
-    mElapsed += elapsed;
-
-    if (mElapsed >= mFrameTime) {
-        // reset time, but keep the remainder
-        mElapsed = sf::microseconds(mElapsed.asMicroseconds() % mFrameTime.asMicroseconds());
-
-        if (++mCurrentFrame >= mFrames.size()) {
-            mCurrentFrame -= mLoop ? mCurrentFrame : 1;
-        }
-
-        setFrame(mCurrentFrame, false);
+void Animation::resetTimer(bool keepReminder) {
+    if (keepReminder) {
+        mTimer = sf::microseconds(mTimer.asMicroseconds() % mFrameTime.asMicroseconds());
+    } else {
+        mTimer = sf::Time::Zero;
     }
 }
 
-sf::FloatRect gravitar::SpriteAnimation::getLocalBounds() const {
-    const auto &rect = mFrames.at(mCurrentFrame);
-    const auto width = static_cast<float>(std::abs(rect.width));
-    const auto height = static_cast<float>(std::abs(rect.height));
-
-    return sf::FloatRect(0.f, 0.f, width, height);
+const sf::Time &Animation::elapse(const sf::Time &time) {
+    return mTimer += time;
 }
 
-sf::FloatRect gravitar::SpriteAnimation::getGlobalBounds() const {
-    return getTransform().transformRect(getLocalBounds());
+const sf::Time &Animation::getTimer() const {
+    return mTimer;
 }
 
-size_t gravitar::SpriteAnimation::addFrame(sf::IntRect frame) {
-    mFrames.push_back(frame);
-    return mFrames.size() - 1;
+void Animation::setFrameTime(sf::Time time) {
+    mFrameTime = time;
 }
 
-void gravitar::SpriteAnimation::setFrame(size_t frame, bool resetTime) {
-    const auto rect = mFrames.at(frame);
-    const auto left = static_cast<float>(rect.left);
-    const auto top = static_cast<float>(rect.top);
-    const auto width = static_cast<float>(rect.width);
-    const auto height = static_cast<float>(rect.height);
-
-    mVertices[0].position = sf::Vector2f(0.0f, 0.0f);
-    mVertices[1].position = sf::Vector2f(width, 0.0f);
-    mVertices[2].position = sf::Vector2f(width, height);
-    mVertices[3].position = sf::Vector2f(0.f, height);
-
-    mVertices[0].texCoords = sf::Vector2f(left, top);
-    mVertices[1].texCoords = sf::Vector2f(left + width, top);
-    mVertices[2].texCoords = sf::Vector2f(left + width, top + height);
-    mVertices[3].texCoords = sf::Vector2f(left, top + height);
-
-    mCurrentFrame = frame;
-
-    if (resetTime) {
-        mElapsed = sf::Time::Zero;
-    }
-}
-
-const sf::IntRect &gravitar::SpriteAnimation::getFrame(size_t frame) const {
-    return mFrames.at(frame);
-}
-
-const std::vector<sf::IntRect> &gravitar::SpriteAnimation::frames() const {
-    return mFrames;
-}
-
-void gravitar::SpriteAnimation::setFrameTime(sf::Time frameTime) {
-    mFrameTime = frameTime;
-}
-
-const sf::Time &gravitar::SpriteAnimation::getFrameTime() const {
+const sf::Time &Animation::getFrameTime() const {
     return mFrameTime;
 }
 
-void gravitar::SpriteAnimation::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-    states.transform *= getTransform();
-    states.texture = &mTexture;
-    target.draw(mVertices, 4, sf::Quads, states);
+SpriteAnimation::SpriteAnimation(const sf::Texture &texture) : SpriteSheet(texture) {}
+
+SpriteAnimation SpriteAnimation::from(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime) {
+    return SpriteAnimation(texture, startCoord, table, frame, frameTime);
 }
 
-void gravitar::SpriteAnimation::setLoop(bool loop) {
-    mLoop = loop;
+void SpriteAnimation::update(const sf::Time &time) {
+    if (elapse(time) >= getFrameTime()) {
+        const auto nextFrameId = getCurrentFrameId() + 1;
+        const auto frames = getFrames().size();
+
+        if (nextFrameId < frames) {
+            setFrame(nextFrameId);
+        } else if (getLoop() and frames > 0) {
+            setFrame(0);
+        }
+
+        resetTimer(true);
+    }
+}
+
+SpriteAnimation::SpriteAnimation(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame, sf::Time frameTime)
+        : SpriteSheet(texture, startCoord, table, frame) {
+    setFrameTime(frameTime);
 }

@@ -97,8 +97,7 @@ void gravitar::Game::updateCurtainScene() {
     const auto windowSize = mWindow.getSize();
 
     {
-        auto title = sf::Text(
-                R"(
+        auto title = sf::Text(R"(
                     ____           ___________
          ________  / _  \___   ____\__     __/__
   _______\____   \/ /_\  \  \ /   /  /    |/ _  \________
@@ -108,8 +107,7 @@ void gravitar::Game::updateCurtainScene() {
  _______  /    \/                               \/\__|_  /
         \/                                             \/
 
-        )",
-                mFontsManager.getMechanicalFont(), 16);
+)", mFontsManager.getMechanicalFont(), 16);
         auto textRect = title.getGlobalBounds();
 
         title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
@@ -143,22 +141,34 @@ void gravitar::Game::updateCurtainScene() {
     }
 
     {
-        auto exitDialog = sf::Text("press [DELETE] to exit", mFontsManager.getMechanicalFont(), 18);
-        auto exitRect = exitDialog.getGlobalBounds();
+        static DelegateAnimation<sf::Text, std::array<sf::Color, 11>> text(
+                [](auto &t, const auto &c) {
+                    static auto i = 0u;
+                    t.setFillColor(c[i++ % c.size()]);
+                },
+                sf::Text("[SPACE]", mFontsManager.getMechanicalFont(), 22),
+                {
+                        sf::Color(255, 255, 255, 255),
+                        sf::Color(245, 245, 245, 245),
+                        sf::Color(235, 235, 235, 235),
+                        sf::Color(225, 225, 225, 225),
+                        sf::Color(215, 215, 215, 215),
+                        sf::Color(205, 205, 205, 205),
+                        sf::Color(215, 215, 215, 215),
+                        sf::Color(225, 225, 225, 225),
+                        sf::Color(235, 235, 235, 235),
+                        sf::Color(245, 245, 245, 245),
+                        sf::Color(255, 255, 255, 255),
+                },
+                sf::seconds(0.1)
+        );
 
-        exitDialog.setOrigin(exitRect.left + exitRect.width / 2.0f, exitRect.top + exitRect.height / 2.0f);
-        exitDialog.setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
-        exitDialog.setFillColor(sf::Color::White);
+        const auto textRect = text->getLocalBounds();
+        text->setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+        text->setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
 
-        auto playDialog = sf::Text("press [SPACE] to play", mFontsManager.getMechanicalFont(), 18);
-        auto playRect = playDialog.getGlobalBounds();
-
-        playDialog.setOrigin(playRect.left + playRect.width / 2.0f, playRect.top + playRect.height / 2.0f);
-        playDialog.setPosition({windowSize.x / 2.0f, exitDialog.getPosition().y + 32.0f});
-        playDialog.setFillColor(sf::Color::White);
-
-        mWindow.draw(exitDialog);
-        mWindow.draw(playDialog);
+        text.update(mTimer.getElapsedTime());
+        mWindow.draw(text);
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
@@ -167,7 +177,17 @@ void gravitar::Game::updateCurtainScene() {
 }
 
 void gravitar::Game::updateSolarSystemScene() {
-    static auto squares = SpriteAnimation(mTextureManager.getSquaresTexture(), {0, 0}, {8, 1}, {32, 32}, sf::seconds(0.1));
+    static auto squares = SpriteAnimation::from(
+            mTextureManager.getSquaresTexture(),
+            {0, 0},
+            {8, 1},
+            {32, 32},
+            sf::seconds(0.5));
+
+    const auto squaresRect = squares.getLocalBounds();
+    squares.setOrigin(squaresRect.left + squaresRect.width / 2.0f, squaresRect.top + squaresRect.height / 2.0f);
+    squares.setPosition(sf::Vector2f(mWindow.getSize() / 2u));
+
     squares.update(mTimer.getElapsedTime());
     mWindow.draw(squares);
 }
