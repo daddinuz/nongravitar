@@ -30,51 +30,44 @@
 #include <SFML/Graphics.hpp>
 
 namespace gravitar {
-    class SpriteSheet : virtual public sf::Drawable, virtual public sf::Transformable {
+    class SpriteSheet final {
     public:
         using Frame = sf::IntRect;
-        using FrameId = size_t;
+        using FrameBuffer = const std::vector<Frame>;
+        using const_iterator = std::vector<Frame>::const_iterator;
+        using const_reverse_iterator = std::vector<Frame>::const_reverse_iterator;
 
-        SpriteSheet() = delete;
+        SpriteSheet() = delete; // no default-constructible
 
-        explicit SpriteSheet(const sf::Texture &texture);
+        SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
+        SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
-        const SpriteSheet &operator=(const SpriteSheet &) = delete;
+        SpriteSheet(SpriteSheet &&) = delete; // no move-constructible;
+        SpriteSheet &operator=(SpriteSheet &&) = delete; // no move-assignable;
 
-        static SpriteSheet from(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame);
+        [[nodiscard]] static SpriteSheet
+        from(const sf::Texture &texture, unsigned rows, unsigned columns,
+             unsigned frameWidth, unsigned frameHeight, sf::Vector2u startCoord = {0, 0});
 
-        void setFrame(FrameId frameId);
+        [[nodiscard]] const std::vector<Frame> *operator->() const noexcept;
 
-        template<typename... Args>
-        FrameId addFrame(Args &&... args) {
-            mFrames.emplace_back(args...);
-            return mFrames.size() - 1;
-        }
+        [[nodiscard]] const std::vector<Frame> &operator*() const noexcept;
 
-        FrameId addFrame(Frame frame);
+        [[nodiscard]] const sf::Texture &getTexture() const noexcept;
 
-        [[nodiscard]] FrameId getCurrentFrameId() const;
+        [[nodiscard]] const Frame &getFrame(const sf::Vector2u &frameCoord) const;
 
-        [[nodiscard]] const Frame &getCurrentFrame() const;
+        [[nodiscard]] sf::Sprite getSprite(const sf::Vector2u &frameCoord) const;
 
-        [[nodiscard]] const Frame &getFrame(FrameId frameId) const;
+        [[nodiscard]] const_iterator getFrameIterator(const sf::Vector2u &frameCoord = {0, 0}) const;
 
-        [[nodiscard]] const std::vector<Frame> &getFrames() const;
-
-        [[nodiscard]] sf::FloatRect getLocalBounds() const;
-
-        [[nodiscard]] sf::FloatRect getGlobalBounds() const;
-
-    protected:
-        SpriteSheet(const SpriteSheet &) = default;
-
-        SpriteSheet(const sf::Texture &texture, sf::Vector2i startCoord, sf::Vector2i table, sf::Vector2i frame);
-
-        void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+        [[nodiscard]] const_reverse_iterator getReverseFrameIterator(const sf::Vector2u &frameCoord = {0, 0}) const;
 
     private:
+        SpriteSheet(const sf::Texture &texture, unsigned rows, unsigned columns, std::vector<Frame> &&frames) noexcept;
+
         std::vector<Frame> mFrames;
-        sf::Sprite mSprite;
-        FrameId mCurrentFrameId{std::numeric_limits<FrameId>::max()};
+        const sf::Texture &mTexture;
+        unsigned mRows, mColumns;
     };
 }

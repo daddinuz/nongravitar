@@ -94,21 +94,24 @@ void gravitar::SoundtracksManager::playMainTheme() noexcept {
 }
 
 void gravitar::TextureManager::initialize() {
-    if (!mAirCraftTexture.loadFromFile(texturePath("aircraft.png"))) {
+    if (!mTestTexture.loadFromFile(texturePath("test.png"))) {
         throw AssetsInitializationError(trace("Unable to load file: "
-                                                      texturePath("aircraft.png")));
+                                                      texturePath("test.png")));
     }
 
-    if (!mTestTexture.loadFromFile(texturePath("squares.png"))) {
+    if (!mSpaceShipTexture.loadFromFile(texturePath("spaceship.png"))) {
         throw AssetsInitializationError(trace("Unable to load file: "
-                                                      texturePath("squares.png")));
+                                                      texturePath("spaceship.png")));
     }
+
+    mTestTexture.setSmooth(true);
+    mSpaceShipTexture.setSmooth(true);
 }
 
-const sf::Texture &gravitar::TextureManager::getAirCraftTexture() const {
-    return mAirCraftTexture;
+const sf::Texture &gravitar::TextureManager::getSpaceShipTexture() const noexcept {
+    return mSpaceShipTexture;
 }
 
-const sf::Texture &gravitar::TextureManager::getSquaresTexture() const {
+const sf::Texture &gravitar::TextureManager::getTestTexture() const noexcept {
     return mTestTexture;
 }

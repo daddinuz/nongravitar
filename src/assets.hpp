@@ -36,8 +36,10 @@ namespace gravitar {
         friend class Game;
 
         FontsManager(const FontsManager &) = delete; // no copy-constructible
-
         FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
+
+        FontsManager(FontsManager &&) = delete; // no move-constructible
+        FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
 
         void initialize();
 
@@ -54,8 +56,10 @@ namespace gravitar {
         friend class Game;
 
         SoundtracksManager(const SoundtracksManager &) = delete; // no copy-constructible
-
         SoundtracksManager &operator=(const SoundtracksManager &) = delete; // no copy-assignable
+
+        SoundtracksManager(SoundtracksManager &&) = delete; // no move-constructible
+        SoundtracksManager &operator=(SoundtracksManager &&) = delete; // no move-assignable
 
         void initialize();
 
@@ -75,19 +79,21 @@ namespace gravitar {
         friend class Game;
 
         TextureManager(const TextureManager &) = delete; // no copy-constructible
-
         TextureManager &operator=(const TextureManager &) = delete; // no copy-assignable
+
+        TextureManager(TextureManager &&) = delete; // no move-constructible
+        TextureManager &operator=(TextureManager &&) = delete; // no move-assignable
 
         void initialize();
 
-        const sf::Texture &getAirCraftTexture() const;
+        const sf::Texture &getSpaceShipTexture() const noexcept;
 
-        const sf::Texture &getSquaresTexture() const;
+        const sf::Texture &getTestTexture() const noexcept;
 
     private:
         TextureManager() = default; // private default constructor, only Game can construct this class
 
-        sf::Texture mAirCraftTexture;
+        sf::Texture mSpaceShipTexture;
         sf::Texture mTestTexture;
     };
 }

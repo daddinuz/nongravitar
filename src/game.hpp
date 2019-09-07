@@ -39,11 +39,13 @@ namespace gravitar {
             PlanetAssault,
         };
 
-        Game() = default; // default constructor
+        Game() = default; // default-constructible
 
         Game(const Game &) = delete; // no copy-constructible
-
         Game &operator=(const Game &) = delete; // no copy-assignable
+
+        Game(Game &&) = delete; // no move-constructible
+        Game &operator=(Game &&) = delete; // no move-assignable
 
         Game &initialize();
 

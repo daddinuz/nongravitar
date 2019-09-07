@@ -25,9 +25,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "animation.hpp"
+#include "cycle.hpp"
 #include "game.hpp"
 #include "trace.hpp"
-#include "animation.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
     mSoundtracksManager.initialize();
@@ -108,9 +109,9 @@ void gravitar::Game::updateCurtainScene() {
         \/                                             \/
 
 )", mFontsManager.getMechanicalFont(), 16);
-        auto textRect = title.getGlobalBounds();
+        auto titleRect = title.getGlobalBounds();
 
-        title.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+        title.setOrigin(titleRect.left + titleRect.width / 2.0f, titleRect.top + titleRect.height / 2.0f);
         title.setPosition({windowSize.x / 2.0f, windowSize.y / 3.14f});
 
         title.setStyle(sf::Text::Italic);
@@ -118,9 +119,9 @@ void gravitar::Game::updateCurtainScene() {
         title.setOutlineColor(sf::Color(0, 32, 232));
         title.setOutlineThickness(6.0f);
 
-        textRect = title.getGlobalBounds();
-        auto left = sf::Vector2f{textRect.left + 42.0f, textRect.top + textRect.height};
-        auto right = sf::Vector2f{textRect.left - 42.0f + textRect.width, textRect.top + textRect.height};
+        titleRect = title.getGlobalBounds();
+        auto left = sf::Vector2f{titleRect.left + 42.0f, titleRect.top + titleRect.height};
+        auto right = sf::Vector2f{titleRect.left - 42.0f + titleRect.width, titleRect.top + titleRect.height};
         auto center = sf::Vector2f{windowSize.x / 2.0f, windowSize.y / 2.0f};
         const auto points = 16;
         const auto diff = (right.x - left.x) / points;
@@ -141,34 +142,37 @@ void gravitar::Game::updateCurtainScene() {
     }
 
     {
-        static DelegateAnimation<sf::Text, std::array<sf::Color, 11>> text(
-                [](auto &t, const auto &c) {
-                    static auto i = 0u;
-                    t.setFillColor(c[i++ % c.size()]);
+        static const std::array<sf::Color, 12> colors = {
+                sf::Color(255, 255, 255, 255),
+                sf::Color(245, 245, 245, 245),
+                sf::Color(235, 235, 235, 235),
+                sf::Color(225, 225, 225, 225),
+                sf::Color(215, 215, 215, 215),
+                sf::Color(205, 205, 205, 205),
+                sf::Color(200, 200, 200, 200),
+                sf::Color(215, 215, 215, 215),
+                sf::Color(225, 225, 225, 225),
+                sf::Color(235, 235, 235, 235),
+                sf::Color(245, 245, 245, 245),
+                sf::Color(255, 255, 255, 255)
+        };
+
+        static Animation<sf::Text, Cycle<const std::array<sf::Color, 12>>> space(
+                [](auto &delegate) {
+                    delegate->setFillColor(*++delegate.frames);
                 },
-                sf::Text("[SPACE]", mFontsManager.getMechanicalFont(), 22),
-                {
-                        sf::Color(255, 255, 255, 255),
-                        sf::Color(245, 245, 245, 245),
-                        sf::Color(235, 235, 235, 235),
-                        sf::Color(225, 225, 225, 225),
-                        sf::Color(215, 215, 215, 215),
-                        sf::Color(205, 205, 205, 205),
-                        sf::Color(215, 215, 215, 215),
-                        sf::Color(225, 225, 225, 225),
-                        sf::Color(235, 235, 235, 235),
-                        sf::Color(245, 245, 245, 245),
-                        sf::Color(255, 255, 255, 255),
-                },
-                sf::seconds(0.1)
+                sf::Text("[SPACE]", mFontsManager.getMechanicalFont(), 24),
+                Cycle<const std::array<sf::Color, 12>>(colors)
         );
 
-        const auto textRect = text->getLocalBounds();
-        text->setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-        text->setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
+        space.setFramePerSecond(12);
 
-        text.update(mTimer.getElapsedTime());
-        mWindow.draw(text);
+        const auto spaceRect = space->getLocalBounds();
+        space->setOrigin(spaceRect.left + spaceRect.width / 2.0f, spaceRect.top + spaceRect.height / 2.0f);
+        space->setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
+
+        space.update(mTimer.getElapsedTime());
+        mWindow.draw(space);
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
@@ -177,19 +181,24 @@ void gravitar::Game::updateCurtainScene() {
 }
 
 void gravitar::Game::updateSolarSystemScene() {
-    static auto squares = SpriteAnimation::from(
-            mTextureManager.getSquaresTexture(),
-            {0, 0},
-            {8, 1},
-            {32, 32},
-            sf::seconds(0.5));
+    static const auto spriteSheet = SpriteSheet::from(mTextureManager.getSpaceShipTexture(), 6, 8, 32, 32);
 
-    const auto squaresRect = squares.getLocalBounds();
-    squares.setOrigin(squaresRect.left + squaresRect.width / 2.0f, squaresRect.top + squaresRect.height / 2.0f);
-    squares.setPosition(sf::Vector2f(mWindow.getSize() / 2u));
+    static auto spaceShip = Animation<sf::Sprite, Cycle<SpriteSheet::FrameBuffer>>(
+            [](auto &delegate) {
+                delegate->setTextureRect(*++delegate.frames);
+            },
+            spriteSheet.getSprite({0, 0}),
+            Cycle<SpriteSheet::FrameBuffer>(*spriteSheet)
+    );
 
-    squares.update(mTimer.getElapsedTime());
-    mWindow.draw(squares);
+    spaceShip.setFramePerSecond(8);
+
+    const auto spaceShipRect = spaceShip->getLocalBounds();
+    spaceShip->setOrigin(spaceShipRect.left + spaceShipRect.width / 2.0f, spaceShipRect.top + spaceShipRect.height / 2.0f);
+    spaceShip->setPosition(sf::Vector2f(mWindow.getSize() / 2u));
+
+    spaceShip.update(mTimer.getElapsedTime());
+    mWindow.draw(spaceShip);
 }
 
 void gravitar::Game::updatePlanetAssaultScene() {
