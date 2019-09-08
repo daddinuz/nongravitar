@@ -31,8 +31,8 @@
 #include "trace.hpp"
 
 gravitar::Game &gravitar::Game::initialize() {
-    mSoundtracksManager.initialize();
     mSpriteSheetsManager.initialize();
+    mSoundtracksManager.initialize();
     mFontsManager.initialize();
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
@@ -108,7 +108,7 @@ void gravitar::Game::updateCurtainScene() {
  _______  /    \/                               \/\__|_  /
         \/                                             \/
 
-)", mFontsManager.getMechanicalFont(), 16);
+)", mFontsManager.get(FontId::Mechanical), 16);
         auto titleRect = title.getGlobalBounds();
 
         title.setOrigin(titleRect.left + titleRect.width / 2.0f, titleRect.top + titleRect.height / 2.0f);
@@ -161,7 +161,7 @@ void gravitar::Game::updateCurtainScene() {
                 [](auto &delegate) {
                     delegate->setFillColor(*++delegate.frames);
                 },
-                sf::Text("[SPACE]", mFontsManager.getMechanicalFont(), 24),
+                sf::Text("[SPACE]", mFontsManager.get(FontId::Mechanical), 24),
                 Cycle<const std::array<sf::Color, 12>>(colors)
         );
 

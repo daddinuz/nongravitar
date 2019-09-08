@@ -30,16 +30,12 @@
 
 using namespace gravitar;
 
-#define fontPath(filename) \
-    GRAVITAR_DIRECTORY "/assets/fonts/" filename
-
+static constexpr decltype(auto) FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
 static constexpr decltype(auto) SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
 static constexpr decltype(auto) TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
 
 class AssetsInitializationError final : public std::exception {
 public:
-    AssetsInitializationError() noexcept = default;
-
     explicit AssetsInitializationError(const char *msg) noexcept : msg(msg) {};
 
     [[nodiscard]] const char *what() const noexcept override {
@@ -50,15 +46,32 @@ private:
     const char *msg{nullptr};
 };
 
+/*
+ * FontsManager
+ */
+
 void FontsManager::initialize() {
-    if (!mMechanicalFont.loadFromFile(fontPath("mechanical.otf"))) {
-        throw AssetsInitializationError(trace("Unable to load file: "
-                                                      fontPath("mechanical.otf")));
+    std::array<const std::tuple<const char *, FontId>, 1> items = {
+            std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
+    };
+
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i));
     }
 }
 
-const sf::Font &FontsManager::getMechanicalFont() const noexcept {
-    return mMechanicalFont;
+void FontsManager::load(const char *const filename, const FontId id) {
+    char path[256];
+    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", FONTS_PATH, filename);
+
+    if (decltype(auto) soundtrack = mFonts[id]; !soundtrack.loadFromFile(path)) {
+        std::snprintf(path, 256, "%sUnable to load font: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
+}
+
+const sf::Font &FontsManager::get(const FontId id) const noexcept {
+    return mFonts.at(id);
 }
 
 /*

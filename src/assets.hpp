@@ -33,6 +33,10 @@
 #include "spritesheet.hpp"
 
 namespace gravitar {
+    enum class FontId {
+        Mechanical
+    };
+
     class FontsManager final {
     public:
         friend class Game;
@@ -45,12 +49,14 @@ namespace gravitar {
 
         void initialize();
 
-        const sf::Font &getMechanicalFont() const noexcept;
+        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
 
     private:
         FontsManager() = default; // private default constructor, only Game can construct this class
 
-        sf::Font mMechanicalFont;
+        void load(const char *filename, FontId id);
+
+        std::map<FontId, sf::Font> mFonts;
     };
 
     enum class SoundtrackId {
