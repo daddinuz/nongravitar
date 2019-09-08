@@ -32,7 +32,7 @@
 
 gravitar::Game &gravitar::Game::initialize() {
     mSoundtracksManager.initialize();
-    mTextureManager.initialize();
+    mSpriteSheetsManager.initialize();
     mFontsManager.initialize();
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
@@ -181,14 +181,12 @@ void gravitar::Game::updateCurtainScene() {
 }
 
 void gravitar::Game::updateSolarSystemScene() {
-    static const auto spriteSheet = SpriteSheet::from(mTextureManager.getSpaceShipTexture(), 32, 32);
-
     static auto spaceShip = Animation<sf::Sprite, Cycle<SpriteSheet::FrameBuffer>>(
             [](auto &delegate) {
                 delegate->setTextureRect(*++delegate.frames);
             },
-            spriteSheet.getSprite({0, 0}),
-            Cycle<SpriteSheet::FrameBuffer>(*spriteSheet)
+            mSpriteSheetsManager.getSpriteSheet(SpriteSheetId::SpaceShip).getSprite({0, 0}),
+            Cycle<SpriteSheet::FrameBuffer>(*mSpriteSheetsManager.getSpriteSheet(SpriteSheetId::SpaceShip))
     );
 
     spaceShip.setFramePerSecond(8);

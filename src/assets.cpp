@@ -28,14 +28,15 @@
 #include "assets.hpp"
 #include "trace.hpp"
 
+using namespace gravitar;
+
 #define fontPath(filename) \
     GRAVITAR_DIRECTORY "/assets/fonts/" filename
 
 #define soundtrackPath(filename) \
     GRAVITAR_DIRECTORY "/assets/soundtracks/" filename
 
-#define texturePath(filename) \
-    GRAVITAR_DIRECTORY "/assets/textures/" filename
+static constexpr decltype(auto) TEXTURE_PATH = GRAVITAR_DIRECTORY "/assets/textures";
 
 class AssetsInitializationError final : public std::exception {
 public:
@@ -51,18 +52,18 @@ private:
     const char *msg{nullptr};
 };
 
-void gravitar::FontsManager::initialize() {
+void FontsManager::initialize() {
     if (!mMechanicalFont.loadFromFile(fontPath("mechanical.otf"))) {
         throw AssetsInitializationError(trace("Unable to load file: "
                                                       fontPath("mechanical.otf")));
     }
 }
 
-const sf::Font &gravitar::FontsManager::getMechanicalFont() const noexcept {
+const sf::Font &FontsManager::getMechanicalFont() const noexcept {
     return mMechanicalFont;
 }
 
-void gravitar::SoundtracksManager::initialize() {
+void SoundtracksManager::initialize() {
     if (mTitleSoundtrack.openFromFile(soundtrackPath("main-theme.wav"))) {
         mTitleSoundtrack.setLoop(true);
     } else {
@@ -71,7 +72,7 @@ void gravitar::SoundtracksManager::initialize() {
     }
 }
 
-void gravitar::SoundtracksManager::togglePlaying() noexcept {
+void SoundtracksManager::togglePlaying() noexcept {
     if (mCurrentlyPlaying) {
         switch (mCurrentlyPlaying->getStatus()) {
             case sf::Music::Stopped:
@@ -84,7 +85,7 @@ void gravitar::SoundtracksManager::togglePlaying() noexcept {
     }
 }
 
-void gravitar::SoundtracksManager::playMainTheme() noexcept {
+void SoundtracksManager::playMainTheme() noexcept {
     if (mCurrentlyPlaying) {
         mCurrentlyPlaying->stop();
     }
@@ -93,25 +94,29 @@ void gravitar::SoundtracksManager::playMainTheme() noexcept {
     mCurrentlyPlaying = &mTitleSoundtrack;
 }
 
-void gravitar::TextureManager::initialize() {
-    if (!mTestTexture.loadFromFile(texturePath("test.png"))) {
-        throw AssetsInitializationError(trace("Unable to load file: "
-                                                      texturePath("test.png")));
-    }
+void SpriteSheetsManager::initialize() {
+    std::array<const std::tuple<const char *, sf::Vector2u, SpriteSheetId>, 1> items = {
+            std::make_tuple<const char *, sf::Vector2u, SpriteSheetId>("spaceship.png", {32, 32}, SpriteSheetId::SpaceShip),
+    };
 
-    if (!mSpaceShipTexture.loadFromFile(texturePath("spaceship.png"))) {
-        throw AssetsInitializationError(trace("Unable to load file: "
-                                                      texturePath("spaceship.png")));
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i), std::get<2>(i));
     }
-
-    mTestTexture.setSmooth(true);
-    mSpaceShipTexture.setSmooth(true);
 }
 
-const sf::Texture &gravitar::TextureManager::getSpaceShipTexture() const noexcept {
-    return mSpaceShipTexture;
+const SpriteSheet &SpriteSheetsManager::getSpriteSheet(SpriteSheetId id) const noexcept {
+    return mSpriteSheets.at(id);
 }
 
-const sf::Texture &gravitar::TextureManager::getTestTexture() const noexcept {
-    return mTestTexture;
+void SpriteSheetsManager::load(const char *const filename, const sf::Vector2u frameSize, const SpriteSheetId id) {
+    char path[256];
+    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURE_PATH, filename);
+
+    if (decltype(auto) texture = mTextures[id]; texture.loadFromFile(path)) {
+        texture.setSmooth(true);
+        mSpriteSheets.emplace(id, SpriteSheet::from(texture, frameSize.x, frameSize.y));
+    } else {
+        std::snprintf(path, 256, "%sUnable to load texture: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
 }

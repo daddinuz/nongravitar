@@ -42,7 +42,7 @@ namespace gravitar {
         SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
-        SpriteSheet(SpriteSheet &&) = delete; // no move-constructible;
+        SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
         SpriteSheet &operator=(SpriteSheet &&) = delete; // no move-assignable;
 
         [[nodiscard]] static SpriteSheet

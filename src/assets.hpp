@@ -29,6 +29,7 @@
 
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include "spritesheet.hpp"
 
 namespace gravitar {
     class FontsManager final {
@@ -74,26 +75,30 @@ namespace gravitar {
         sf::Music *mCurrentlyPlaying{nullptr};
     };
 
-    class TextureManager final {
+    enum class SpriteSheetId {
+        SpaceShip,
+    };
+
+    class SpriteSheetsManager final {
     public:
         friend class Game;
 
-        TextureManager(const TextureManager &) = delete; // no copy-constructible
-        TextureManager &operator=(const TextureManager &) = delete; // no copy-assignable
+        SpriteSheetsManager(const SpriteSheetsManager &) = delete; // no copy-constructible
+        SpriteSheetsManager &operator=(const SpriteSheetsManager &) = delete; // no copy-assignable
 
-        TextureManager(TextureManager &&) = delete; // no move-constructible
-        TextureManager &operator=(TextureManager &&) = delete; // no move-assignable
+        SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
+        SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
         void initialize();
 
-        const sf::Texture &getSpaceShipTexture() const noexcept;
-
-        const sf::Texture &getTestTexture() const noexcept;
+        [[nodiscard]] const SpriteSheet &getSpriteSheet(SpriteSheetId id) const noexcept;
 
     private:
-        TextureManager() = default; // private default constructor, only Game can construct this class
+        SpriteSheetsManager() = default; // private default constructor, only Game can construct this class
 
-        sf::Texture mSpaceShipTexture;
-        sf::Texture mTestTexture;
+        void load(const char *filename, sf::Vector2u frameSize, SpriteSheetId id);
+
+        std::map<SpriteSheetId, sf::Texture> mTextures;
+        std::map<SpriteSheetId, SpriteSheet> mSpriteSheets;
     };
 }
