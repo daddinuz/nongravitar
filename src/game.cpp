@@ -40,7 +40,7 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setFramerateLimit(60);
     mWindow.setActive(true);
 
-    mSoundtracksManager.playMainTheme();
+    mSoundtracksManager.play(SoundtrackId::MainTheme);
     mScene = Scene::Curtain;
 
     return *this;
@@ -185,8 +185,8 @@ void gravitar::Game::updateSolarSystemScene() {
             [](auto &delegate) {
                 delegate->setTextureRect(*++delegate.frames);
             },
-            mSpriteSheetsManager.getSpriteSheet(SpriteSheetId::SpaceShip).getSprite({0, 0}),
-            Cycle<SpriteSheet::FrameBuffer>(*mSpriteSheetsManager.getSpriteSheet(SpriteSheetId::SpaceShip))
+            mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0}),
+            Cycle<SpriteSheet::FrameBuffer>(*mSpriteSheetsManager.get(SpriteSheetId::SpaceShip))
     );
 
     spaceShip.setFramePerSecond(8);

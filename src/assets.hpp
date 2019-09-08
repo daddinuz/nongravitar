@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <map>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include "spritesheet.hpp"
@@ -52,6 +53,10 @@ namespace gravitar {
         sf::Font mMechanicalFont;
     };
 
+    enum class SoundtrackId {
+        MainTheme,
+    };
+
     class SoundtracksManager final {
     public:
         friend class Game;
@@ -66,12 +71,14 @@ namespace gravitar {
 
         void togglePlaying() noexcept;
 
-        void playMainTheme() noexcept;
+        void play(SoundtrackId id) noexcept;
 
     private:
         SoundtracksManager() = default; // private default constructor, only Game can construct this class
 
-        sf::Music mTitleSoundtrack;
+        void load(const char *filename, SoundtrackId id);
+
+        std::map<SoundtrackId, sf::Music> mSoundtracks;
         sf::Music *mCurrentlyPlaying{nullptr};
     };
 
@@ -91,7 +98,7 @@ namespace gravitar {
 
         void initialize();
 
-        [[nodiscard]] const SpriteSheet &getSpriteSheet(SpriteSheetId id) const noexcept;
+        [[nodiscard]] const SpriteSheet &get(SpriteSheetId id) const noexcept;
 
     private:
         SpriteSheetsManager() = default; // private default constructor, only Game can construct this class

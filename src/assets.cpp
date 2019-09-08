@@ -33,10 +33,8 @@ using namespace gravitar;
 #define fontPath(filename) \
     GRAVITAR_DIRECTORY "/assets/fonts/" filename
 
-#define soundtrackPath(filename) \
-    GRAVITAR_DIRECTORY "/assets/soundtracks/" filename
-
-static constexpr decltype(auto) TEXTURE_PATH = GRAVITAR_DIRECTORY "/assets/textures";
+static constexpr decltype(auto) SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
+static constexpr decltype(auto) TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
 
 class AssetsInitializationError final : public std::exception {
 public:
@@ -63,36 +61,57 @@ const sf::Font &FontsManager::getMechanicalFont() const noexcept {
     return mMechanicalFont;
 }
 
+/*
+ * SoundtracksManager
+ */
+
 void SoundtracksManager::initialize() {
-    if (mTitleSoundtrack.openFromFile(soundtrackPath("main-theme.wav"))) {
-        mTitleSoundtrack.setLoop(true);
-    } else {
-        throw AssetsInitializationError(trace("Unable to load file: "
-                                                      soundtrackPath("main-theme.wav")));
+    std::array<const std::tuple<const char *, SoundtrackId>, 1> items = {
+            std::make_tuple<const char *, SoundtrackId>("main-theme.wav", SoundtrackId::MainTheme),
+    };
+
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i));
     }
 }
 
 void SoundtracksManager::togglePlaying() noexcept {
     if (mCurrentlyPlaying) {
         switch (mCurrentlyPlaying->getStatus()) {
-            case sf::Music::Stopped:
-            case sf::Music::Paused:mCurrentlyPlaying->play();
+            case sf::Music::Playing: mCurrentlyPlaying->pause();
                 break;
 
-            default: mCurrentlyPlaying->pause();
+            default: mCurrentlyPlaying->play();
                 break;
         }
     }
 }
 
-void SoundtracksManager::playMainTheme() noexcept {
+void SoundtracksManager::play(const SoundtrackId id) noexcept {
     if (mCurrentlyPlaying) {
         mCurrentlyPlaying->stop();
     }
 
-    mTitleSoundtrack.play();
-    mCurrentlyPlaying = &mTitleSoundtrack;
+    decltype(auto) soundtrack = mSoundtracks.at(id);
+    mCurrentlyPlaying = &soundtrack;
+    soundtrack.play();
 }
+
+void SoundtracksManager::load(const char *const filename, const SoundtrackId id) {
+    char path[256];
+    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", SOUNDTRACKS_PATH, filename);
+
+    if (decltype(auto) soundtrack = mSoundtracks[id]; soundtrack.openFromFile(path)) {
+        soundtrack.setLoop(true);
+    } else {
+        std::snprintf(path, 256, "%sUnable to load soundtrack: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
+}
+
+/*
+ * SpriteSheetsManager
+ */
 
 void SpriteSheetsManager::initialize() {
     std::array<const std::tuple<const char *, sf::Vector2u, SpriteSheetId>, 1> items = {
@@ -104,13 +123,13 @@ void SpriteSheetsManager::initialize() {
     }
 }
 
-const SpriteSheet &SpriteSheetsManager::getSpriteSheet(SpriteSheetId id) const noexcept {
+const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
     return mSpriteSheets.at(id);
 }
 
 void SpriteSheetsManager::load(const char *const filename, const sf::Vector2u frameSize, const SpriteSheetId id) {
     char path[256];
-    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURE_PATH, filename);
+    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURES_PATH, filename);
 
     if (decltype(auto) texture = mTextures[id]; texture.loadFromFile(path)) {
         texture.setSmooth(true);
