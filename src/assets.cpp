@@ -78,9 +78,9 @@ const sf::Font &FontsManager::get(const FontId id) const noexcept {
  * SoundtracksManager
  */
 
-void SoundtracksManager::initialize() {
-    std::array<const std::tuple<const char *, SoundtrackId>, 1> items = {
-            std::make_tuple<const char *, SoundtrackId>("main-theme.wav", SoundtrackId::MainTheme),
+void SoundTracksManager::initialize() {
+    std::array<const std::tuple<const char *, SoundTrackId>, 1> items = {
+            std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
     };
 
     for (decltype(auto) i : items) {
@@ -88,7 +88,7 @@ void SoundtracksManager::initialize() {
     }
 }
 
-void SoundtracksManager::togglePlaying() noexcept {
+void SoundTracksManager::togglePlaying() noexcept {
     if (mCurrentlyPlaying) {
         switch (mCurrentlyPlaying->getStatus()) {
             case sf::Music::Playing: mCurrentlyPlaying->pause();
@@ -100,7 +100,7 @@ void SoundtracksManager::togglePlaying() noexcept {
     }
 }
 
-void SoundtracksManager::play(const SoundtrackId id) noexcept {
+void SoundTracksManager::play(const SoundTrackId id) noexcept {
     if (mCurrentlyPlaying) {
         mCurrentlyPlaying->stop();
     }
@@ -110,7 +110,7 @@ void SoundtracksManager::play(const SoundtrackId id) noexcept {
     soundtrack.play();
 }
 
-void SoundtracksManager::load(const char *const filename, const SoundtrackId id) {
+void SoundTracksManager::load(const char *const filename, const SoundTrackId id) {
     char path[256];
     std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", SOUNDTRACKS_PATH, filename);
 

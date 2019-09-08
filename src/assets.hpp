@@ -59,32 +59,32 @@ namespace gravitar {
         std::map<FontId, sf::Font> mFonts;
     };
 
-    enum class SoundtrackId {
+    enum class SoundTrackId {
         MainTheme,
     };
 
-    class SoundtracksManager final {
+    class SoundTracksManager final {
     public:
         friend class Game;
 
-        SoundtracksManager(const SoundtracksManager &) = delete; // no copy-constructible
-        SoundtracksManager &operator=(const SoundtracksManager &) = delete; // no copy-assignable
+        SoundTracksManager(const SoundTracksManager &) = delete; // no copy-constructible
+        SoundTracksManager &operator=(const SoundTracksManager &) = delete; // no copy-assignable
 
-        SoundtracksManager(SoundtracksManager &&) = delete; // no move-constructible
-        SoundtracksManager &operator=(SoundtracksManager &&) = delete; // no move-assignable
+        SoundTracksManager(SoundTracksManager &&) = delete; // no move-constructible
+        SoundTracksManager &operator=(SoundTracksManager &&) = delete; // no move-assignable
 
         void initialize();
 
         void togglePlaying() noexcept;
 
-        void play(SoundtrackId id) noexcept;
+        void play(SoundTrackId id) noexcept;
 
     private:
-        SoundtracksManager() = default; // private default constructor, only Game can construct this class
+        SoundTracksManager() = default; // private default constructor, only Game can construct this class
 
-        void load(const char *filename, SoundtrackId id);
+        void load(const char *filename, SoundTrackId id);
 
-        std::map<SoundtrackId, sf::Music> mSoundtracks;
+        std::map<SoundTrackId, sf::Music> mSoundtracks;
         sf::Music *mCurrentlyPlaying{nullptr};
     };
 

@@ -32,7 +32,7 @@
 
 gravitar::Game &gravitar::Game::initialize() {
     mSpriteSheetsManager.initialize();
-    mSoundtracksManager.initialize();
+    mSoundTracksManager.initialize();
     mFontsManager.initialize();
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
@@ -40,7 +40,7 @@ gravitar::Game &gravitar::Game::initialize() {
     mWindow.setFramerateLimit(60);
     mWindow.setActive(true);
 
-    mSoundtracksManager.play(SoundtrackId::MainTheme);
+    mSoundTracksManager.play(SoundTrackId::MainTheme);
     mScene = Scene::Curtain;
 
     return *this;
@@ -80,7 +80,7 @@ void gravitar::Game::run() {
                         case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
                             break;
 
-                        case sf::Keyboard::F6: mSoundtracksManager.togglePlaying();
+                        case sf::Keyboard::F6: mSoundTracksManager.togglePlaying();
                             break;
 
                         default: break;
