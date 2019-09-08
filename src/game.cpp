@@ -181,7 +181,7 @@ void gravitar::Game::updateCurtainScene() {
 }
 
 void gravitar::Game::updateSolarSystemScene() {
-    static const auto spriteSheet = SpriteSheet::from(mTextureManager.getSpaceShipTexture(), 6, 8, 32, 32);
+    static const auto spriteSheet = SpriteSheet::from(mTextureManager.getSpaceShipTexture(), 32, 32);
 
     static auto spaceShip = Animation<sf::Sprite, Cycle<SpriteSheet::FrameBuffer>>(
             [](auto &delegate) {

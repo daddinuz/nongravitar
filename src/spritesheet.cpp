@@ -30,13 +30,14 @@
 
 using namespace gravitar;
 
-SpriteSheet::SpriteSheet(const sf::Texture &texture, const unsigned rows,
-                         const unsigned columns, std::vector<Frame> &&frames) noexcept :
-        mFrames(std::move(frames)), mTexture(texture), mRows(rows), mColumns(columns) {}
+SpriteSheet::SpriteSheet(const sf::Texture &texture, std::vector<Frame> &&frames, sf::Vector2u size) noexcept :
+        mFrames(std::move(frames)), mTexture(texture), mSize(size) {}
 
-SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned rows, const unsigned columns,
-                              const unsigned frameWidth, const unsigned frameHeight, sf::Vector2u startCoord) {
+SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned frameWidth, const unsigned frameHeight,
+                              const sf::Vector2u size, const sf::Vector2u startCoord) {
     const auto[textureWidth, textureHeight] = texture.getSize();
+    const auto[columns, rows] = size;
+
     if (startCoord.x + columns * frameWidth > textureWidth || startCoord.y + rows * frameHeight > textureHeight) {
         throw std::invalid_argument(trace("bad dimensions supplied"));
     }
@@ -52,7 +53,13 @@ SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned rows, c
         }
     }
 
-    return SpriteSheet(texture, rows, columns, std::move(frames));
+    return SpriteSheet(texture, std::move(frames), size);
+}
+
+SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned frameWidth, const unsigned frameHeight,
+                              const sf::Vector2u startCoord) {
+    const auto[textureWidth, textureHeight] = texture.getSize();
+    return SpriteSheet::from(texture, frameWidth, frameHeight, {textureWidth / frameWidth, textureHeight / frameHeight}, startCoord);
 }
 
 const std::vector<SpriteSheet::Frame> *SpriteSheet::operator->() const noexcept {
@@ -68,15 +75,19 @@ const sf::Texture &SpriteSheet::getTexture() const noexcept {
 }
 
 const SpriteSheet::Frame &SpriteSheet::getFrame(const sf::Vector2u &frameCoord) const {
-    return mFrames.at(frameCoord.x + frameCoord.y * mColumns);
+    return mFrames.at(getFrameIndex(frameCoord));
 }
 
 sf::Sprite SpriteSheet::getSprite(const sf::Vector2u &frameCoord) const {
     return sf::Sprite(mTexture, getFrame(frameCoord));
 }
 
+const sf::Vector2u &SpriteSheet::getSize() const noexcept {
+    return mSize;
+}
+
 SpriteSheet::const_iterator SpriteSheet::getFrameIterator(const sf::Vector2u &frameCoord) const {
-    const auto offset = frameCoord.x + frameCoord.y * mColumns;
+    const auto offset = getFrameIndex(frameCoord);
 
     if (offset >= mFrames.size()) {
         throw std::invalid_argument(trace("bad coord supplied"));
@@ -86,11 +97,15 @@ SpriteSheet::const_iterator SpriteSheet::getFrameIterator(const sf::Vector2u &fr
 }
 
 SpriteSheet::const_reverse_iterator SpriteSheet::getReverseFrameIterator(const sf::Vector2u &frameCoord) const {
-    const auto offset = frameCoord.x + frameCoord.y * mColumns;
+    const auto offset = getFrameIndex(frameCoord);
 
     if (offset >= mFrames.size()) {
         throw std::invalid_argument(trace("bad coord supplied"));
     }
 
     return mFrames.crbegin() + offset;
+}
+
+std::size_t SpriteSheet::getFrameIndex(const sf::Vector2u &frameCoord) const noexcept {
+    return frameCoord.x + frameCoord.y * mSize.x;
 }
