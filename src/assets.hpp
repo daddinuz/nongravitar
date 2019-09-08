@@ -28,11 +28,59 @@
 #pragma once
 
 #include <map>
+#include <memory>
+#include <typeindex>
+
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+
+#include "animation.hpp"
+#include "cycle.hpp"
 #include "spritesheet.hpp"
+#include "wrappers.hpp"
 
 namespace gravitar {
+    class FontsManager;
+
+    namespace AnimationId {
+        struct Continue final {
+            Continue() = delete; // no default-constructible
+            Continue(const Continue &) = delete; // no copy-constructible
+            Continue(Continue &&) = delete; // no move-constructible
+
+            using Drawable = sf::Text;
+            using Frame = Cycle<const std::array<sf::Uint8, 8>>;
+            using Type = Animation<Drawable, Frame>;
+        };
+    }
+
+    class AnimationsManager {
+    public:
+        friend class Game;
+
+        AnimationsManager(const AnimationsManager &) = delete; // no copy-constructible
+        AnimationsManager &operator=(const AnimationsManager &) = delete; // no copy-assignable
+
+        AnimationsManager(AnimationsManager &&) = delete; // no move-constructible
+        AnimationsManager &operator=(AnimationsManager &&) = delete; // no move-assignable
+
+        void initialize(const FontsManager &fontsManager);
+
+        template<typename A>
+        typename A::Type &get() noexcept;
+
+    private:
+        AnimationsManager() = default; // private default constructor, only Game can construct this class
+
+        template<typename T>
+        inline constexpr decltype(auto) getTypeIndex() noexcept {
+            return std::type_index(typeid(T));
+        }
+
+        std::map<std::type_index, std::unique_ptr<sf::Drawable>> mAnimations;
+        const FontsManager *mFontsManager{nullptr};
+    };
+
     enum class FontId {
         Mechanical
     };
@@ -88,6 +136,33 @@ namespace gravitar {
         sf::Music *mCurrentlyPlaying{nullptr};
     };
 
+    enum class SpriteId {
+        GravitarTitle,
+    };
+
+    class SpritesManager final {
+    public:
+        friend class Game;
+
+        SpritesManager(const SpritesManager &) = delete; // no copy-constructible
+        SpritesManager &operator=(const SpritesManager &) = delete; // no copy-assignable
+
+        SpritesManager(SpritesManager &&) = delete; // no move-constructible
+        SpritesManager &operator=(SpritesManager &&) = delete; // no move-assignable
+
+        void initialize();
+
+        [[nodiscard]] TransformableDrawable<sf::Sprite> &get(SpriteId id) noexcept;
+
+    private:
+        SpritesManager() = default; // private default constructor, only Game can construct this class
+
+        void load(const char *filename, SpriteId id);
+
+        std::map<SpriteId, sf::Texture> mTextures;
+        std::map<SpriteId, TransformableDrawable<sf::Sprite>> mSprites;
+    };
+
     enum class SpriteSheetId {
         SpaceShip,
     };
@@ -114,4 +189,13 @@ namespace gravitar {
         std::map<SpriteSheetId, sf::Texture> mTextures;
         std::map<SpriteSheetId, SpriteSheet> mSpriteSheets;
     };
+
+    /*
+     * Implementation
+     */
+
+    template<typename A>
+    typename A::Type &AnimationsManager::get() noexcept {
+        return dynamic_cast<typename A::Type &>(*mAnimations.at(getTypeIndex<A>()));
+    }
 }

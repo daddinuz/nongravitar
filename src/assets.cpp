@@ -47,6 +47,41 @@ private:
 };
 
 /*
+ * AnimationsManager
+ */
+
+static const std::array<sf::Uint8, 8> WHITE_TRANSITION = {
+        255,
+        240,
+        220,
+        200,
+        180,
+        200,
+        220,
+        240,
+};
+
+void AnimationsManager::initialize(const FontsManager &fontsManager) {
+    mFontsManager = &fontsManager;
+
+    decltype(auto) pressSpace = std::make_unique<AnimationId::Continue::Type>(
+            8,
+            [](auto &delegate) {
+                sf::Color fillColor = delegate->getFillColor();
+                fillColor.a = *++delegate.frames;
+                delegate->setFillColor(fillColor);
+            },
+            AnimationId::Continue::Drawable("[SPACE]", mFontsManager->get(FontId::Mechanical), 24),
+            AnimationId::Continue::Frame(WHITE_TRANSITION)
+    );
+
+    const auto pressSpaceBounds = (*pressSpace)->getLocalBounds();
+    (*pressSpace)->setOrigin(pressSpaceBounds.left + pressSpaceBounds.width / 2.0f, pressSpaceBounds.top + pressSpaceBounds.height / 2.0f);
+
+    mAnimations[getTypeIndex<AnimationId::Continue>()] = std::move(pressSpace);
+}
+
+/*
  * FontsManager
  */
 
@@ -118,6 +153,42 @@ void SoundTracksManager::load(const char *const filename, const SoundTrackId id)
         soundtrack.setLoop(true);
     } else {
         std::snprintf(path, 256, "%sUnable to load soundtrack: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
+}
+
+/*
+ * SpritesManager
+ */
+
+void SpritesManager::initialize() {
+    std::array<const std::tuple<const char *, SpriteId>, 1> items = {
+            std::make_tuple<const char *, SpriteId>("gravitar-title.png", SpriteId::GravitarTitle),
+    };
+
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+}
+
+TransformableDrawable<sf::Sprite> &SpritesManager::get(SpriteId id) noexcept {
+    return mSprites.at(id);
+}
+
+void SpritesManager::load(const char *const filename, const SpriteId id) {
+    char path[256];
+    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURES_PATH, filename);
+
+    if (decltype(auto) texture = mTextures[id]; texture.loadFromFile(path)) {
+        texture.setSmooth(true);
+
+        decltype(auto) sprite = sf::Sprite(texture);
+        decltype(auto) spriteBounds = sprite.getLocalBounds();
+
+        sprite.setOrigin(spriteBounds.left + spriteBounds.width / 2.0f, spriteBounds.top + spriteBounds.height / 2.0f);
+        mSprites.emplace(id, std::move(sprite));
+    } else {
+        std::snprintf(path, 256, "%sUnable to load texture: %s", __TRACE__, filename);
         throw AssetsInitializationError(path);
     }
 }

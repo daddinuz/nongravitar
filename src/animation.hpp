@@ -28,7 +28,9 @@
 #pragma once
 
 #include <functional>
+
 #include <SFML/Graphics.hpp>
+
 #include "spritesheet.hpp"
 #include "trace.hpp"
 
@@ -68,7 +70,7 @@ namespace gravitar {
 
         Animation() = delete; // no default-constructible
 
-        Animation(Update update, D &&drawable, F &&frames);
+        Animation(unsigned fps, Update update, D &&drawable, F &&frames);
 
         Animation(const Animation &) = delete; // no copy-constructible
         Animation &operator=(const Animation &) = delete; // no copy-assignable
@@ -84,7 +86,7 @@ namespace gravitar {
 
         [[nodiscard]] const sf::Time &getTimer() const;
 
-        void setFramePerSecond(unsigned value);
+        void setFramePerSecond(unsigned value) noexcept;
 
         [[nodiscard]] unsigned getFramePerSecond() const;
 
@@ -133,8 +135,8 @@ namespace gravitar {
     }
 
     template<typename D, typename F>
-    Animation<D, F>::Animation(Animation::Update update, D &&drawable, F &&frames) :
-            mData(std::move(drawable), std::move(frames)), mUpdate{update} {}
+    Animation<D, F>::Animation(unsigned fps, Animation::Update update, D &&drawable, F &&frames) :
+            mData(std::move(drawable), std::move(frames)), mUpdate{update} { setFramePerSecond(fps); }
 
     template<typename T, typename U>
     void Animation<T, U>::update(const sf::Time &time) {
@@ -164,12 +166,8 @@ namespace gravitar {
     }
 
     template<typename D, typename F>
-    void Animation<D, F>::setFramePerSecond(unsigned value) {
-        if (value == 0 || value >= 128) {
-            throw std::invalid_argument(trace("invalid value for FPS supplied"));
-        }
-
-        mFrameTime = sf::seconds(1.0f / static_cast<float>(value));
+    void Animation<D, F>::setFramePerSecond(unsigned value) noexcept {
+        mFrameTime = sf::seconds(1.0f / ((value > 0u) ? static_cast<float>(value) : std::numeric_limits<float>::min()));
     }
 
     template<typename D, typename F>

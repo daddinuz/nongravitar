@@ -27,8 +27,9 @@
 
 #pragma once
 
-#include "assets.hpp"
 #include <SFML/Graphics.hpp>
+
+#include "assets.hpp"
 
 namespace gravitar {
     class Game final {
@@ -64,6 +65,8 @@ namespace gravitar {
         Scene mScene{Scene::Curtain};
         FontsManager mFontsManager;
         SoundTracksManager mSoundTracksManager;
+        SpritesManager mSpritesManager;
         SpriteSheetsManager mSpriteSheetsManager;
+        AnimationsManager mAnimationsManager;
     };
 }
