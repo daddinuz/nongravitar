@@ -64,7 +64,7 @@ static const std::array<sf::Uint8, 8> WHITE_TRANSITION = {
 void AnimationsManager::initialize(const FontsManager &fontsManager) {
     mFontsManager = &fontsManager;
 
-    decltype(auto) pressSpace = std::make_unique<AnimationId::Continue::Type>(
+    decltype(auto) continueAnimation = std::make_unique<AnimationId::Continue::Type>(
             8,
             [](auto &delegate) {
                 sf::Color fillColor = delegate->getFillColor();
@@ -75,10 +75,10 @@ void AnimationsManager::initialize(const FontsManager &fontsManager) {
             AnimationId::Continue::Frame(WHITE_TRANSITION)
     );
 
-    const auto pressSpaceBounds = (*pressSpace)->getLocalBounds();
-    (*pressSpace)->setOrigin(pressSpaceBounds.left + pressSpaceBounds.width / 2.0f, pressSpaceBounds.top + pressSpaceBounds.height / 2.0f);
+    const auto continueAnimationBounuds = (*continueAnimation)->getLocalBounds();
+    (*continueAnimation)->setOrigin(continueAnimationBounuds.left + continueAnimationBounuds.width / 2.0f, continueAnimationBounuds.top + continueAnimationBounuds.height / 2.0f);
 
-    mAnimations[getTypeIndex<AnimationId::Continue>()] = std::move(pressSpace);
+    mAnimations[getTypeIndex<AnimationId::Continue>()] = std::move(continueAnimation);
 }
 
 /*
