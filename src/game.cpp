@@ -26,7 +26,9 @@
  */
 
 #include "animation.hpp"
+#include "components.hpp"
 #include "game.hpp"
+#include "helpers.hpp"
 #include "trace.hpp"
 
 using namespace gravitar;
@@ -45,6 +47,8 @@ Game &Game::initialize() {
 
     mSoundTracksManager.play(SoundTrackId::MainTheme);
     mScene = Scene::Curtain;
+
+    initializeSolarSystemScene();
 
     return *this;
 }
@@ -97,6 +101,23 @@ void Game::run() {
     }
 }
 
+void Game::initializeSolarSystemScene() {
+    using namespace components;
+
+    decltype(auto) player = mRegistry.create();
+    decltype(auto) sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
+    decltype(auto) bounds = sprite.getLocalBounds();
+
+    sprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+
+    mRegistry.assign < entt::tag < "player"_hs >> (player);
+    mRegistry.assign<Position>(player, 400.0f, 300.0f);
+    mRegistry.assign<Velocity>(player);
+    mRegistry.assign<Speed>(player, 200.0f);
+    mRegistry.assign<RotationSpeed>(player, 360.0f);
+    mRegistry.assign<sf::Sprite>(player, std::move(sprite));
+}
+
 void Game::updateCurtainScene() {
     decltype(auto) windowSize = mWindow.getSize();
     decltype(auto) title = mSpritesManager.get(SpriteId::GravitarTitle);
@@ -116,7 +137,26 @@ void Game::updateCurtainScene() {
 }
 
 void Game::updateSolarSystemScene() {
-    throw std::runtime_error(trace("unimplemented"));
+    using namespace components;
+
+    mRegistry.view<Position, Velocity, Speed, RotationSpeed, sf::Sprite>().each([this](auto &position, auto &velocity, const auto &speed, const auto &angularSpeed, auto &sprite) {
+        decltype(auto) mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
+        decltype(auto) rotation = helpers::signum(helpers::shortestRotation(
+                sprite.getRotation(),
+                helpers::rotation(*position, mousePosition))
+        ) * (*angularSpeed) * mTimer.getElapsedTime().asSeconds();
+
+        sprite.rotate(rotation);
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+            *velocity = helpers::makeVector2(sprite.getRotation(), *speed);
+        }
+
+        *position += *velocity * mTimer.getElapsedTime().asSeconds();
+
+        sprite.setPosition(*position);
+        mWindow.draw(sprite);
+    });
 }
 
 void Game::updatePlanetAssaultScene() {

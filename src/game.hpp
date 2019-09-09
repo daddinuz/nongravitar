@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 
 #include "assets.hpp"
@@ -55,10 +56,13 @@ namespace gravitar {
         void run();
 
     private:
+        void initializeSolarSystemScene();
+
         void updateCurtainScene();
         void updateSolarSystemScene();
         void updatePlanetAssaultScene();
 
+        entt::registry mRegistry;
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};
         sf::Event mEvent{};

@@ -29,6 +29,10 @@
 
 using namespace gravitar;
 
+std::ostream &helpers::operator<<(std::ostream &os, const sf::Vertex &obj) {
+    return os << "Vertex(" << obj.position.x << ", " << obj.position.y << ')';
+}
+
 float helpers::deg2rad(const float deg) {
     return deg * static_cast<float>(M_PI) / 180.0f;
 }
@@ -63,8 +67,4 @@ sf::Vertex helpers::normalized(const sf::Vertex &origin, const sf::Vertex &point
 
 sf::Vertex helpers::normalized(const sf::Vertex &point) {
     return sf::Vertex(normalized(point.position));
-}
-
-std::ostream &helpers::operator<<(std::ostream &os, const sf::Vertex &obj) {
-    return os << "Vertex(" << obj.position.x << ", " << obj.position.y << ')';
 }

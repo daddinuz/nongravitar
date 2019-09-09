@@ -31,7 +31,20 @@
 
 #include <SFML/Graphics.hpp>
 
+// TODO move definitions at the bottom of the file
 namespace gravitar::helpers {
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
+        return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
+    }
+
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
+        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
+    }
+
+    std::ostream &operator<<(std::ostream &os, const sf::Vertex &obj);
+
     float deg2rad(float deg);
 
     float rad2deg(float rad);
@@ -104,130 +117,46 @@ namespace gravitar::helpers {
     sf::Vertex normalized(const sf::Vertex &point);
 
     template<typename T>
-    class Vec2 final {
+    sf::Vector2<T> makeVector2(float angle, const T magnitude) {
+        angle = deg2rad(angle);
+        return sf::Vector2<T>(std::cos(angle), std::sin(angle)) * magnitude;
+    }
+
+    template<typename T>
+    class Wrapper {
     public:
-        using Type = sf::Vector2<T>;
-
-        Vec2() = delete;
-
         template<typename ...Args>
-        explicit Vec2(Args &&... args);
+        explicit Wrapper(Args &&... args) : mInner(std::forward<Args>(args)...) {}
 
-        Vec2(const Vec2 &) = delete;
-        Vec2 &operator=(const Vec2 &) = delete;
+        Wrapper(Wrapper<T> &&) noexcept = default; // move-constructible required because of entt registry
+        Wrapper &operator=(Wrapper<T> &&) noexcept = default; // move-assignable required because of entt registry
 
-        Vec2(Vec2 &&) noexcept = default;
-        Vec2 &operator=(Vec2 &&) noexcept = default;
+        [[nodiscard]] T &operator*() noexcept {
+            return mInner;
+        }
 
-        [[nodiscard]] Type &operator*() noexcept;
-        [[nodiscard]] const Type &operator*() const noexcept;
+        [[nodiscard]] const T &operator*() const noexcept {
+            return mInner;
+        }
 
-        [[nodiscard]] Type *operator->() noexcept;
-        [[nodiscard]] const Type *operator->() const noexcept;
+        [[nodiscard]] T *operator->() noexcept {
+            return &mInner;
+        }
 
-        [[nodiscard]] float getRotation() const noexcept;
-        [[nodiscard]] float getRotation(const Type &other) const noexcept;
+        [[nodiscard]] const T *operator->() const noexcept {
+            return &mInner;
+        }
 
-        [[nodiscard]] float getMagnitude() const noexcept;
-        [[nodiscard]] float getMagnitude(const Type &other) const noexcept;
-
-        void rotate(float angle) noexcept;
-        void setRotation(float angle) noexcept;
-
-        [[nodiscard]] Type &normalize() noexcept;
-        [[nodiscard]] Type &normalize(const Type &other) noexcept;
+        virtual ~Wrapper() = 0;
 
     private:
-        Type mInner;
+        T mInner;
     };
 
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
-        return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
-    }
-
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const Vec2<T> &obj) {
-        return os << "Vec2<" << typeid(T).name() << ">(" << obj->x << ", " << obj->y << ')';
-    }
-
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
-        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
-    }
-
-    std::ostream &operator<<(std::ostream &os, const sf::Vertex &obj);
-
     /*
-     * Vec2 implementation
+     * Implementation
      */
 
     template<typename T>
-    template<typename... Args>
-    Vec2<T>::Vec2(Args &&... args) :
-            mInner(std::forward<Args>(args)...) {}
-
-    template<typename T>
-    typename Vec2<T>::Type &Vec2<T>::operator*() noexcept {
-        return mInner;
-    }
-
-    template<typename T>
-    const typename Vec2<T>::Type &Vec2<T>::operator*() const noexcept {
-        return mInner;
-    }
-
-    template<typename T>
-    typename Vec2<T>::Type *Vec2<T>::operator->() noexcept {
-        return &mInner;
-    }
-
-    template<typename T>
-    const typename Vec2<T>::Type *Vec2<T>::operator->() const noexcept {
-        return &mInner;
-    }
-
-    template<typename T>
-    float Vec2<T>::getRotation() const noexcept {
-        return helpers::rotation(mInner);
-    }
-
-    template<typename T>
-    float Vec2<T>::getRotation(const Type &other) const noexcept {
-        return helpers::rotation(mInner, other);
-    }
-
-    template<typename T>
-    float Vec2<T>::getMagnitude() const noexcept {
-        return helpers::magnitude(mInner);
-    }
-
-    template<typename T>
-    float Vec2<T>::getMagnitude(const Type &other) const noexcept {
-        return helpers::magnitude(mInner, other);
-    }
-
-    template<typename T>
-    void Vec2<T>::rotate(float angle) noexcept {
-        angle = helpers::deg2rad(getRotation()) + helpers::deg2rad(angle);
-        mInner = sf::Vector2<T>(std::cos(angle), std::sin(angle)) * getMagnitude();
-    }
-
-    template<typename T>
-    void Vec2<T>::setRotation(float angle) noexcept {
-        angle = helpers::deg2rad(angle);
-        mInner = sf::Vector2<T>(std::cos(angle), std::sin(angle)) * getMagnitude();
-    }
-
-    template<typename T>
-    typename Vec2<T>::Type &Vec2<T>::normalize() noexcept {
-        mInner = helpers::normalized(mInner);
-        return mInner;
-    }
-
-    template<typename T>
-    typename Vec2<T>::Type &Vec2<T>::normalize(const Vec2::Type &other) noexcept {
-        mInner = helpers::normalized(mInner, other);
-        return mInner;
-    }
+    Wrapper<T>::~Wrapper() = default;
 }
