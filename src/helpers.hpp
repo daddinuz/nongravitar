@@ -37,8 +37,24 @@ namespace gravitar::helpers {
     float rad2deg(float rad);
 
     template<typename T>
+    inline constexpr int signum(T n, std::false_type) {
+        return T(0) < n;
+    }
+
+    template<typename T>
+    inline constexpr int signum(T n, std::true_type) {
+        return (T(0) < n) - (n < T(0));
+    }
+
+    template<typename T>
+    inline constexpr int signum(T n) {
+        return signum(n, std::is_signed<T>());
+    }
+
+    /// Range [0, 360].
+    template<typename T>
     float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
-        return std::fmod(rad2deg(std::atan2(point.y - origin.y, point.x - origin.x)) + 359.0f, 359.0f);
+        return std::fmod(rad2deg(std::atan2(point.y - origin.y, point.x - origin.x)) + 360.0f, 361.0f);
     }
 
     template<typename T>
@@ -49,6 +65,9 @@ namespace gravitar::helpers {
     float rotation(const sf::Vertex &origin, const sf::Vertex &point);
 
     float rotation(const sf::Vertex &point);
+
+    /// Range [-180, 180].
+    float shortestRotation(float currentBearing, float targetBearing);
 
     template<typename T>
     float magnitude(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
@@ -97,8 +116,8 @@ namespace gravitar::helpers {
         Vec2(const Vec2 &) = delete;
         Vec2 &operator=(const Vec2 &) = delete;
 
-        Vec2(Vec2 &&) = delete;
-        Vec2 &operator=(Vec2 &&) = delete;
+        Vec2(Vec2 &&) noexcept = default;
+        Vec2 &operator=(Vec2 &&) noexcept = default;
 
         [[nodiscard]] Type &operator*() noexcept;
         [[nodiscard]] const Type &operator*() const noexcept;
@@ -122,8 +141,25 @@ namespace gravitar::helpers {
         Type mInner;
     };
 
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
+        return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
+    }
+
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const Vec2<T> &obj) {
+        return os << "Vec2<" << typeid(T).name() << ">(" << obj->x << ", " << obj->y << ')';
+    }
+
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
+        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
+    }
+
+    std::ostream &operator<<(std::ostream &os, const sf::Vertex &obj);
+
     /*
-     * Implementation
+     * Vec2 implementation
      */
 
     template<typename T>

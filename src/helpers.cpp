@@ -45,6 +45,10 @@ float helpers::rotation(const sf::Vertex &point) {
     return rotation(point.position);
 }
 
+float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
+    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+}
+
 float helpers::magnitude(const sf::Vertex &origin, const sf::Vertex &point) {
     return magnitude(origin.position, point.position);
 }
@@ -59,4 +63,8 @@ sf::Vertex helpers::normalized(const sf::Vertex &origin, const sf::Vertex &point
 
 sf::Vertex helpers::normalized(const sf::Vertex &point) {
     return sf::Vertex(normalized(point.position));
+}
+
+std::ostream &helpers::operator<<(std::ostream &os, const sf::Vertex &obj) {
+    return os << "Vertex(" << obj.position.x << ", " << obj.position.y << ')';
 }
