@@ -33,6 +33,9 @@
 
 using namespace gravitar;
 
+inline constexpr float SPEED = 300.0f;
+inline constexpr float ROTATION_SPEED = 360.0f;
+
 Game &Game::initialize() {
     mSpriteSheetsManager.initialize();
     mSpritesManager.initialize();
@@ -104,18 +107,21 @@ void Game::run() {
 void Game::initializeSolarSystemScene() {
     using namespace components;
 
+    mRegistry.group<Position, Velocity>();
+    mRegistry.group<Renderable, Rotation>(entt::get<Position>);
+
     decltype(auto) player = mRegistry.create();
     decltype(auto) sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
     decltype(auto) bounds = sprite.getLocalBounds();
-
     sprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
 
-    mRegistry.assign < entt::tag < "player"_hs >> (player);
+    mRegistry.assign<entt::tag<"player"_hs>>(player);
+
     mRegistry.assign<Position>(player, 400.0f, 300.0f);
     mRegistry.assign<Velocity>(player);
-    mRegistry.assign<Speed>(player, 200.0f);
-    mRegistry.assign<RotationSpeed>(player, 360.0f);
-    mRegistry.assign<sf::Sprite>(player, std::move(sprite));
+
+    mRegistry.assign<Rotation>(player);
+    mRegistry.assign<Renderable>(player, std::move(sprite));
 }
 
 void Game::updateCurtainScene() {
@@ -137,28 +143,61 @@ void Game::updateCurtainScene() {
 }
 
 void Game::updateSolarSystemScene() {
-    using namespace components;
-
-    mRegistry.view<Position, Velocity, Speed, RotationSpeed, sf::Sprite>().each([this](auto &position, auto &velocity, const auto &speed, const auto &angularSpeed, auto &sprite) {
-        decltype(auto) mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
-        decltype(auto) rotation = helpers::signum(helpers::shortestRotation(
-                sprite.getRotation(),
-                helpers::rotation(*position, mousePosition))
-        ) * (*angularSpeed) * mTimer.getElapsedTime().asSeconds();
-
-        sprite.rotate(rotation);
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
-            *velocity = helpers::makeVector2(sprite.getRotation(), *speed);
-        }
-
-        *position += *velocity * mTimer.getElapsedTime().asSeconds();
-
-        sprite.setPosition(*position);
-        mWindow.draw(sprite);
-    });
+    inputSystem();
+    motionSystem();
+    renderSystem();
 }
 
 void Game::updatePlanetAssaultScene() {
     throw std::runtime_error(trace("unimplemented"));
+}
+
+void Game::inputSystem() {
+    using namespace components;
+
+    mRegistry.view<entt::tag< "player"_hs>, Position, Velocity, Rotation>().each([this](const auto tag, const auto &position, auto &velocity, auto &rotation) {
+        (void) tag;
+
+        decltype(auto) mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
+        *rotation += helpers::signum(helpers::shortestRotation(*rotation, helpers::rotation(*position, mousePosition))) * ROTATION_SPEED * mTimer.getElapsedTime().asSeconds();
+        *velocity *= 0.0f;
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            *velocity += helpers::makeVector2(270.0f, 1.0f);
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            *velocity += helpers::makeVector2(180.0f, 1.0f);
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            *velocity += helpers::makeVector2(90.0f, 1.0f);
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            *velocity += helpers::makeVector2(0.0f, 1.0f);
+        }
+
+        *velocity = helpers::normalized(*velocity) * SPEED;
+    });
+}
+
+void Game::motionSystem() {
+    using namespace components;
+
+    mRegistry.group<Position, Velocity>().each([this](auto &position, auto &velocity) {
+        *position += *velocity * mTimer.getElapsedTime().asSeconds();
+    });
+}
+
+void Game::renderSystem() {
+    using namespace components;
+
+    mRegistry.group<Renderable, Rotation>(entt::get<Position>).each([this](auto &renderable, const auto &rotation, const auto &position) {
+        std::visit([this, &position, &rotation](auto &drawable) {
+            drawable.setPosition(*position);
+            drawable.setRotation(*rotation);
+            mWindow.draw(drawable);
+        }, *renderable);
+    });
 }

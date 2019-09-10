@@ -62,6 +62,10 @@ namespace gravitar {
         void updateSolarSystemScene();
         void updatePlanetAssaultScene();
 
+        void inputSystem();
+        void motionSystem();
+        void renderSystem();
+
         entt::registry mRegistry;
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};

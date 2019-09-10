@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <variant>
 #include "helpers.hpp"
 
 namespace gravitar::components {
@@ -37,27 +38,26 @@ namespace gravitar::components {
         Position() = default;
 
         template<typename ...Args>
-        explicit Position(Args &&... args) : Wrapper<sf::Vector2f>(std::forward<Args>(args)...) {}
+        explicit Position(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
     struct Velocity final : public Wrapper<sf::Vector2f> {
         Velocity() = default;
 
         template<typename ...Args>
-        explicit Velocity(Args &&... args) : Wrapper<sf::Vector2f>(std::forward<Args>(args)...) {}
+        explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
-    struct Speed final : public Wrapper<float> {
-        Speed() = default;
+    struct Rotation final : public Wrapper<float> {
+        Rotation() = default;
 
         template<typename ...Args>
-        explicit Speed(Args &&... args) : Wrapper<float>(std::forward<Args>(args)...) {}
+        explicit Rotation(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
-    struct RotationSpeed final : public Wrapper<float> {
-        RotationSpeed() = default;
+    struct Renderable final : public Wrapper<std::variant<sf::Sprite>> {
+        Renderable() = delete;
 
-        template<typename ...Args>
-        explicit RotationSpeed(Args &&... args) : Wrapper<float>(std::forward<Args>(args)...) {}
+        explicit Renderable(sf::Sprite &&instance) : Wrapper(std::move(instance)) {}
     };
 }
