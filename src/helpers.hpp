@@ -31,19 +31,11 @@
 
 #include <SFML/Graphics.hpp>
 
-// TODO move definitions at the bottom of the file
 namespace gravitar::helpers {
     template<typename T>
     std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
         return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
     }
-
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
-        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
-    }
-
-    std::ostream &operator<<(std::ostream &os, const sf::Vertex &obj);
 
     float deg2rad(float deg);
 
@@ -70,15 +62,6 @@ namespace gravitar::helpers {
         return std::fmod(rad2deg(std::atan2(point.y - origin.y, point.x - origin.x)) + 360.0f, 361.0f);
     }
 
-    template<typename T>
-    float rotation(const sf::Vector2<T> &point) {
-        return rotation<T>({0, 0}, point);
-    }
-
-    float rotation(const sf::Vertex &origin, const sf::Vertex &point);
-
-    float rotation(const sf::Vertex &point);
-
     /// Range [-180, 180].
     float shortestRotation(float currentBearing, float targetBearing);
 
@@ -86,15 +69,6 @@ namespace gravitar::helpers {
     float magnitude(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
         return std::sqrt(std::pow(point.x - origin.x, 2) + std::pow(point.y - origin.y, 2));
     }
-
-    template<typename T>
-    float magnitude(const sf::Vector2<T> &point) {
-        return magnitude<T>({0, 0}, point);
-    }
-
-    float magnitude(const sf::Vertex &origin, const sf::Vertex &point);
-
-    float magnitude(const sf::Vertex &point);
 
     template<typename T>
     sf::Vector2<T> normalized(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
@@ -108,55 +82,8 @@ namespace gravitar::helpers {
     }
 
     template<typename T>
-    sf::Vector2<T> normalized(const sf::Vector2<T> &point) {
-        return normalized<T>({0, 0}, point);
-    }
-
-    sf::Vertex normalized(const sf::Vertex &origin, const sf::Vertex &point);
-
-    sf::Vertex normalized(const sf::Vertex &point);
-
-    template<typename T>
     sf::Vector2<T> makeVector2(float angle, const T magnitude) {
         angle = deg2rad(angle);
         return sf::Vector2<T>(std::cos(angle), std::sin(angle)) * magnitude;
     }
-
-    template<typename T>
-    class Wrapper {
-    public:
-        template<typename ...Args>
-        explicit Wrapper(Args &&... args) : mInner(std::forward<Args>(args)...) {}
-
-        Wrapper(Wrapper<T> &&) noexcept = default; // move-constructible required because of entt registry
-        Wrapper &operator=(Wrapper<T> &&) noexcept = default; // move-assignable required because of entt registry
-
-        [[nodiscard]] T &operator*() noexcept {
-            return mInner;
-        }
-
-        [[nodiscard]] const T &operator*() const noexcept {
-            return mInner;
-        }
-
-        [[nodiscard]] T *operator->() noexcept {
-            return &mInner;
-        }
-
-        [[nodiscard]] const T *operator->() const noexcept {
-            return &mInner;
-        }
-
-        virtual ~Wrapper() = 0;
-
-    private:
-        T mInner;
-    };
-
-    /*
-     * Implementation
-     */
-
-    template<typename T>
-    Wrapper<T>::~Wrapper() = default;
 }

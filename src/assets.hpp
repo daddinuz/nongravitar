@@ -37,75 +37,11 @@
 #include "animation.hpp"
 #include "cycle.hpp"
 #include "spritesheet.hpp"
-#include "wrappers.hpp"
 
 namespace gravitar {
-    class FontsManager;
-
-    namespace AnimationId {
-        struct Continue final {
-            Continue() = delete; // no default-constructible
-            Continue(const Continue &) = delete; // no copy-constructible
-            Continue(Continue &&) = delete; // no move-constructible
-
-            using Drawable = sf::Text;
-            using Frame = Cycle<const std::array<sf::Uint8, 8>>;
-            using Type = Animation<Drawable, Frame>;
-        };
-    }
-
-    class AnimationsManager {
-    public:
-        friend class Game;
-
-        AnimationsManager(const AnimationsManager &) = delete; // no copy-constructible
-        AnimationsManager &operator=(const AnimationsManager &) = delete; // no copy-assignable
-
-        AnimationsManager(AnimationsManager &&) = delete; // no move-constructible
-        AnimationsManager &operator=(AnimationsManager &&) = delete; // no move-assignable
-
-        void initialize(const FontsManager &fontsManager);
-
-        template<typename A>
-        typename A::Type &get() noexcept;
-
-    private:
-        AnimationsManager() = default; // private default constructor, only Game can construct this class
-
-        template<typename T>
-        inline constexpr decltype(auto) getTypeIndex() noexcept {
-            return std::type_index(typeid(T));
-        }
-
-        std::map<std::type_index, std::unique_ptr<sf::Drawable>> mAnimations;
-        const FontsManager *mFontsManager{nullptr};
-    };
-
-    enum class FontId {
-        Mechanical
-    };
-
-    class FontsManager final {
-    public:
-        friend class Game;
-
-        FontsManager(const FontsManager &) = delete; // no copy-constructible
-        FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
-
-        FontsManager(FontsManager &&) = delete; // no move-constructible
-        FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
-
-        void initialize();
-
-        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
-
-    private:
-        FontsManager() = default; // private default constructor, only Game can construct this class
-
-        void load(const char *filename, FontId id);
-
-        std::map<FontId, sf::Font> mFonts;
-    };
+    /*
+     * SoundTracks
+     */
 
     enum class SoundTrackId {
         MainTheme,
@@ -121,8 +57,6 @@ namespace gravitar {
         SoundTracksManager(SoundTracksManager &&) = delete; // no move-constructible
         SoundTracksManager &operator=(SoundTracksManager &&) = delete; // no move-assignable
 
-        void initialize();
-
         void togglePlaying() noexcept;
 
         void play(SoundTrackId id) noexcept;
@@ -130,41 +64,138 @@ namespace gravitar {
     private:
         SoundTracksManager() = default; // private default constructor, only Game can construct this class
 
+        void initialize();
+
         void load(const char *filename, SoundTrackId id);
 
         std::map<SoundTrackId, sf::Music> mSoundtracks;
         sf::Music *mCurrentlyPlaying{nullptr};
     };
 
-    enum class SpriteId {
-        GravitarTitle,
+    /*
+     * Fonts
+     */
+
+    enum class FontId {
+        Mechanical
     };
 
-    class SpritesManager final {
+    class FontsManager final {
     public:
         friend class Game;
 
-        SpritesManager(const SpritesManager &) = delete; // no copy-constructible
-        SpritesManager &operator=(const SpritesManager &) = delete; // no copy-assignable
+        FontsManager(const FontsManager &) = delete; // no copy-constructible
+        FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
 
-        SpritesManager(SpritesManager &&) = delete; // no move-constructible
-        SpritesManager &operator=(SpritesManager &&) = delete; // no move-assignable
+        FontsManager(FontsManager &&) = delete; // no move-constructible
+        FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
+
+        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
+
+    private:
+        FontsManager() = default; // private default constructor, only Game can construct this class
 
         void initialize();
 
-        [[nodiscard]] TransformableDrawable<sf::Sprite> &get(SpriteId id) noexcept;
+        void load(const char *filename, FontId id);
+
+        std::map<FontId, sf::Font> mFonts;
+    };
+
+    /*
+     * Textures
+     */
+
+    enum class TextureId {
+        GravitarTitle,
+        SpaceShip,
+        Bullet,
+    };
+
+    class TexturesManager final {
+    public:
+        friend class Game;
+
+        TexturesManager(const TexturesManager &) = delete; // no copy-constructible
+        TexturesManager &operator=(const TexturesManager &) = delete; // no copy-assignable
+
+        TexturesManager(TexturesManager &&) = delete; // no move-constructible
+        TexturesManager &operator=(TexturesManager &&) = delete; // no move-assignable
+
+        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
 
     private:
-        SpritesManager() = default; // private default constructor, only Game can construct this class
+        TexturesManager() = default; // private default constructor, only Game can construct this class
 
-        void load(const char *filename, SpriteId id);
+        void initialize();
 
-        std::map<SpriteId, sf::Texture> mTextures;
-        std::map<SpriteId, TransformableDrawable<sf::Sprite>> mSprites;
+        void load(const char *filename, TextureId id);
+
+        std::map<TextureId, sf::Texture> mTextures;
     };
+
+    /*
+     * GravitarTitle
+     */
+
+    class GravitarTitle final : public sf::Drawable {
+    public:
+        friend class Game;
+
+        GravitarTitle(const GravitarTitle &) = delete; // no copy-constructible
+        GravitarTitle &operator=(const GravitarTitle &) = delete; // no copy-assignable
+
+        GravitarTitle(GravitarTitle &&) = delete; // no move-constructible
+        GravitarTitle &operator=(GravitarTitle &&) = delete; // no move-assignable
+
+        void setPosition(float x, float y);
+
+    private:
+        GravitarTitle() = default; // private default constructor, only Game can construct this class
+
+        void initialize(const TexturesManager &textureManager);
+
+        void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
+
+        sf::Sprite mSprite;
+    };
+
+    /*
+     * SpaceLabel
+     */
+
+    class SpaceLabel final : public sf::Drawable {
+    public:
+        friend class Game;
+
+        SpaceLabel(const SpaceLabel &) = delete; // no copy-constructible
+        SpaceLabel &operator=(const SpaceLabel &) = delete; // no copy-assignable
+
+        SpaceLabel(SpaceLabel &&) = delete; // no move-constructible
+        SpaceLabel &operator=(SpaceLabel &&) = delete; // no move-assignable
+
+        void update(const sf::Time &time);
+
+        void setPosition(float x, float y);
+
+    private:
+        SpaceLabel(); // private default constructor, only Game can construct this class
+
+        void initialize(const FontsManager &fontsManager);
+
+        void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
+
+        using Transition = std::array<sf::Uint8, 8>;
+        Animation<sf::Text, Cycle<const Transition, Transition::const_iterator>> mInstance;
+    };
+
+    /*
+     * SpriteSheets
+     */
 
     enum class SpriteSheetId {
         SpaceShip,
+        Bullet,
     };
 
     class SpriteSheetsManager final {
@@ -177,25 +208,13 @@ namespace gravitar {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        void initialize();
-
         [[nodiscard]] const SpriteSheet &get(SpriteSheetId id) const noexcept;
 
     private:
         SpriteSheetsManager() = default; // private default constructor, only Game can construct this class
 
-        void load(const char *filename, sf::Vector2u frameSize, SpriteSheetId id);
+        void initialize(const TexturesManager &texturesManager);
 
-        std::map<SpriteSheetId, sf::Texture> mTextures;
         std::map<SpriteSheetId, SpriteSheet> mSpriteSheets;
     };
-
-    /*
-     * Implementation
-     */
-
-    template<typename A>
-    typename A::Type &AnimationsManager::get() noexcept {
-        return dynamic_cast<typename A::Type &>(*mAnimations.at(getTypeIndex<A>()));
-    }
 }

@@ -30,44 +30,41 @@
 
 using namespace gravitar;
 
-SpriteSheet::SpriteSheet(const sf::Texture &texture, std::vector<Frame> &&frames, sf::Vector2u size) noexcept :
-        mFrames(std::move(frames)), mTexture(texture), mSize(size) {}
+SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer, sf::Vector2u size) noexcept
+        : mBuffer(std::move(buffer)), mTexture(texture), mSize(size) {}
 
-SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned frameWidth, const unsigned frameHeight,
-                              const sf::Vector2u size, const sf::Vector2u startCoord) {
+SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u frame, const sf::Vector2u startCoord) {
     const auto[textureWidth, textureHeight] = texture.getSize();
-    const auto[columns, rows] = size;
+    const auto columns = textureWidth / frame.x, rows = textureHeight / frame.y;
 
-    if (startCoord.x + columns * frameWidth > textureWidth || startCoord.y + rows * frameHeight > textureHeight) {
+    if (startCoord.x + columns * frame.x > textureWidth || startCoord.y + rows * frame.y > textureHeight) {
         throw std::invalid_argument(trace("bad dimensions supplied"));
     }
 
-    auto frames = std::vector<Frame>();
-    frames.reserve(rows * columns);
+    auto buffer = Buffer();
+    buffer.reserve(rows * columns);
 
     for (auto row = 0u; row < rows; ++row) {
-        const auto top = startCoord.y + row * frameHeight;
+        const auto top = startCoord.y + row * frame.y;
 
         for (auto column = 0u; column < columns; ++column) {
-            frames.emplace_back(startCoord.x + column * frameWidth, top, frameWidth, frameHeight);
+            buffer.emplace_back(startCoord.x + column * frame.x, top, frame.x, frame.y);
         }
     }
 
-    return SpriteSheet(texture, std::move(frames), size);
+    return SpriteSheet(texture, std::move(buffer), {columns, rows});
 }
 
-SpriteSheet SpriteSheet::from(const sf::Texture &texture, const unsigned frameWidth, const unsigned frameHeight,
-                              const sf::Vector2u startCoord) {
-    const auto[textureWidth, textureHeight] = texture.getSize();
-    return SpriteSheet::from(texture, frameWidth, frameHeight, {textureWidth / frameWidth, textureHeight / frameHeight}, startCoord);
+SpriteSheet::const_iterator SpriteSheet::cbegin() const noexcept {
+    return mBuffer.cbegin();
 }
 
-const std::vector<SpriteSheet::Frame> *SpriteSheet::operator->() const noexcept {
-    return &mFrames;
+SpriteSheet::const_iterator SpriteSheet::cend() const noexcept {
+    return mBuffer.cend();
 }
 
-const std::vector<SpriteSheet::Frame> &SpriteSheet::operator*() const noexcept {
-    return mFrames;
+const SpriteSheet::Buffer &SpriteSheet::getBuffer() const noexcept {
+    return mBuffer;
 }
 
 const sf::Texture &SpriteSheet::getTexture() const noexcept {
@@ -75,7 +72,7 @@ const sf::Texture &SpriteSheet::getTexture() const noexcept {
 }
 
 const SpriteSheet::Frame &SpriteSheet::getFrame(const sf::Vector2u &frameCoord) const {
-    return mFrames.at(getFrameIndex(frameCoord));
+    return mBuffer.at(frameIndex(frameCoord));
 }
 
 sf::Sprite SpriteSheet::getSprite(const sf::Vector2u &frameCoord) const {
@@ -86,26 +83,6 @@ const sf::Vector2u &SpriteSheet::getSize() const noexcept {
     return mSize;
 }
 
-SpriteSheet::const_iterator SpriteSheet::getFrameIterator(const sf::Vector2u &frameCoord) const {
-    const auto offset = getFrameIndex(frameCoord);
-
-    if (offset >= mFrames.size()) {
-        throw std::invalid_argument(trace("bad coord supplied"));
-    }
-
-    return mFrames.cbegin() + offset;
-}
-
-SpriteSheet::const_reverse_iterator SpriteSheet::getReverseFrameIterator(const sf::Vector2u &frameCoord) const {
-    const auto offset = getFrameIndex(frameCoord);
-
-    if (offset >= mFrames.size()) {
-        throw std::invalid_argument(trace("bad coord supplied"));
-    }
-
-    return mFrames.crbegin() + offset;
-}
-
-std::size_t SpriteSheet::getFrameIndex(const sf::Vector2u &frameCoord) const noexcept {
+std::size_t SpriteSheet::frameIndex(const sf::Vector2u &frameCoord) const noexcept {
     return frameCoord.x + frameCoord.y * mSize.x;
 }

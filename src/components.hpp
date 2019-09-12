@@ -28,29 +28,21 @@
 #pragma once
 
 #include <variant>
+#include "wrapper.hpp"
 #include "helpers.hpp"
 
 namespace gravitar::components {
-    template<typename T>
-    using Wrapper = helpers::Wrapper<T>;
-
     struct Position final : public Wrapper<sf::Vector2f> {
-        Position() = default;
-
         template<typename ...Args>
         explicit Position(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
     struct Velocity final : public Wrapper<sf::Vector2f> {
-        Velocity() = default;
-
         template<typename ...Args>
         explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
     struct Rotation final : public Wrapper<float> {
-        Rotation() = default;
-
         template<typename ...Args>
         explicit Rotation(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
@@ -58,6 +50,6 @@ namespace gravitar::components {
     struct Renderable final : public Wrapper<std::variant<sf::Sprite>> {
         Renderable() = delete;
 
-        explicit Renderable(sf::Sprite &&instance) : Wrapper(std::move(instance)) {}
+        explicit Renderable(sf::Sprite &&instance);
     };
 }

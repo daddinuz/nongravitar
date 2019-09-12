@@ -37,11 +37,13 @@ inline constexpr float SPEED = 300.0f;
 inline constexpr float ROTATION_SPEED = 360.0f;
 
 Game &Game::initialize() {
-    mSpriteSheetsManager.initialize();
-    mSpritesManager.initialize();
-    mSoundTracksManager.initialize();
     mFontsManager.initialize();
-    mAnimationsManager.initialize(mFontsManager);
+    mTexturesManager.initialize();
+    mSoundTracksManager.initialize();
+
+    mSpaceLabel.initialize(mFontsManager);
+    mGravitarTitle.initialize(mTexturesManager);
+    mSpriteSheetsManager.initialize(mTexturesManager);
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
@@ -49,7 +51,6 @@ Game &Game::initialize() {
     mWindow.setActive(true);
 
     mSoundTracksManager.play(SoundTrackId::MainTheme);
-    mScene = Scene::Curtain;
 
     initializeSolarSystemScene();
 
@@ -73,33 +74,7 @@ void Game::run() {
     for (mTimer.restart(); mWindow.isOpen(); mTimer.restart()) {
         mWindow.display();
         mWindow.clear();
-
-        while (mWindow.pollEvent(mEvent)) {
-            switch (mEvent.type) {
-                case sf::Event::Closed: mWindow.close();
-                    break;
-
-                case sf::Event::KeyPressed:
-                    switch (mEvent.key.code) {
-                        case sf::Keyboard::Delete: mWindow.close();
-                            break;
-
-                        case sf::Keyboard::Escape: mWindow.create({800, 600}, "Gravitar", sf::Style::Titlebar | sf::Style::Close);
-                            break;
-
-                        case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
-                            break;
-
-                        case sf::Keyboard::F6: mSoundTracksManager.togglePlaying();
-                            break;
-
-                        default: break;
-                    }
-
-                default: break;
-            }
-        }
-
+        handleGeneralInputs();
         update();
     }
 }
@@ -108,14 +83,14 @@ void Game::initializeSolarSystemScene() {
     using namespace components;
 
     mRegistry.group<Position, Velocity>();
-    mRegistry.group<Renderable, Rotation>(entt::get<Position>);
+    mRegistry.group<Renderable, Rotation>(entt::get < Position > );
 
     decltype(auto) player = mRegistry.create();
     decltype(auto) sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
     decltype(auto) bounds = sprite.getLocalBounds();
     sprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
 
-    mRegistry.assign<entt::tag<"player"_hs>>(player);
+    mRegistry.assign < entt::tag < "player"_hs >> (player);
 
     mRegistry.assign<Position>(player, 400.0f, 300.0f);
     mRegistry.assign<Velocity>(player);
@@ -124,18 +99,42 @@ void Game::initializeSolarSystemScene() {
     mRegistry.assign<Renderable>(player, std::move(sprite));
 }
 
+void Game::handleGeneralInputs() {
+    sf::Event event{};
+
+    // flush the events queue (required by SFML in order to work properly)
+    while (mWindow.pollEvent(event)) {
+        if (sf::Event::Closed == event.type) {
+            mWindow.close();
+        } else if (sf::Event::KeyPressed == event.type) {
+            switch (event.key.code) {
+                case sf::Keyboard::Escape: mWindow.close();
+                    break;
+
+                case sf::Keyboard::F6: mSoundTracksManager.togglePlaying();
+                    break;
+#ifndef NDEBUG
+                case sf::Keyboard::Delete: mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
+                    break;
+
+                case sf::Keyboard::F4: mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+                    break;
+#endif
+                default: break;
+            }
+        }
+    }
+}
+
 void Game::updateCurtainScene() {
     decltype(auto) windowSize = mWindow.getSize();
-    decltype(auto) title = mSpritesManager.get(SpriteId::GravitarTitle);
-    decltype(auto) continueAnimation = mAnimationsManager.get<AnimationId::Continue>();
 
-    title->setPosition({windowSize.x / 2.0f, windowSize.y / 3.14f});
+    mGravitarTitle.setPosition(windowSize.x / 2.0f, windowSize.y / 3.14f);
+    mSpaceLabel.setPosition(windowSize.x / 2.0f, windowSize.y / 1.2f);
+    mSpaceLabel.update(mTimer.getElapsedTime());
 
-    continueAnimation->setPosition({windowSize.x / 2.0f, windowSize.y / 1.2f});
-    continueAnimation.update(mTimer.getElapsedTime());
-
-    mWindow.draw(title);
-    mWindow.draw(continueAnimation);
+    mWindow.draw(mGravitarTitle);
+    mWindow.draw(mSpaceLabel);
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
         mScene = Scene::SolarSystem;
@@ -155,7 +154,7 @@ void Game::updatePlanetAssaultScene() {
 void Game::inputSystem() {
     using namespace components;
 
-    mRegistry.view<entt::tag< "player"_hs>, Position, Velocity, Rotation>().each([this](const auto tag, const auto &position, auto &velocity, auto &rotation) {
+    mRegistry.view < entt::tag < "player"_hs > , Position, Velocity, Rotation > ().each([this](const auto tag, const auto &position, auto &velocity, auto &rotation) {
         (void) tag;
 
         decltype(auto) mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
@@ -178,7 +177,7 @@ void Game::inputSystem() {
             *velocity += helpers::makeVector2(0.0f, 1.0f);
         }
 
-        *velocity = helpers::normalized(*velocity) * SPEED;
+        *velocity = helpers::normalized({0, 0}, *velocity) * SPEED;
     });
 }
 
@@ -193,7 +192,7 @@ void Game::motionSystem() {
 void Game::renderSystem() {
     using namespace components;
 
-    mRegistry.group<Renderable, Rotation>(entt::get<Position>).each([this](auto &renderable, const auto &rotation, const auto &position) {
+    mRegistry.group<Renderable, Rotation>(entt::get < Position > ).each([this](auto &renderable, const auto &rotation, const auto &position) {
         std::visit([this, &position, &rotation](auto &drawable) {
             drawable.setPosition(*position);
             drawable.setRotation(*rotation);

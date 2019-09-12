@@ -28,7 +28,7 @@
 #pragma once
 
 namespace gravitar {
-    template<typename Iterable, typename Iterator = typename Iterable::const_iterator>
+    template<typename Iterable, typename Iterator>
     class Cycle {
     public:
         using difference_type = typename Iterable::difference_type;
@@ -38,8 +38,6 @@ namespace gravitar {
         using iterator_category = std::forward_iterator_tag;
 
         Cycle() = delete; // no default-constructible
-
-        explicit Cycle(const Iterable &iterable);
 
         Cycle(Iterator begin, Iterator end);
 
@@ -68,12 +66,7 @@ namespace gravitar {
      */
 
     template<typename Iterable, typename Iterator>
-    Cycle<Iterable, Iterator>::Cycle(const Iterable &iterable)
-            : mCursor(iterable.begin()), mBegin(iterable.begin()), mEnd(iterable.end()) {}
-
-    template<typename Iterable, typename Iterator>
-    Cycle<Iterable, Iterator>::Cycle(Iterator begin, Iterator end)
-            : mCursor(begin), mBegin(begin), mEnd(end) {}
+    Cycle<Iterable, Iterator>::Cycle(Iterator begin, Iterator end) : mCursor(begin), mBegin(begin), mEnd(end) {}
 
     template<typename Iterable, typename Iterator>
     Cycle<Iterable, Iterator> &Cycle<Iterable, Iterator>::operator++() {

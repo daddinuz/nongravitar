@@ -31,42 +31,15 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "spritesheet.hpp"
-#include "trace.hpp"
+#include "wrapper.hpp"
 
 namespace gravitar {
     template<typename D, typename F>
-    class Animation final : public sf::Drawable {
+    class Animation final : public sf::Drawable, public Wrapper<D> {
     public:
         static_assert(std::is_base_of<sf::Drawable, D>::value);
 
-        class Data final {
-        public:
-            Data() = delete; // no default-constructible
-
-            Data(D &&drawable, F &&frames);
-
-            Data(const Data &) = delete; // no copy-constructible
-            Data &operator=(const Data &) = delete; // no copy-assignable
-
-            Data(Data &&) = delete; // no move-constructible
-            Data &operator=(Data &&) = delete; // no move-assignable
-
-            [[nodiscard]] D &operator*() noexcept;
-
-            [[nodiscard]] const D &operator*() const noexcept;
-
-            [[nodiscard]] D *operator->() noexcept;
-
-            [[nodiscard]] const D *operator->() const noexcept;
-
-            F frames;
-
-        private:
-            D drawable;
-        };
-
-        using Update = std::function<void(Data &)>;
+        using Update = std::function<void(D &, F &)>;
 
         Animation() = delete; // no default-constructible
 
@@ -84,24 +57,16 @@ namespace gravitar {
 
         const sf::Time &elapse(const sf::Time &time);
 
-        [[nodiscard]] const sf::Time &getTimer() const;
+        [[nodiscard]] const sf::Time &getTimer() const noexcept;
 
         void setFramePerSecond(unsigned value) noexcept;
 
         [[nodiscard]] unsigned getFramePerSecond() const;
 
-        [[nodiscard]] D &operator*();
-
-        [[nodiscard]] const D &operator*() const;
-
-        [[nodiscard]] D *operator->();
-
-        [[nodiscard]] const D *operator->() const;
-
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        Data mData;
+        F mFrames;
         Update mUpdate;
         sf::Time mTimer{sf::Time::Zero}, mFrameTime{sf::Time::Zero};
     };
@@ -111,43 +76,19 @@ namespace gravitar {
      */
 
     template<typename D, typename F>
-    Animation<D, F>::Data::Data(D &&drawable, F &&frames) :
-            frames{std::move(frames)}, drawable{std::move(drawable)} {}
+    Animation<D, F>::Animation(unsigned fps, Animation::Update update, D &&drawable, F &&frames)
+            : Wrapper<D>(std::move(drawable)), mFrames(std::move(frames)), mUpdate{update} { setFramePerSecond(fps); }
 
     template<typename D, typename F>
-    D &Animation<D, F>::Data::operator*() noexcept {
-        return drawable;
-    }
-
-    template<typename D, typename F>
-    const D &Animation<D, F>::Data::operator*() const noexcept {
-        return drawable;
-    }
-
-    template<typename D, typename F>
-    D *Animation<D, F>::Data::operator->() noexcept {
-        return &drawable;
-    }
-
-    template<typename D, typename F>
-    const D *Animation<D, F>::Data::operator->() const noexcept {
-        &drawable;
-    }
-
-    template<typename D, typename F>
-    Animation<D, F>::Animation(unsigned fps, Animation::Update update, D &&drawable, F &&frames) :
-            mData(std::move(drawable), std::move(frames)), mUpdate{update} { setFramePerSecond(fps); }
-
-    template<typename T, typename U>
-    void Animation<T, U>::update(const sf::Time &time) {
+    void Animation<D, F>::update(const sf::Time &time) {
         if (elapse(time) >= mFrameTime) {
-            mUpdate(mData);
+            mUpdate(this->get(), mFrames);
             resetTimer(true);
         }
     }
 
-    template<typename T, typename U>
-    void Animation<T, U>::resetTimer(bool keepReminder) {
+    template<typename D, typename F>
+    void Animation<D, F>::resetTimer(bool keepReminder) {
         if (keepReminder) {
             mTimer = sf::microseconds(mTimer.asMicroseconds() % mFrameTime.asMicroseconds());
         } else {
@@ -155,13 +96,13 @@ namespace gravitar {
         }
     }
 
-    template<typename T, typename U>
-    const sf::Time &Animation<T, U>::elapse(const sf::Time &time) {
+    template<typename D, typename F>
+    const sf::Time &Animation<D, F>::elapse(const sf::Time &time) {
         return mTimer += time;
     }
 
-    template<typename T, typename U>
-    const sf::Time &Animation<T, U>::getTimer() const {
+    template<typename D, typename F>
+    const sf::Time &Animation<D, F>::getTimer() const noexcept {
         return mTimer;
     }
 
@@ -175,29 +116,9 @@ namespace gravitar {
         return sf::seconds(1.0f) / mFrameTime;
     }
 
-    template<typename T, typename U>
-    T &Animation<T, U>::operator*() {
-        return *mData;
-    }
-
-    template<typename T, typename U>
-    const T &Animation<T, U>::operator*() const {
-        return *mData;
-    }
-
-    template<typename T, typename U>
-    T *Animation<T, U>::operator->() {
-        return mData.operator->();
-    }
-
-    template<typename T, typename U>
-    const T *Animation<T, U>::operator->() const {
-        return mData.operator->();
-    }
-
-    template<typename T, typename U>
-    void Animation<T, U>::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+    template<typename D, typename F>
+    void Animation<D, F>::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         (void) states;
-        target.draw(*mData);
+        target.draw(this->get());
     }
 }

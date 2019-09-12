@@ -31,8 +31,12 @@
 using namespace gravitar;
 
 static constexpr decltype(auto) FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
-static constexpr decltype(auto) SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
 static constexpr decltype(auto) TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
+static constexpr decltype(auto) SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
+
+/*
+ * AssetsInitializationError
+ */
 
 class AssetsInitializationError final : public std::exception {
 public:
@@ -47,81 +51,8 @@ private:
 };
 
 /*
- * AnimationsManager
- */
-
-static const std::array<sf::Uint8, 8> WHITE_TRANSITION = {
-        255,
-        240,
-        220,
-        200,
-        180,
-        200,
-        220,
-        240,
-};
-
-void AnimationsManager::initialize(const FontsManager &fontsManager) {
-    mFontsManager = &fontsManager;
-
-    decltype(auto) continueAnimation = std::make_unique<AnimationId::Continue::Type>(
-            8,
-            [](auto &delegate) {
-                sf::Color fillColor = delegate->getFillColor();
-                fillColor.a = *++delegate.frames;
-                delegate->setFillColor(fillColor);
-            },
-            AnimationId::Continue::Drawable("[SPACE]", mFontsManager->get(FontId::Mechanical), 24),
-            AnimationId::Continue::Frame(WHITE_TRANSITION)
-    );
-
-    const auto continueAnimationBounuds = (*continueAnimation)->getLocalBounds();
-    (*continueAnimation)->setOrigin(continueAnimationBounuds.left + continueAnimationBounuds.width / 2.0f, continueAnimationBounuds.top + continueAnimationBounuds.height / 2.0f);
-
-    mAnimations[getTypeIndex<AnimationId::Continue>()] = std::move(continueAnimation);
-}
-
-/*
- * FontsManager
- */
-
-void FontsManager::initialize() {
-    std::array<const std::tuple<const char *, FontId>, 1> items = {
-            std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
-    };
-
-    for (decltype(auto) i : items) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
-}
-
-void FontsManager::load(const char *const filename, const FontId id) {
-    char path[256];
-    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", FONTS_PATH, filename);
-
-    if (decltype(auto) soundtrack = mFonts[id]; !soundtrack.loadFromFile(path)) {
-        std::snprintf(path, 256, "%sUnable to load font: %s", __TRACE__, filename);
-        throw AssetsInitializationError(path);
-    }
-}
-
-const sf::Font &FontsManager::get(const FontId id) const noexcept {
-    return mFonts.at(id);
-}
-
-/*
  * SoundtracksManager
  */
-
-void SoundTracksManager::initialize() {
-    std::array<const std::tuple<const char *, SoundTrackId>, 1> items = {
-            std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
-    };
-
-    for (decltype(auto) i : items) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
-}
 
 void SoundTracksManager::togglePlaying() noexcept {
     if (mCurrentlyPlaying) {
@@ -145,25 +76,9 @@ void SoundTracksManager::play(const SoundTrackId id) noexcept {
     soundtrack.play();
 }
 
-void SoundTracksManager::load(const char *const filename, const SoundTrackId id) {
-    char path[256];
-    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", SOUNDTRACKS_PATH, filename);
-
-    if (decltype(auto) soundtrack = mSoundtracks[id]; soundtrack.openFromFile(path)) {
-        soundtrack.setLoop(true);
-    } else {
-        std::snprintf(path, 256, "%sUnable to load soundtrack: %s", __TRACE__, filename);
-        throw AssetsInitializationError(path);
-    }
-}
-
-/*
- * SpritesManager
- */
-
-void SpritesManager::initialize() {
-    std::array<const std::tuple<const char *, SpriteId>, 1> items = {
-            std::make_tuple<const char *, SpriteId>("gravitar-title.png", SpriteId::GravitarTitle),
+void SoundTracksManager::initialize() {
+    std::array<const std::tuple<const char *, SoundTrackId>, 1> items = {
+            std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
     };
 
     for (decltype(auto) i : items) {
@@ -171,55 +86,159 @@ void SpritesManager::initialize() {
     }
 }
 
-TransformableDrawable<sf::Sprite> &SpritesManager::get(SpriteId id) noexcept {
-    return mSprites.at(id);
+void SoundTracksManager::load(const char *const filename, const SoundTrackId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", SOUNDTRACKS_PATH, filename);
+
+    if (decltype(auto) soundtrack = mSoundtracks[id]; soundtrack.openFromFile(path)) {
+        soundtrack.setLoop(true);
+    } else {
+        std::snprintf(path, std::size(path), "%sUnable to load soundtrack: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
 }
 
-void SpritesManager::load(const char *const filename, const SpriteId id) {
+/*
+ * FontsManager
+ */
+
+const sf::Font &FontsManager::get(const FontId id) const noexcept {
+    return mFonts.at(id);
+}
+
+void FontsManager::initialize() {
+    std::array<const std::tuple<const char *, FontId>, 1> items = {
+            std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
+    };
+
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+}
+
+void FontsManager::load(const char *const filename, const FontId id) {
     char path[256];
-    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURES_PATH, filename);
+    std::snprintf(path, std::size(path), "%s/%s", FONTS_PATH, filename);
+
+    if (decltype(auto) soundtrack = mFonts[id]; !soundtrack.loadFromFile(path)) {
+        std::snprintf(path, std::size(path), "%sUnable to load font: %s", __TRACE__, filename);
+        throw AssetsInitializationError(path);
+    }
+}
+
+/*
+ * TexturesManager
+ */
+
+const sf::Texture &TexturesManager::get(TextureId id) const noexcept {
+    return mTextures.at(id);
+}
+
+void TexturesManager::initialize() {
+    std::array<const std::tuple<const char *, TextureId>, 3> items = {
+            std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
+            std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
+            std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
+    };
+
+    for (decltype(auto) i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+}
+
+void TexturesManager::load(const char *filename, TextureId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", TEXTURES_PATH, filename);
 
     if (decltype(auto) texture = mTextures[id]; texture.loadFromFile(path)) {
         texture.setSmooth(true);
-
-        decltype(auto) sprite = sf::Sprite(texture);
-        decltype(auto) spriteBounds = sprite.getLocalBounds();
-
-        sprite.setOrigin(spriteBounds.left + spriteBounds.width / 2.0f, spriteBounds.top + spriteBounds.height / 2.0f);
-        mSprites.emplace(id, std::move(sprite));
     } else {
-        std::snprintf(path, 256, "%sUnable to load texture: %s", __TRACE__, filename);
+        std::snprintf(path, std::size(path), "%sUnable to load texture: %s", __TRACE__, filename);
         throw AssetsInitializationError(path);
     }
+}
+
+/*
+ * GravitarTitle
+ */
+
+void GravitarTitle::setPosition(float x, float y) {
+    mSprite.setPosition(x, y);
+}
+
+void GravitarTitle::initialize(const TexturesManager &texturesManager) {
+    mSprite.setTexture(texturesManager.get(TextureId::GravitarTitle), true);
+
+    decltype(auto) bounds = mSprite.getLocalBounds();
+    mSprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+}
+
+void GravitarTitle::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+    (void) states;
+    target.draw(mSprite);
+}
+
+/*
+ * SpaceLabel
+ */
+
+static constexpr std::array<sf::Uint8, 8> WHITE_TRANSITION = {
+        255,
+        240,
+        220,
+        200,
+        180,
+        200,
+        220,
+        240,
+};
+
+void SpaceLabel::update(const sf::Time &time) {
+    mInstance.update(time);
+}
+
+void SpaceLabel::setPosition(float x, float y) {
+    mInstance->setPosition(x, y);
+}
+
+SpaceLabel::SpaceLabel() :
+        mInstance(8, [](auto &drawable, auto &frames) {
+                      sf::Color fillColor = drawable.getFillColor();
+                      fillColor.a = *++frames;
+                      drawable.setFillColor(fillColor);
+                  },
+                  sf::Text(),
+                  Cycle<const Transition, Transition::const_iterator>(WHITE_TRANSITION.cbegin(), WHITE_TRANSITION.cend())) {}
+
+void SpaceLabel::initialize(const FontsManager &fontsManager) {
+    mInstance->setFont(fontsManager.get(FontId::Mechanical));
+    mInstance->setCharacterSize(24);
+    mInstance->setString("[SPACE]");
+
+    decltype(auto) bounds = mInstance->getLocalBounds();
+    mInstance->setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+}
+
+void SpaceLabel::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+    (void) states;
+    target.draw(mInstance);
 }
 
 /*
  * SpriteSheetsManager
  */
 
-void SpriteSheetsManager::initialize() {
-    std::array<const std::tuple<const char *, sf::Vector2u, SpriteSheetId>, 1> items = {
-            std::make_tuple<const char *, sf::Vector2u, SpriteSheetId>("spaceship.png", {32, 32}, SpriteSheetId::SpaceShip),
-    };
-
-    for (decltype(auto) i : items) {
-        load(std::get<0>(i), std::get<1>(i), std::get<2>(i));
-    }
-}
-
 const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
     return mSpriteSheets.at(id);
 }
 
-void SpriteSheetsManager::load(const char *const filename, const sf::Vector2u frameSize, const SpriteSheetId id) {
-    char path[256];
-    std::snprintf(path, sizeof(path) / sizeof(path[0]), "%s/%s", TEXTURES_PATH, filename);
+void SpriteSheetsManager::initialize(const TexturesManager &texturesManager) {
+    std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 2> items = {
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
+    };
 
-    if (decltype(auto) texture = mTextures[id]; texture.loadFromFile(path)) {
-        texture.setSmooth(true);
-        mSpriteSheets.emplace(id, SpriteSheet::from(texture, frameSize.x, frameSize.y));
-    } else {
-        std::snprintf(path, 256, "%sUnable to load texture: %s", __TRACE__, filename);
-        throw AssetsInitializationError(path);
+    for (decltype(auto) i : items) {
+        mSpriteSheets.emplace(std::get<0>(i), SpriteSheet::from(texturesManager.get(std::get<1>(i)), std::get<2>(i)));
     }
 }

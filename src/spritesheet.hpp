@@ -33,9 +33,15 @@ namespace gravitar {
     class SpriteSheet final {
     public:
         using Frame = sf::IntRect;
-        using FrameBuffer = const std::vector<Frame>;
-        using const_iterator = std::vector<Frame>::const_iterator;
-        using const_reverse_iterator = std::vector<Frame>::const_reverse_iterator;
+        using Buffer = std::vector<Frame>;
+
+        using const_iterator = Buffer::const_iterator;
+
+        using difference_type = Buffer::difference_type;
+        using value_type = Buffer::value_type;
+        using pointer = Buffer::pointer;
+        using reference = Buffer::reference;
+        using iterator_category = std::forward_iterator_tag;
 
         SpriteSheet() = delete; // no default-constructible
 
@@ -43,18 +49,15 @@ namespace gravitar {
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
         SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
-        SpriteSheet &operator=(SpriteSheet &&) = delete; // no move-assignable;
+        SpriteSheet &operator=(SpriteSheet &&) noexcept = delete; // no move-assignable;
 
-        [[nodiscard]] static SpriteSheet
-        from(const sf::Texture &texture, unsigned frameWidth, unsigned frameHeight,
-             sf::Vector2u size, sf::Vector2u startCoord = {0, 0});
+        [[nodiscard]] static SpriteSheet from(const sf::Texture &texture, sf::Vector2u frame, sf::Vector2u startCoord = {0, 0});
 
-        [[nodiscard]] static SpriteSheet
-        from(const sf::Texture &texture, unsigned frameWidth, unsigned frameHeight, sf::Vector2u startCoord = {0, 0});
+        [[nodiscard]] const_iterator cbegin() const noexcept;
 
-        [[nodiscard]] const std::vector<Frame> *operator->() const noexcept;
+        [[nodiscard]] const_iterator cend() const noexcept;
 
-        [[nodiscard]] const std::vector<Frame> &operator*() const noexcept;
+        [[nodiscard]] const Buffer &getBuffer() const noexcept;
 
         [[nodiscard]] const sf::Texture &getTexture() const noexcept;
 
@@ -64,16 +67,12 @@ namespace gravitar {
 
         [[nodiscard]] const sf::Vector2u &getSize() const noexcept;
 
-        [[nodiscard]] const_iterator getFrameIterator(const sf::Vector2u &frameCoord = {0, 0}) const;
-
-        [[nodiscard]] const_reverse_iterator getReverseFrameIterator(const sf::Vector2u &frameCoord = {0, 0}) const;
-
     private:
-        SpriteSheet(const sf::Texture &texture, std::vector<Frame> &&frames, sf::Vector2u size) noexcept;
+        SpriteSheet(const sf::Texture &texture, Buffer &&buffer, sf::Vector2u size) noexcept;
 
-        [[nodiscard]] std::size_t getFrameIndex(const sf::Vector2u &frameCoord) const noexcept;
+        [[nodiscard]] std::size_t frameIndex(const sf::Vector2u &frameCoord) const noexcept;
 
-        std::vector<Frame> mFrames;
+        Buffer mBuffer;
         const sf::Texture &mTexture;
         sf::Vector2u mSize;
     };

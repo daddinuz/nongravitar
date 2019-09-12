@@ -58,6 +58,8 @@ namespace gravitar {
     private:
         void initializeSolarSystemScene();
 
+        void handleGeneralInputs();
+
         void updateCurtainScene();
         void updateSolarSystemScene();
         void updatePlanetAssaultScene();
@@ -67,14 +69,17 @@ namespace gravitar {
         void renderSystem();
 
         entt::registry mRegistry;
+
+        FontsManager mFontsManager;
+        TexturesManager mTexturesManager;
+        SoundTracksManager mSoundTracksManager;
+        SpriteSheetsManager mSpriteSheetsManager;
+
+        SpaceLabel mSpaceLabel;
+        GravitarTitle mGravitarTitle;
+
         sf::RenderWindow mWindow;
         sf::Clock mTimer{};
-        sf::Event mEvent{};
         Scene mScene{Scene::Curtain};
-        FontsManager mFontsManager;
-        SoundTracksManager mSoundTracksManager;
-        SpritesManager mSpritesManager;
-        SpriteSheetsManager mSpriteSheetsManager;
-        AnimationsManager mAnimationsManager;
     };
 }

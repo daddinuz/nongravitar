@@ -25,18 +25,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "helpers.hpp"
+#include "components.hpp"
 
-using namespace gravitar;
+using namespace gravitar::components;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
-
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
-
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
-}
+Renderable::Renderable(sf::Sprite &&instance) : Wrapper(std::move(instance)) {}
