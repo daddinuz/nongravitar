@@ -33,8 +33,8 @@
 
 using namespace gravitar;
 
-inline constexpr float SPEED = 300.0f;
-inline constexpr float ROTATION_SPEED = 360.0f;
+constexpr float SPEED = 300.0f;
+constexpr float ROTATION_SPEED = 360.0f;
 
 Game &Game::initialize() {
     mFontsManager.initialize();
