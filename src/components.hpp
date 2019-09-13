@@ -28,23 +28,14 @@
 #pragma once
 
 #include <variant>
+
 #include "wrapper.hpp"
 #include "helpers.hpp"
 
 namespace gravitar::components {
-    struct Position final : public Wrapper<sf::Vector2f> {
-        template<typename ...Args>
-        explicit Position(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
-    };
-
     struct Velocity final : public Wrapper<sf::Vector2f> {
         template<typename ...Args>
         explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
-    };
-
-    struct Rotation final : public Wrapper<float> {
-        template<typename ...Args>
-        explicit Rotation(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
     struct Renderable final : public Wrapper<std::variant<sf::Sprite>> {

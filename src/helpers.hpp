@@ -32,6 +32,13 @@
 #include <SFML/Graphics.hpp>
 
 namespace gravitar::helpers {
+    template<typename F, typename ...Args>
+    inline constexpr void debugCall([[maybe_unused]] F &&f, [[maybe_unused]] Args &&...args) {
+#ifndef NDEBUG
+        f(std::forward<Args>(args)...);
+#endif
+    }
+
     template<typename T>
     std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
         return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
@@ -56,6 +63,11 @@ namespace gravitar::helpers {
         return signum(n, std::is_signed<T>());
     }
 
+    template<typename T>
+    void centerOrigin(sf::Transformable &self, const sf::Rect<T> &bounds) {
+        self.setOrigin(bounds.left + bounds.width / T(2), bounds.top + bounds.height / T(2));
+    }
+
     /// Range [0, 360].
     template<typename T>
     float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
@@ -72,9 +84,9 @@ namespace gravitar::helpers {
 
     template<typename T>
     sf::Vector2<T> normalized(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
-        decltype(auto) diff = point - origin;
+        auto diff = point - origin;
 
-        if (decltype(auto) mag = magnitude<T>(origin, point); mag > 0) {
+        if (const auto mag = magnitude<T>(origin, point); mag > 0) {
             diff /= mag;
         }
 

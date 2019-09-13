@@ -26,13 +26,14 @@
  */
 
 #include "assets.hpp"
+#include "helpers.hpp"
 #include "trace.hpp"
 
 using namespace gravitar;
 
-static constexpr decltype(auto) FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
-static constexpr decltype(auto) TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
-static constexpr decltype(auto) SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
+constexpr auto FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
+constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
+constexpr auto SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
 
 /*
  * AssetsInitializationError
@@ -168,9 +169,7 @@ void GravitarTitle::setPosition(float x, float y) {
 
 void GravitarTitle::initialize(const TexturesManager &texturesManager) {
     mSprite.setTexture(texturesManager.get(TextureId::GravitarTitle), true);
-
-    decltype(auto) bounds = mSprite.getLocalBounds();
-    mSprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+    helpers::centerOrigin(mSprite, mSprite.getLocalBounds());
 }
 
 void GravitarTitle::draw(sf::RenderTarget &target, sf::RenderStates states) const {
@@ -214,9 +213,7 @@ void SpaceLabel::initialize(const FontsManager &fontsManager) {
     mInstance->setFont(fontsManager.get(FontId::Mechanical));
     mInstance->setCharacterSize(24);
     mInstance->setString("[SPACE]");
-
-    decltype(auto) bounds = mInstance->getLocalBounds();
-    mInstance->setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+    helpers::centerOrigin(*mInstance, mInstance->getLocalBounds());
 }
 
 void SpaceLabel::draw(sf::RenderTarget &target, sf::RenderStates states) const {

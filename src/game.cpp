@@ -47,7 +47,7 @@ Game &Game::initialize() {
 
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
-    mWindow.setFramerateLimit(60);
+    mWindow.setFramerateLimit(60); // roughly 60 fps
     mWindow.setActive(true);
 
     mSoundTracksManager.play(SoundTrackId::MainTheme);
@@ -82,21 +82,16 @@ void Game::run() {
 void Game::initializeSolarSystemScene() {
     using namespace components;
 
-    mRegistry.group<Position, Velocity>();
-    mRegistry.group<Renderable, Rotation>(entt::get < Position > );
+    mRegistry.group<Renderable, Velocity>();
 
-    decltype(auto) player = mRegistry.create();
-    decltype(auto) sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
-    decltype(auto) bounds = sprite.getLocalBounds();
-    sprite.setOrigin(bounds.left + bounds.width / 2.0f, bounds.top + bounds.height / 2.0f);
+    auto player = mRegistry.create();
+    auto sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
+    helpers::centerOrigin(sprite, sprite.getLocalBounds());
+    sprite.setPosition(400.0f, 300.0f);
 
-    mRegistry.assign < entt::tag < "player"_hs >> (player);
-
-    mRegistry.assign<Position>(player, 400.0f, 300.0f);
-    mRegistry.assign<Velocity>(player);
-
-    mRegistry.assign<Rotation>(player);
     mRegistry.assign<Renderable>(player, std::move(sprite));
+    mRegistry.assign<Velocity>(player);
+    mRegistry.assign < entt::tag < "player"_hs >> (player);
 }
 
 void Game::handleGeneralInputs() {
@@ -113,6 +108,7 @@ void Game::handleGeneralInputs() {
 
                 case sf::Keyboard::F6: mSoundTracksManager.togglePlaying();
                     break;
+// TODO: remove me
 #ifndef NDEBUG
                 case sf::Keyboard::Delete: mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
                     break;
@@ -127,7 +123,7 @@ void Game::handleGeneralInputs() {
 }
 
 void Game::updateCurtainScene() {
-    decltype(auto) windowSize = mWindow.getSize();
+    const auto windowSize = mWindow.getSize();
 
     mGravitarTitle.setPosition(windowSize.x / 2.0f, windowSize.y / 3.14f);
     mSpaceLabel.setPosition(windowSize.x / 2.0f, windowSize.y / 1.2f);
@@ -154,11 +150,17 @@ void Game::updatePlanetAssaultScene() {
 void Game::inputSystem() {
     using namespace components;
 
-    mRegistry.view < entt::tag < "player"_hs > , Position, Velocity, Rotation > ().each([this](const auto tag, const auto &position, auto &velocity, auto &rotation) {
+    mRegistry.view < entt::tag < "player"_hs > , Renderable, Velocity > ().each([this](const auto tag, auto &renderable, auto &velocity) {
         (void) tag;
 
-        decltype(auto) mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
-        *rotation += helpers::signum(helpers::shortestRotation(*rotation, helpers::rotation(*position, mousePosition))) * ROTATION_SPEED * mTimer.getElapsedTime().asSeconds();
+        std::visit([this](auto &drawable) {
+                       const auto mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
+                       const auto mouseRotation = helpers::rotation(drawable.getPosition(), mousePosition);
+                       const auto shortestRotation = helpers::shortestRotation(drawable.getRotation(), mouseRotation);
+                       drawable.rotate(helpers::signum(shortestRotation) * ROTATION_SPEED * mTimer.getElapsedTime().asSeconds());
+                   },
+                   *renderable);
+
         *velocity *= 0.0f;
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -184,18 +186,29 @@ void Game::inputSystem() {
 void Game::motionSystem() {
     using namespace components;
 
-    mRegistry.group<Position, Velocity>().each([this](auto &position, auto &velocity) {
-        *position += *velocity * mTimer.getElapsedTime().asSeconds();
+    mRegistry.group<Renderable, Velocity>().each([this](auto &renderable, auto &velocity) {
+        std::visit([this, &velocity](auto &drawable) {
+            drawable.move(*velocity * mTimer.getElapsedTime().asSeconds());
+        }, *renderable);
     });
 }
 
 void Game::renderSystem() {
     using namespace components;
 
-    mRegistry.group<Renderable, Rotation>(entt::get < Position > ).each([this](auto &renderable, const auto &rotation, const auto &position) {
-        std::visit([this, &position, &rotation](auto &drawable) {
-            drawable.setPosition(*position);
-            drawable.setRotation(*rotation);
+    mRegistry.view<Renderable>().each([this](auto &renderable) {
+        std::visit([this](auto &drawable) {
+            helpers::debugCall([this, &drawable]() { // display hit-box (sprite borders) on debug builds only
+                const auto bounds = drawable.getLocalBounds();
+                auto hitBox = sf::RectangleShape({bounds.width, bounds.height});
+                hitBox.setOrigin(drawable.getOrigin());
+                hitBox.setPosition(drawable.getPosition());
+                hitBox.setFillColor(sf::Color::Transparent);
+                hitBox.setOutlineColor(sf::Color::Red);
+                hitBox.setOutlineThickness(1);
+                mWindow.draw(hitBox);
+            });
+
             mWindow.draw(drawable);
         }, *renderable);
     });
