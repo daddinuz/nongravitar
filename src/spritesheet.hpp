@@ -63,7 +63,7 @@ namespace gravitar {
 
         [[nodiscard]] const Frame &getFrame(const sf::Vector2u &frameCoord) const;
 
-        [[nodiscard]] sf::Sprite getSprite(const sf::Vector2u &frameCoord) const;
+        [[nodiscard]] sf::Sprite instanceSprite(const sf::Vector2u &frameCoord) const;
 
         [[nodiscard]] const sf::Vector2u &getSize() const noexcept;
 
