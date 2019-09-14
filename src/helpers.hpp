@@ -44,6 +44,11 @@ namespace gravitar::helpers {
         return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
     }
 
+    template<typename T>
+    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
+        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
+    }
+
     float deg2rad(float deg);
 
     float rad2deg(float rad);
