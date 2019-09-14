@@ -29,4 +29,41 @@
 
 using namespace gravitar::components;
 
-Renderable::Renderable(sf::Sprite &&instance) : Wrapper(std::move(instance)) {}
+Renderable::Renderable(sf::Sprite &&instance) : mInstance(std::move(instance)) {}
+
+void Renderable::rotate(float angle) {
+    std::visit([&angle](auto &instance) { instance.rotate(angle); }, mInstance);
+}
+
+float Renderable::getRotation() const noexcept {
+    return std::visit([](const auto &instance) { return instance.getRotation(); }, mInstance);
+}
+
+void Renderable::move(const sf::Vector2f &offset) {
+    std::visit([&offset](auto &instance) { instance.move(offset); }, mInstance);
+}
+
+void Renderable::setPosition(const sf::Vector2f &position) {
+    std::visit([&position](auto &instance) { instance.setPosition(position); }, mInstance);
+}
+
+sf::Vector2f Renderable::getPosition() const noexcept {
+    return std::visit([](const auto &instance) { return instance.getPosition(); }, mInstance);
+}
+
+sf::Vector2f Renderable::getOrigin() const noexcept {
+    return std::visit([](const auto &instance) { return instance.getOrigin(); }, mInstance);
+}
+
+sf::FloatRect Renderable::getHitBox() const noexcept {
+    return std::visit([](const auto &instance) {
+        const auto bounds = instance.getLocalBounds();
+        const auto position = instance.getPosition();
+        return sf::FloatRect(position.x - bounds.width / 2, position.y - bounds.height / 2, bounds.width, bounds.height);
+    }, mInstance);
+}
+
+void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+    (void) states;
+    std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
+}

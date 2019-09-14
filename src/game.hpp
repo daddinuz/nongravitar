@@ -66,6 +66,7 @@ namespace gravitar {
 
         void inputSystem();
         void motionSystem();
+        void collisionSystem();
         void renderSystem();
 
         entt::registry mRegistry;

@@ -33,6 +33,13 @@
 
 using namespace gravitar;
 
+using Player = entt::tag<"player"_hs>;
+using Bunker1 = entt::tag<"bunker1"_hs>;
+using Bunker2 = entt::tag<"bunker2"_hs>;
+using Bullet = entt::tag<"bullet"_hs>;
+using Ground = entt::tag<"ground"_hs>;
+using Planet = entt::tag<"planet"_hs>;
+
 constexpr float SPEED = 300.0f;
 constexpr float ROTATION_SPEED = 360.0f;
 
@@ -85,13 +92,14 @@ void Game::initializeSolarSystemScene() {
     mRegistry.group<Renderable, Velocity>();
 
     auto player = mRegistry.create();
-    auto sprite = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).getSprite({0, 0});
-    helpers::centerOrigin(sprite, sprite.getLocalBounds());
-    sprite.setPosition(400.0f, 300.0f);
+    auto renderable = mSpriteSheetsManager.get(SpriteSheetId::SpaceShip).instanceSprite({0, 0});
 
-    mRegistry.assign<Renderable>(player, std::move(sprite));
+    helpers::centerOrigin(renderable, renderable.getLocalBounds());
+    renderable.setPosition(400.0f, 300.0f);
+
+    mRegistry.assign<Player>(player);
     mRegistry.assign<Velocity>(player);
-    mRegistry.assign < entt::tag < "player"_hs >> (player);
+    mRegistry.assign<Renderable>(player, std::move(renderable));
 }
 
 void Game::handleGeneralInputs() {
@@ -140,6 +148,7 @@ void Game::updateCurtainScene() {
 void Game::updateSolarSystemScene() {
     inputSystem();
     motionSystem();
+    collisionSystem();
     renderSystem();
 }
 
@@ -150,17 +159,14 @@ void Game::updatePlanetAssaultScene() {
 void Game::inputSystem() {
     using namespace components;
 
-    mRegistry.view < entt::tag < "player"_hs > , Renderable, Velocity > ().each([this](const auto tag, auto &renderable, auto &velocity) {
-        (void) tag;
+    mRegistry.view<Player, Renderable, Velocity>().each([this](const auto &player, auto &renderable, auto &velocity) {
+        (void) player;
 
-        std::visit([this](auto &drawable) {
-                       const auto mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
-                       const auto mouseRotation = helpers::rotation(drawable.getPosition(), mousePosition);
-                       const auto shortestRotation = helpers::shortestRotation(drawable.getRotation(), mouseRotation);
-                       drawable.rotate(helpers::signum(shortestRotation) * ROTATION_SPEED * mTimer.getElapsedTime().asSeconds());
-                   },
-                   *renderable);
+        const auto mousePosition = mWindow.mapPixelToCoords(sf::Mouse::getPosition(mWindow));
+        const auto mouseRotation = helpers::rotation(renderable.getPosition(), mousePosition);
+        const auto shortestRotation = helpers::shortestRotation(renderable.getRotation(), mouseRotation);
 
+        renderable.rotate(helpers::signum(shortestRotation) * ROTATION_SPEED * mTimer.getElapsedTime().asSeconds());
         *velocity *= 0.0f;
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -186,30 +192,40 @@ void Game::inputSystem() {
 void Game::motionSystem() {
     using namespace components;
 
-    mRegistry.group<Renderable, Velocity>().each([this](auto &renderable, auto &velocity) {
-        std::visit([this, &velocity](auto &drawable) {
-            drawable.move(*velocity * mTimer.getElapsedTime().asSeconds());
-        }, *renderable);
+    mRegistry.group<Renderable, Velocity>().each([this](auto &renderable, const auto &velocity) {
+        renderable.move(*velocity * mTimer.getElapsedTime().asSeconds());
+    });
+}
+
+void Game::collisionSystem() {
+    using namespace components;
+
+    const auto viewport = sf::FloatRect(mWindow.getViewport(mWindow.getView()));
+
+    mRegistry.view<Player, Renderable>().each([&viewport](const auto player, auto &renderable) {
+        (void) player;
+
+        const auto hitBox = renderable.getHitBox();
+        if (not viewport.intersects(hitBox)) {
+            renderable.setPosition({viewport.width / 2, viewport.height / 2});
+        }
     });
 }
 
 void Game::renderSystem() {
     using namespace components;
 
-    mRegistry.view<Renderable>().each([this](auto &renderable) {
-        std::visit([this](auto &drawable) {
-            helpers::debugCall([this, &drawable]() { // display hit-box (sprite borders) on debug builds only
-                const auto bounds = drawable.getLocalBounds();
-                auto hitBox = sf::RectangleShape({bounds.width, bounds.height});
-                hitBox.setOrigin(drawable.getOrigin());
-                hitBox.setPosition(drawable.getPosition());
-                hitBox.setFillColor(sf::Color::Transparent);
-                hitBox.setOutlineColor(sf::Color::Red);
-                hitBox.setOutlineThickness(1);
-                mWindow.draw(hitBox);
-            });
+    mRegistry.view<Renderable>().each([this](const auto &renderable) {
+        helpers::debugCall([this, &renderable]() { // display hit-box on debug builds only
+            const auto hitBox = renderable.getHitBox();
+            auto shape = sf::RectangleShape({hitBox.width, hitBox.height});
+            shape.setPosition({hitBox.left, hitBox.top});
+            shape.setFillColor(sf::Color::Transparent);
+            shape.setOutlineColor(sf::Color::Red);
+            shape.setOutlineThickness(1);
+            mWindow.draw(shape);
+        });
 
-            mWindow.draw(drawable);
-        }, *renderable);
+        mWindow.draw(renderable);
     });
 }

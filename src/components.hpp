@@ -33,14 +33,47 @@
 #include "helpers.hpp"
 
 namespace gravitar::components {
+    /*
+    struct Position final : public Wrapper<sf::Vector2f> {
+        template<typename ...Args>
+        explicit Position(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+    };
+     */
+
     struct Velocity final : public Wrapper<sf::Vector2f> {
         template<typename ...Args>
         explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
-    struct Renderable final : public Wrapper<std::variant<sf::Sprite>> {
-        Renderable() = delete;
+    /*
+    struct Rotation final : public Wrapper<float> {
+        template<typename ...Args>
+        explicit Rotation(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+    };
 
+    struct HitBox final : public Wrapper<sf::FloatRect> {
+        template<typename ...Args>
+        explicit HitBox(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+    };
+     */
+
+    class Renderable final : public sf::Drawable {
+    public:
         explicit Renderable(sf::Sprite &&instance);
+
+        void rotate(float angle);
+        [[nodiscard]] float getRotation() const noexcept;
+
+        void move(const sf::Vector2f &offset);
+        void setPosition(const sf::Vector2f &position);
+        [[nodiscard]] sf::Vector2f getPosition() const noexcept;
+
+        [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
+        [[nodiscard]] sf::FloatRect getHitBox() const noexcept;
+
+    private:
+        void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
+
+        std::variant<sf::Sprite, sf::Text> mInstance;
     };
 }

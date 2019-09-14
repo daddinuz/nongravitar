@@ -75,7 +75,7 @@ const SpriteSheet::Frame &SpriteSheet::getFrame(const sf::Vector2u &frameCoord) 
     return mBuffer.at(frameIndex(frameCoord));
 }
 
-sf::Sprite SpriteSheet::getSprite(const sf::Vector2u &frameCoord) const {
+sf::Sprite SpriteSheet::instanceSprite(const sf::Vector2u &frameCoord) const {
     return sf::Sprite(mTexture, getFrame(frameCoord));
 }
 
