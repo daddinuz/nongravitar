@@ -58,8 +58,6 @@ namespace gravitar {
     private:
         void initializeSolarSystemScene();
 
-        void handleGeneralInputs();
-
         void updateCurtainScene();
         void updateSolarSystemScene();
         void updatePlanetAssaultScene();

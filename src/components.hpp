@@ -29,33 +29,48 @@
 
 #include <variant>
 
+#include <SFML/Graphics.hpp>
+
 #include "wrapper.hpp"
-#include "helpers.hpp"
 
 namespace gravitar::components {
-    /*
-    struct Position final : public Wrapper<sf::Vector2f> {
-        template<typename ...Args>
-        explicit Position(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
-    };
-     */
-
     struct Velocity final : public Wrapper<sf::Vector2f> {
         template<typename ...Args>
         explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
     };
 
-    /*
-    struct Rotation final : public Wrapper<float> {
+    struct Health final : public Wrapper<int> {
         template<typename ...Args>
-        explicit Rotation(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+        explicit Health(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline bool isDead() const noexcept {
+            return this->get() <= 0;
+        }
     };
 
-    struct HitBox final : public Wrapper<sf::FloatRect> {
+    struct Fuel final : public Wrapper<float> {
         template<typename ...Args>
-        explicit HitBox(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+        explicit Fuel(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline bool isOver() const noexcept {
+            return this->get() <= 0;
+        }
     };
-     */
+
+    class RechargeTime final {
+    public:
+        explicit RechargeTime(float secondsBeforeShoot);
+
+        void reset();
+
+        void elapse(const sf::Time &time);
+
+        [[nodiscard]] bool canShoot() const noexcept;
+
+    private:
+        float mElapsed;
+        float mSecondsBeforeShoot;
+    };
 
     class Renderable final : public sf::Drawable {
     public:
@@ -74,6 +89,6 @@ namespace gravitar::components {
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite, sf::Text> mInstance;
+        std::variant<sf::Sprite> mInstance;
     };
 }

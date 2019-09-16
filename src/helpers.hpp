@@ -33,7 +33,7 @@
 
 namespace gravitar::helpers {
     template<typename F, typename ...Args>
-    inline constexpr void debugCall([[maybe_unused]] F &&f, [[maybe_unused]] Args &&...args) {
+    inline constexpr void debug([[maybe_unused]] F &&f, [[maybe_unused]] Args &&...args) {
 #ifndef NDEBUG
         f(std::forward<Args>(args)...);
 #endif
