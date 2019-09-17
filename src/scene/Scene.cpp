@@ -29,15 +29,11 @@
 
 using namespace gravitar::scene;
 
-SceneId Scene::getId() const noexcept {
-    return mSceneId;
-}
-
 void Scene::adjustAudio(gravitar::assets::AudioManager &audioManager) noexcept {
     (void) audioManager;
 }
 
-SceneId Scene::handleEvent(const sf::Event &event) noexcept {
+SceneId Scene::onEvent(const sf::Event &event) noexcept {
     (void) event;
     return getId();
 }
@@ -45,4 +41,8 @@ SceneId Scene::handleEvent(const sf::Event &event) noexcept {
 void Scene::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
     (void) window;
     (void) elapsed;
+}
+
+SceneId Scene::getId() const noexcept {
+    return mSceneId;
 }

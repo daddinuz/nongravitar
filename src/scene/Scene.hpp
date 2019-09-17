@@ -40,14 +40,33 @@ namespace gravitar::scene {
     public:
         friend class SceneManager;
 
+        /**
+         * Update the audio of the scene.
+         * This method is called exactly once per iteration.
+         */
         virtual void adjustAudio(assets::AudioManager &audioManager) noexcept;
 
-        [[nodiscard]] virtual SceneId handleEvent(const sf::Event &event) noexcept;
+        /**
+         * React to an event returning a new scene if needed.
+         * This method may be called many times per iteration depending on how many events have been emitted during the iteration.
+         */
+        [[nodiscard]] virtual SceneId onEvent(const sf::Event &event) noexcept;
 
+        /**
+         * Update the logic of the scene.
+         * This method is called exactly once per iteration.
+         */
         virtual void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
 
+        /**
+         * Render the scene.
+         * This method is called exactly once per iteration.
+         */
         virtual void render(sf::RenderTarget &window) const noexcept = 0;
 
+        /**
+         * Get the `SceneId` of the scene.
+         */
         [[nodiscard]] SceneId getId() const noexcept;
 
         virtual ~Scene() = default;

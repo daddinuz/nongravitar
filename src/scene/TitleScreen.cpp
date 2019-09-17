@@ -45,7 +45,7 @@ void TitleScreen::adjustAudio(gravitar::assets::AudioManager &audioManager) noex
     }
 }
 
-SceneId TitleScreen::handleEvent(const sf::Event &event) noexcept {
+SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getId();
 }
 

@@ -100,7 +100,7 @@ void Game::handleEvents() {
                     break;
 #endif
                 default:
-                    mSceneId = mSceneManager.get(mSceneId).handleEvent(event);
+                    mSceneId = mSceneManager.get(mSceneId).onEvent(event);
                     break;
             }
         }

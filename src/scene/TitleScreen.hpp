@@ -46,7 +46,7 @@ namespace gravitar::scene {
 
         void adjustAudio(assets::AudioManager &audioManager) noexcept final;
 
-        SceneId handleEvent(const sf::Event &event) noexcept final;
+        SceneId onEvent(const sf::Event &event) noexcept final;
 
         void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
 
