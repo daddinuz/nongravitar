@@ -30,22 +30,21 @@
 
 using namespace gravitar;
 
+sf::Time restartClock(sf::Clock &clock, const bool ignoreElapsedTime) {
+    const sf::Time elapsedTime = clock.restart();
+    return ignoreElapsedTime ? sf::Time::Zero : elapsedTime;
+}
+
 Game &gravitar::Game::initialize() {
-    mTextureManager.initialize();
-    mAudioManager.initialize();
-    mFontManager.initialize();
+    initializeAssets();
     initializeWindow();
     initializeScenes();
     return *this;
 }
 
 int Game::run() {
-    for (mClock.restart(); scene::NullScene != mSceneId and mWindow.isOpen(); mClock.restart()) {
+    for (auto firstRun = true; scene::NullScene != mSceneId and mWindow.isOpen(); firstRun = false) {
         auto &scene = mSceneManager.get(mSceneId);
-
-        scene.render(mWindow);
-        mWindow.display();
-        mWindow.clear();
 
         // flush the events queue (required by SFML in order to work properly) and general input handling
         for (auto event = sf::Event{}; mWindow.pollEvent(event);) {
@@ -76,11 +75,21 @@ int Game::run() {
             }
         }
 
+        mSceneId = scene.update(mWindow, restartClock(mClock, firstRun));
+
+        mWindow.clear();
+        scene.render(mWindow);
         scene.adjustAudio(mAudioManager);
-        mSceneId = scene.update(mWindow, mClock);
+        mWindow.display();
     }
 
     return 0;
+}
+
+void Game::initializeAssets() {
+    mTextureManager.initialize();
+    mAudioManager.initialize();
+    mFontManager.initialize();
 }
 
 void Game::initializeWindow() {

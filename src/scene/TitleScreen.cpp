@@ -42,8 +42,8 @@ void TitleScreen::adjustAudio(gravitar::assets::AudioManager &audioManager) {
     }
 }
 
-SceneId TitleScreen::update(const sf::RenderTarget &renderTarget, const sf::Clock &clock) {
-    (void) clock;
+SceneId TitleScreen::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
+    (void) elapsed;
 
     const auto[windowWidth, windowHeight] = renderTarget.getSize();
     mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);

@@ -57,6 +57,7 @@ namespace gravitar {
         int run();
 
     private:
+        void initializeAssets();
         void initializeWindow();
         void initializeScenes();
 
