@@ -29,13 +29,14 @@
 
 #include <assets/TextureManager.hpp>
 #include <scene/Scene.hpp>
+#include <assets/FontManager.hpp>
 
 namespace gravitar::scene {
     class TitleScreen final : public Scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId solarSystemSceneId, const assets::TextureManager &textureManager);
+        TitleScreen(SceneId solarSystemSceneId, const assets::FontManager &fontManager, const assets::TextureManager &textureManager);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
@@ -51,6 +52,7 @@ namespace gravitar::scene {
 
     private:
         sf::Sprite mGravitarTitle;
+        sf::Text mSpaceLabel;
         const SceneId mSolarSystemSceneId;
     };
 }

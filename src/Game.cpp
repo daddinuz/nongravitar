@@ -101,5 +101,5 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(scene::NullScene, mTextureManager);
+    mSceneId = mSceneManager.emplace<scene::TitleScreen>(scene::NullScene, mFontManager, mTextureManager);
 }
