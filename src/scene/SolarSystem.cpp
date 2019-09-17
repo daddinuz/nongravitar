@@ -56,14 +56,14 @@ SolarSystem::SolarSystem(const SpriteSheetManager &spriteSheetManager) : mSprite
     mRegistry.assign<Renderable>(player, std::move(renderable));
 }
 
-void SolarSystem::update(const sf::RenderWindow &window, sf::Time elapsed) {
+void SolarSystem::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
     inputSystem(window, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
 }
 
-void SolarSystem::render(sf::RenderTarget &renderTarget) {
-    mRegistry.view<Renderable>().each([&](const auto &renderable) {
+void SolarSystem::render(sf::RenderTarget &window) const noexcept {
+    mRegistry.view<const Renderable>().each([&](const auto &renderable) {
         helpers::debug([&]() { // display hit-box on debug builds only
             const auto hitBox = renderable.getHitBox();
             auto shape = sf::RectangleShape({hitBox.width, hitBox.height});
@@ -71,14 +71,14 @@ void SolarSystem::render(sf::RenderTarget &renderTarget) {
             shape.setFillColor(sf::Color::Transparent);
             shape.setOutlineColor(sf::Color::Red);
             shape.setOutlineThickness(1);
-            renderTarget.draw(shape);
+            window.draw(shape);
         });
 
-        renderTarget.draw(renderable);
+        window.draw(renderable);
     });
 }
 
-void SolarSystem::inputSystem(const sf::RenderWindow &window, sf::Time elapsed) {
+void SolarSystem::inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
     mRegistry.view<Player, Renderable, Velocity, Fuel, RechargeTime>().each([&](const auto &player, auto &renderable, auto &velocity, auto &fuel, auto &rechargeTime) {
         (void) player;
         auto speed = SPEED;
@@ -153,13 +153,13 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, sf::Time elapsed) 
     });
 }
 
-void SolarSystem::motionSystem(sf::Time elapsed) {
+void SolarSystem::motionSystem(sf::Time elapsed) noexcept {
     mRegistry.group<Renderable, Velocity>().each([&](auto &renderable, const auto &velocity) {
         renderable.move(*velocity * elapsed.asSeconds());
     });
 }
 
-void SolarSystem::collisionSystem(const sf::RenderWindow &window) {
+void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
     mRegistry.view<Player, Renderable>().each([&](const auto &entity, const auto &player, auto &renderable) {

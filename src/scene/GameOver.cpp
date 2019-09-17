@@ -38,16 +38,16 @@ GameOver::GameOver(const FontManager &fontManager) :
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
-void GameOver::adjustAudio(AudioManager &audioManager) {
+void GameOver::adjustAudio(AudioManager &audioManager) noexcept {
     (void) audioManager;
     // TODO: play game over soundtrack
 }
 
-SceneId GameOver::handleEvent(const sf::Event &event) {
+SceneId GameOver::handleEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getId();
 }
 
-void GameOver::update(const sf::RenderWindow &window, sf::Time elapsed) {
+void GameOver::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = window.getSize();
@@ -55,7 +55,7 @@ void GameOver::update(const sf::RenderWindow &window, sf::Time elapsed) {
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
 }
 
-void GameOver::render(sf::RenderTarget &renderTarget) {
-    renderTarget.draw(mGameOverTitle);
-    renderTarget.draw(mSpaceLabel);
+void GameOver::render(sf::RenderTarget &window) const noexcept {
+    window.draw(mGameOverTitle);
+    window.draw(mSpaceLabel);
 }

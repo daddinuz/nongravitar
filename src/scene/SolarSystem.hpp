@@ -44,14 +44,14 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        void update(const sf::RenderWindow &window, sf::Time elapsed) final;
+        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
 
-        void render(sf::RenderTarget &renderTarget) final;
+        void render(sf::RenderTarget &window) const noexcept final;
 
     private:
-        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed);
-        void motionSystem(sf::Time elapsed);
-        void collisionSystem(const sf::RenderWindow &window);
+        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
+        void motionSystem(sf::Time elapsed) noexcept;
+        void collisionSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
         const assets::SpriteSheetManager &mSpriteSheetManager;

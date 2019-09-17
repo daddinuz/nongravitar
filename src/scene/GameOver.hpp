@@ -43,13 +43,13 @@ namespace gravitar::scene {
         GameOver(GameOver &&) = delete; // no move-constructible
         GameOver &operator=(GameOver &&) = delete; // no move-assignable
 
-        void adjustAudio(assets::AudioManager &audioManager) final;
+        void adjustAudio(assets::AudioManager &audioManager) noexcept final;
 
-        SceneId handleEvent(const sf::Event &event) final;
+        SceneId handleEvent(const sf::Event &event) noexcept final;
 
-        void update(const sf::RenderWindow &window, sf::Time elapsed) final;
+        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
 
-        void render(sf::RenderTarget &renderTarget) final;
+        void render(sf::RenderTarget &window) const noexcept final;
 
     private:
         sf::Text mGameOverTitle;

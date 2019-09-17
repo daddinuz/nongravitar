@@ -40,13 +40,13 @@ namespace gravitar::scene {
     public:
         friend class SceneManager;
 
-        virtual void adjustAudio(assets::AudioManager &audioManager);
+        virtual void adjustAudio(assets::AudioManager &audioManager) noexcept;
 
-        [[nodiscard]] virtual SceneId handleEvent(const sf::Event &event);
+        [[nodiscard]] virtual SceneId handleEvent(const sf::Event &event) noexcept;
 
-        virtual void update(const sf::RenderWindow &window, sf::Time elapsed);
+        virtual void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
 
-        virtual void render(sf::RenderTarget &target) = 0;
+        virtual void render(sf::RenderTarget &window) const noexcept = 0;
 
         [[nodiscard]] SceneId getId() const noexcept;
 
