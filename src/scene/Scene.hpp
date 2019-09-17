@@ -42,7 +42,9 @@ namespace gravitar::scene {
 
         virtual void adjustAudio(assets::AudioManager &audioManager);
 
-        [[nodiscard]] virtual SceneId update(const sf::RenderTarget &renderTarget, sf::Time elapsed) = 0;
+        [[nodiscard]] virtual SceneId handleEvent(const sf::Event &event);
+
+        virtual void update(const sf::RenderTarget &renderTarget, sf::Time elapsed);
 
         virtual void render(sf::RenderTarget &target) = 0;
 

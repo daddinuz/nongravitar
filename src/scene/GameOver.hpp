@@ -25,24 +25,34 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once
+
+#include <assets/FontManager.hpp>
 #include <scene/Scene.hpp>
 
-using namespace gravitar::scene;
+namespace gravitar::scene {
+    class GameOver final : public Scene {
+    public:
+        GameOver() = delete; // no default-constructible
 
-SceneId Scene::getId() const noexcept {
-    return mSceneId;
-}
+        explicit GameOver(const assets::FontManager &fontManager);
 
-void Scene::adjustAudio(gravitar::assets::AudioManager &audioManager) {
-    (void) audioManager;
-}
+        GameOver(const GameOver &) = delete; // no copy-constructible
+        GameOver &operator=(const GameOver &) = delete; // no copy-assignable
 
-SceneId Scene::handleEvent(const sf::Event &event) {
-    (void) event;
-    return getId();
-}
+        GameOver(GameOver &&) = delete; // no move-constructible
+        GameOver &operator=(GameOver &&) = delete; // no move-assignable
 
-void Scene::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
-    (void) renderTarget;
-    (void) elapsed;
+        void adjustAudio(assets::AudioManager &audioManager) final;
+
+        SceneId handleEvent(const sf::Event &event) final;
+
+        void update(const sf::RenderTarget &renderTarget, sf::Time elapsed) final;
+
+        void render(sf::RenderTarget &renderTarget) final;
+
+    private:
+        sf::Text mGameOverTitle;
+        sf::Text mSpaceLabel;
+    };
 }

@@ -25,24 +25,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <scene/Scene.hpp>
+#include <helpers.hpp>
+#include <scene/GameOver.hpp>
 
 using namespace gravitar::scene;
+using namespace gravitar::assets;
 
-SceneId Scene::getId() const noexcept {
-    return mSceneId;
+GameOver::GameOver(const FontManager &fontManager) :
+        mGameOverTitle("Game Over", fontManager.get(FontId::Mechanical), 64),
+        mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24) {
+    helpers::centerOrigin(mGameOverTitle, mGameOverTitle.getLocalBounds());
+    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
-void Scene::adjustAudio(gravitar::assets::AudioManager &audioManager) {
+void GameOver::adjustAudio(AudioManager &audioManager) {
     (void) audioManager;
+    // TODO: play game over soundtrack
 }
 
-SceneId Scene::handleEvent(const sf::Event &event) {
-    (void) event;
-    return getId();
+SceneId GameOver::handleEvent(const sf::Event &event) {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getId();
 }
 
-void Scene::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
-    (void) renderTarget;
+void GameOver::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
     (void) elapsed;
+
+    const auto[windowWidth, windowHeight] = renderTarget.getSize();
+    mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+}
+
+void GameOver::render(sf::RenderTarget &renderTarget) {
+    renderTarget.draw(mGameOverTitle);
+    renderTarget.draw(mSpaceLabel);
 }

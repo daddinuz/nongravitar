@@ -31,10 +31,10 @@
 using namespace gravitar::assets;
 using namespace gravitar::scene;
 
-TitleScreen::TitleScreen(const SceneId solarSystemSceneId, const FontManager &fontManager, const TextureManager &textureManager) :
+TitleScreen::TitleScreen(const SceneId nextSceneId, const FontManager &fontManager, const TextureManager &textureManager) :
         mGravitarTitle(textureManager.get(assets::TextureId::GravitarTitle)),
         mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24),
-        mSolarSystemSceneId{solarSystemSceneId} {
+        mNextSceneId{nextSceneId} {
     helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
@@ -45,17 +45,20 @@ void TitleScreen::adjustAudio(gravitar::assets::AudioManager &audioManager) {
     }
 }
 
-SceneId TitleScreen::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
+SceneId TitleScreen::handleEvent(const sf::Event &event) {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getId();
+}
+
+void TitleScreen::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = renderTarget.getSize();
     mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
-
-    return sf::Keyboard::isKeyPressed(sf::Keyboard::Space) ? mSolarSystemSceneId : getId();
 }
 
 void TitleScreen::render(sf::RenderTarget &renderTarget) {
     renderTarget.draw(mGravitarTitle);
     renderTarget.draw(mSpaceLabel);
 }
+

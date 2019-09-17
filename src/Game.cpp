@@ -25,15 +25,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
 #include <scene/TitleScreen.hpp>
+#include <scene/GameOver.hpp>
+#include <Game.hpp>
 
 using namespace gravitar;
-
-sf::Time restartClock(sf::Clock &clock, const bool ignoreElapsedTime) {
-    const sf::Time elapsedTime = clock.restart();
-    return ignoreElapsedTime ? sf::Time::Zero : elapsedTime;
-}
 
 Game &gravitar::Game::initialize() {
     initializeAssets();
@@ -43,46 +39,18 @@ Game &gravitar::Game::initialize() {
 }
 
 int Game::run() {
-    for (auto firstRun = true; scene::NullScene != mSceneId and mWindow.isOpen(); firstRun = false) {
+    mClock.restart();
+
+    for (handleEvents(); scene::NullScene != mSceneId; handleEvents()) {
         auto &scene = mSceneManager.get(mSceneId);
-
-        // flush the events queue (required by SFML in order to work properly) and general input handling
-        for (auto event = sf::Event{}; mWindow.pollEvent(event);) {
-            if (sf::Event::Closed == event.type) {
-                mWindow.close();
-            } else if (sf::Event::KeyPressed == event.type) {
-                switch (event.key.code) {
-                    case sf::Keyboard::Escape:
-                        mWindow.close();
-                        break;
-
-                    case sf::Keyboard::F6:
-                        mAudioManager.toggle();
-                        break;
-// TODO: remove me
-#ifndef NDEBUG
-                    case sf::Keyboard::Delete:
-                        mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
-                        break;
-
-                    case sf::Keyboard::F4:
-                        mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
-                        break;
-#endif
-                    default:
-                        break;
-                }
-            }
-        }
-
-        mSceneId = scene.update(mWindow, restartClock(mClock, firstRun));
-
+        scene.update(mWindow, mClock.restart());
         mWindow.clear();
         scene.render(mWindow);
         scene.adjustAudio(mAudioManager);
         mWindow.display();
     }
 
+    mWindow.close();
     return 0;
 }
 
@@ -101,5 +69,37 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(scene::NullScene, mFontManager, mTextureManager);
+    auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mFontManager);
+    mSceneId = mSceneManager.emplace<scene::TitleScreen>(gameOverScene, mFontManager, mTextureManager);
+}
+
+void Game::handleEvents() {
+    auto event = sf::Event{};
+
+    while (scene::NullScene != mSceneId and mWindow.pollEvent(event)) {
+        if (sf::Event::KeyPressed == event.type) {
+            switch (event.key.code) {
+                case sf::Keyboard::Escape:
+                    mSceneId = scene::NullScene;
+                    break;
+
+                case sf::Keyboard::F6:
+                    mAudioManager.toggle();
+                    break;
+// TODO: remove me
+#ifndef NDEBUG
+                case sf::Keyboard::Delete:
+                    mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
+                    break;
+
+                case sf::Keyboard::F4:
+                    mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+                    break;
+#endif
+                default:
+                    mSceneId = mSceneManager.get(mSceneId).handleEvent(event);
+                    break;
+            }
+        }
+    }
 }

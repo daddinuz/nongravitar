@@ -28,15 +28,15 @@
 #pragma once
 
 #include <assets/TextureManager.hpp>
-#include <scene/Scene.hpp>
 #include <assets/FontManager.hpp>
+#include <scene/Scene.hpp>
 
 namespace gravitar::scene {
     class TitleScreen final : public Scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId solarSystemSceneId, const assets::FontManager &fontManager, const assets::TextureManager &textureManager);
+        TitleScreen(SceneId nextSceneId, const assets::FontManager &fontManager, const assets::TextureManager &textureManager);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
@@ -46,13 +46,15 @@ namespace gravitar::scene {
 
         void adjustAudio(assets::AudioManager &audioManager) final;
 
-        SceneId update(const sf::RenderTarget &renderTarget, sf::Time elapsed) final;
+        SceneId handleEvent(const sf::Event &event) final;
+
+        void update(const sf::RenderTarget &renderTarget, sf::Time elapsed) final;
 
         void render(sf::RenderTarget &renderTarget) final;
 
     private:
         sf::Sprite mGravitarTitle;
         sf::Text mSpaceLabel;
-        const SceneId mSolarSystemSceneId;
+        const SceneId mNextSceneId;
     };
 }

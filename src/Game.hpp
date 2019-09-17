@@ -61,6 +61,8 @@ namespace gravitar {
         void initializeWindow();
         void initializeScenes();
 
+        void handleEvents();
+
         assets::TextureManager mTextureManager;
         assets::AudioManager mAudioManager;
         assets::FontManager mFontManager;
