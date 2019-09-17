@@ -25,11 +25,33 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#include <trace.hpp>
+#include <assets/FontManager.hpp>
 
-using namespace gravitar;
+using namespace gravitar::assets;
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+constexpr auto FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
+
+void FontManager::initialize() {
+    std::array<const std::tuple<const char *, FontId>, 1> items = {
+            std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
+    };
+
+    for (const auto &i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+}
+
+const sf::Font &FontManager::get(const FontId id) const noexcept {
+    return mFonts.at(id);
+}
+
+void FontManager::load(const char *const filename, const FontId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", FONTS_PATH, filename);
+
+    if (auto &soundtrack = mFonts[id]; !soundtrack.loadFromFile(path)) {
+        std::snprintf(path, std::size(path), "%sUnable to load font: %s", __TRACE__, filename);
+        throw std::runtime_error(path);
+    }
 }

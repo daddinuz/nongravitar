@@ -27,58 +27,30 @@
 
 #pragma once
 
-#include <entt/entt.hpp>
+#include <limits>
+#include <type_traits>
 #include <SFML/Graphics.hpp>
+#include <assets/AudioManager.hpp>
 
-#include "assets.hpp"
+namespace gravitar::scene {
+    enum class SceneId : std::size_t {};
+    constexpr auto NullScene = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()};
 
-namespace gravitar {
-    class Game final {
+    class Scene {
     public:
-        enum class Scene {
-            Curtain,
-            SolarSystem,
-            PlanetAssault,
-        };
+        friend class SceneManager;
 
-        Game() = default; // default-constructible
+        virtual void adjustAudio(assets::AudioManager &audioManager);
 
-        Game(const Game &) = delete; // no copy-constructible
-        Game &operator=(const Game &) = delete; // no copy-assignable
+        [[nodiscard]] virtual SceneId update(const sf::RenderTarget &renderTarget, const sf::Clock &clock) = 0;
 
-        Game(Game &&) = delete; // no move-constructible
-        Game &operator=(Game &&) = delete; // no move-assignable
+        virtual void render(sf::RenderTarget &target) = 0;
 
-        Game &initialize();
+        [[nodiscard]] SceneId getId() const noexcept;
 
-        void update();
-
-        void run();
+        virtual ~Scene() = default;
 
     private:
-        void initializeSolarSystemScene();
-
-        void updateCurtainScene();
-        void updateSolarSystemScene();
-        void updatePlanetAssaultScene();
-
-        void inputSystem();
-        void motionSystem();
-        void collisionSystem();
-        void renderSystem();
-
-        entt::registry mRegistry;
-
-        FontsManager mFontsManager;
-        TexturesManager mTexturesManager;
-        SoundTracksManager mSoundTracksManager;
-        SpriteSheetsManager mSpriteSheetsManager;
-
-        SpaceLabel mSpaceLabel;
-        GravitarTitle mGravitarTitle;
-
-        sf::RenderWindow mWindow;
-        sf::Clock mTimer{};
-        Scene mScene{Scene::Curtain};
+        SceneId mSceneId{NullScene};
     };
 }

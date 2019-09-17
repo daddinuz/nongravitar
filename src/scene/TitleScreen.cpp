@@ -25,11 +25,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#include <helpers.hpp>
+#include <scene/TitleScreen.hpp>
 
-using namespace gravitar;
+using namespace gravitar::scene;
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+TitleScreen::TitleScreen(const SceneId solarSystemSceneId, const assets::TextureManager &textureManager) :
+        mGravitarTitle(textureManager.get(assets::TextureId::GravitarTitle)),
+        mSolarSystemSceneId{solarSystemSceneId} {
+    helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
+}
+
+void TitleScreen::adjustAudio(gravitar::assets::AudioManager &audioManager) {
+    if (assets::SoundTrackId::MainTheme != audioManager.getPlaying()) {
+        audioManager.play(assets::SoundTrackId::MainTheme);
+    }
+}
+
+SceneId TitleScreen::update(const sf::RenderTarget &renderTarget, const sf::Clock &clock) {
+    (void) clock;
+
+    const auto[windowWidth, windowHeight] = renderTarget.getSize();
+    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+
+    return sf::Keyboard::isKeyPressed(sf::Keyboard::Space) ? mSolarSystemSceneId : getId();
+}
+
+void TitleScreen::render(sf::RenderTarget &renderTarget) {
+    renderTarget.draw(mGravitarTitle);
 }

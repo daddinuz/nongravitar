@@ -25,11 +25,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#include <scene/SceneManager.hpp>
 
-using namespace gravitar;
+using namespace gravitar::scene;
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+Scene &SceneManager::get(SceneId id) {
+    return *mScenes.at(static_cast<typename std::underlying_type<SceneId>::type>(id));
 }

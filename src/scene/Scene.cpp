@@ -25,11 +25,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#include <scene/Scene.hpp>
 
-using namespace gravitar;
+using namespace gravitar::scene;
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+SceneId Scene::getId() const noexcept {
+    return mSceneId;
+}
+
+void Scene::adjustAudio(gravitar::assets::AudioManager &audioManager) {
+    (void) audioManager;
 }

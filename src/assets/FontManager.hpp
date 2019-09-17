@@ -25,11 +25,40 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <map>
+#include <SFML/Graphics.hpp>
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+namespace gravitar::assets {
+    enum class FontId {
+        Mechanical
+    };
+
+    class FontManager final {
+    public:
+        FontManager() = default; // default-constructible
+
+        FontManager(const FontManager &) = delete; // no copy-constructible
+        FontManager &operator=(const FontManager &) = delete; // no copy-assignable
+
+        FontManager(FontManager &&) = delete; // no move-constructible
+        FontManager &operator=(FontManager &&) = delete; // no move-assignable
+
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        void initialize();
+
+        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
+
+    private:
+        void load(const char *filename, FontId id);
+
+        std::map<FontId, sf::Font> mFonts;
+    };
 }

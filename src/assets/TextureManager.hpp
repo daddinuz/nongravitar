@@ -25,11 +25,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <map>
+#include <SFML/Graphics.hpp>
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+namespace gravitar::assets {
+    enum class TextureId {
+        GravitarTitle,
+        SpaceShip,
+        Bullet,
+    };
+
+    class TextureManager final {
+    public:
+        TextureManager() = default; // default-constructible
+
+        TextureManager(const TextureManager &) = delete; // no copy-constructible
+        TextureManager &operator=(const TextureManager &) = delete; // no copy-assignable
+
+        TextureManager(TextureManager &&) = delete; // no move-constructible
+        TextureManager &operator=(TextureManager &&) = delete; // no move-assignable
+
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        void initialize();
+
+        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
+
+    private:
+        void load(const char *filename, TextureId id);
+
+        std::map<TextureId, sf::Texture> mTextures;
+    };
 }

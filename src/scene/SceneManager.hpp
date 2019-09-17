@@ -25,11 +25,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <memory>
+#include <vector>
+#include <scene/Scene.hpp>
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+namespace gravitar::scene {
+    class SceneManager final {
+    public:
+        SceneManager() = default; // default-constructible
+
+        SceneManager(const SceneManager &) = delete; // no copy-constructible
+        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
+
+        SceneManager(SceneManager &&) = delete; // no move-constructible
+        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
+
+        template<typename T, typename ...Args>
+        SceneId emplace(Args &&... args) {
+            const auto id = SceneId{mScenes.size()};
+            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
+            scene->mSceneId = id;
+            mScenes.push_back(std::move(scene));
+            return id;
+        }
+
+        Scene &get(SceneId id);
+
+    private:
+        std::vector<std::unique_ptr<Scene>> mScenes;
+    };
 }

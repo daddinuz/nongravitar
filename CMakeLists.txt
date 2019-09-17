@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(gravitar)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -30,7 +30,10 @@ include_directories(${SFML_INCLUDE_DIR})
 # Executable
 ###
 
-file(GLOB HEADERS src/*.hpp)
-file(GLOB SOURCES src/*.cpp)
+include_directories(src)
+
+file(GLOB HEADERS src/*.hpp src/**/*.hpp)
+file(GLOB SOURCES src/*.cpp src/**/*.cpp)
+
 add_executable(gravitar ${HEADERS} ${SOURCES})
 target_link_libraries(gravitar PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})

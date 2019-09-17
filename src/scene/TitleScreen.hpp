@@ -25,11 +25,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <Game.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <assets/TextureManager.hpp>
+#include <scene/Scene.hpp>
 
-int main() {
-    auto game = Game();
-    return game.initialize().run();
+namespace gravitar::scene {
+    class TitleScreen final : public Scene {
+    public:
+        TitleScreen() = delete;
+
+        TitleScreen(SceneId solarSystemSceneId, const assets::TextureManager &textureManager);
+
+        TitleScreen(const TitleScreen &) = delete; // no copy-constructible
+        TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
+
+        TitleScreen(TitleScreen &&) = delete; // move-constructible
+        TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
+
+        void adjustAudio(assets::AudioManager &audioManager) final;
+
+        SceneId update(const sf::RenderTarget &renderTarget, const sf::Clock &clock) final;
+
+        void render(sf::RenderTarget &renderTarget) final;
+
+    private:
+        sf::Sprite mGravitarTitle;
+        const SceneId mSolarSystemSceneId;
+    };
 }

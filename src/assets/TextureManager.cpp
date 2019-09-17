@@ -25,18 +25,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <trace.hpp>
+#include <assets/TextureManager.hpp>
 
-using namespace gravitar::helpers;
+using namespace gravitar::assets;
 
-float deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
+
+void TextureManager::initialize() {
+    std::array<const std::tuple<const char *, TextureId>, 3> items = {
+            std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
+            std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
+            std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
+    };
+
+    for (const auto &i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
 }
 
-float rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
+const sf::Texture &TextureManager::get(TextureId id) const noexcept {
+    return mTextures.at(id);
 }
 
-float shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+void TextureManager::load(const char *filename, TextureId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", TEXTURES_PATH, filename);
+
+    if (auto &texture = mTextures[id]; texture.loadFromFile(path)) {
+        texture.setSmooth(true);
+    } else {
+        std::snprintf(path, std::size(path), "%sUnable to load texture: %s", __TRACE__, filename);
+        throw std::runtime_error(path);
+    }
 }
