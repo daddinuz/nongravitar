@@ -26,6 +26,7 @@
  */
 
 #include <scene/TitleScreen.hpp>
+#include <scene/SolarSystem.hpp>
 #include <scene/GameOver.hpp>
 #include <Game.hpp>
 
@@ -55,9 +56,10 @@ int Game::run() {
 }
 
 void Game::initializeAssets() {
-    mTextureManager.initialize();
-    mAudioManager.initialize();
     mFontManager.initialize();
+    mAudioManager.initialize();
+    mTextureManager.initialize();
+    mSpriteSheetManager.initialize(mTextureManager);
 }
 
 void Game::initializeWindow() {
@@ -69,8 +71,9 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mFontManager);
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(gameOverScene, mFontManager, mTextureManager);
+    // auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mFontManager);
+    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(mSpriteSheetManager);
+    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mFontManager, mTextureManager);
 }
 
 void Game::handleEvents() {

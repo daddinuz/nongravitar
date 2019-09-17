@@ -44,7 +44,7 @@ namespace gravitar::scene {
 
         [[nodiscard]] virtual SceneId handleEvent(const sf::Event &event);
 
-        virtual void update(const sf::RenderTarget &renderTarget, sf::Time elapsed);
+        virtual void update(const sf::RenderWindow &window, sf::Time elapsed);
 
         virtual void render(sf::RenderTarget &target) = 0;
 

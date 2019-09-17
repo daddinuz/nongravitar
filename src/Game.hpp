@@ -30,9 +30,10 @@
 #include <SFML/Graphics.hpp>
 #include <scene/Scene.hpp>
 #include <scene/SceneManager.hpp>
-#include <assets/TextureManager.hpp>
-#include <assets/AudioManager.hpp>
 #include <assets/FontManager.hpp>
+#include <assets/AudioManager.hpp>
+#include <assets/TextureManager.hpp>
+#include <assets/SpriteSheetManager.hpp>
 
 namespace gravitar {
     class Game {
@@ -63,6 +64,7 @@ namespace gravitar {
 
         void handleEvents();
 
+        assets::SpriteSheetManager mSpriteSheetManager;
         assets::TextureManager mTextureManager;
         assets::AudioManager mAudioManager;
         assets::FontManager mFontManager;

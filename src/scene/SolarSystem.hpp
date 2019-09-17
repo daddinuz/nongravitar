@@ -25,24 +25,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#pragma once
+
+#include <entt/entt.hpp>
 #include <scene/Scene.hpp>
+#include <assets/SpriteSheetManager.hpp>
 
-using namespace gravitar::scene;
+namespace gravitar::scene {
+    class SolarSystem final : public Scene {
+    public:
+        SolarSystem() = delete; // no default-constructible
 
-SceneId Scene::getId() const noexcept {
-    return mSceneId;
-}
+        explicit SolarSystem(const assets::SpriteSheetManager &spriteSheetManager);
 
-void Scene::adjustAudio(gravitar::assets::AudioManager &audioManager) {
-    (void) audioManager;
-}
+        SolarSystem(const SolarSystem &) = delete; // no copy-constructible
+        SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
 
-SceneId Scene::handleEvent(const sf::Event &event) {
-    (void) event;
-    return getId();
-}
+        SolarSystem(SolarSystem &&) = delete; // no move-constructible
+        SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-void Scene::update(const sf::RenderWindow &window, sf::Time elapsed) {
-    (void) window;
-    (void) elapsed;
+        void update(const sf::RenderWindow &window, sf::Time elapsed) final;
+
+        void render(sf::RenderTarget &renderTarget) final;
+
+    private:
+        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed);
+        void motionSystem(sf::Time elapsed);
+        void collisionSystem(const sf::RenderWindow &window);
+
+        entt::registry mRegistry;
+        const assets::SpriteSheetManager &mSpriteSheetManager;
+    };
 }

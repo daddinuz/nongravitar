@@ -27,16 +27,16 @@
 
 #include <helpers.hpp>
 
-using namespace gravitar::helpers;
+using namespace gravitar;
 
-float deg2rad(const float deg) {
+float helpers::deg2rad(const float deg) {
     return deg * static_cast<float>(M_PI) / 180.0f;
 }
 
-float rad2deg(const float rad) {
+float helpers::rad2deg(const float rad) {
     return rad * 180.0f / static_cast<float>(M_PI);
 }
 
-float shortestRotation(const float currentBearing, const float targetBearing) {
+float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
     return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
 }

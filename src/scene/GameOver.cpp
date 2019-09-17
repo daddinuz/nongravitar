@@ -47,10 +47,10 @@ SceneId GameOver::handleEvent(const sf::Event &event) {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getId();
 }
 
-void GameOver::update(const sf::RenderTarget &renderTarget, sf::Time elapsed) {
+void GameOver::update(const sf::RenderWindow &window, sf::Time elapsed) {
     (void) elapsed;
 
-    const auto[windowWidth, windowHeight] = renderTarget.getSize();
+    const auto[windowWidth, windowHeight] = window.getSize();
     mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
 }

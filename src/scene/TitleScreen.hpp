@@ -48,7 +48,7 @@ namespace gravitar::scene {
 
         SceneId handleEvent(const sf::Event &event) final;
 
-        void update(const sf::RenderTarget &renderTarget, sf::Time elapsed) final;
+        void update(const sf::RenderWindow &window, sf::Time elapsed) final;
 
         void render(sf::RenderTarget &renderTarget) final;
 
