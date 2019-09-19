@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <assets/FontsManager.hpp>
+#include <assets/AssetsManager.hpp>
 #include <scene/Scene.hpp>
 
 namespace gravitar::scene {
@@ -35,7 +35,7 @@ namespace gravitar::scene {
     public:
         GameOver() = delete; // no default-constructible
 
-        explicit GameOver(const assets::FontsManager &fontManager);
+        explicit GameOver(assets::AssetsManager &assetsManager);
 
         GameOver(const GameOver &) = delete; // no copy-constructible
         GameOver &operator=(const GameOver &) = delete; // no copy-assignable
@@ -43,11 +43,9 @@ namespace gravitar::scene {
         GameOver(GameOver &&) = delete; // no move-constructible
         GameOver &operator=(GameOver &&) = delete; // no move-assignable
 
-        void adjustAudio(assets::AudioManager &audioManager) noexcept final;
-
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
+        void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) const noexcept final;
 

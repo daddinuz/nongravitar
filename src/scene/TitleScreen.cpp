@@ -31,30 +31,28 @@
 using namespace gravitar::assets;
 using namespace gravitar::scene;
 
-TitleScreen::TitleScreen(const SceneId nextSceneId, const FontsManager &fontManager, const TexturesManager &textureManager) :
-        mGravitarTitle(textureManager.get(assets::TextureId::GravitarTitle)),
-        mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24),
+TitleScreen::TitleScreen(const SceneId nextSceneId, AssetsManager &assetsManager) :
+        mGravitarTitle(assetsManager.getTexturesManager().get(TextureId::GravitarTitle)),
+        mSpaceLabel("[SPACE]", assetsManager.getFontsManager().get(FontId::Mechanical), 24),
         mNextSceneId{nextSceneId} {
     helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
-}
-
-void TitleScreen::adjustAudio(gravitar::assets::AudioManager &audioManager) noexcept {
-    if (assets::SoundTrackId::MainTheme != audioManager.getPlaying()) {
-        audioManager.play(SoundTrackId::MainTheme);
-    }
 }
 
 SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getId();
 }
 
-void TitleScreen::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
+void TitleScreen::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = window.getSize();
     mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+
+    if (auto &audioManager = assetsManager.getAudioManager(); SoundTrackId::MainTheme != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::MainTheme);
+    }
 }
 
 void TitleScreen::render(sf::RenderTarget &window) const noexcept {

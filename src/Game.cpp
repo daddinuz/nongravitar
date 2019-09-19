@@ -44,10 +44,9 @@ int Game::run() {
 
     for (handleEvents(); scene::NullScene != mSceneId; handleEvents()) {
         auto &scene = mSceneManager.get(mSceneId);
-        scene.update(mWindow, mClock.restart());
+        scene.update(mWindow, mAssetsManager, mClock.restart());
         mWindow.clear();
         scene.render(mWindow);
-        scene.adjustAudio(mAssetsManager.getAudioManager());
         mWindow.display();
     }
 
@@ -65,8 +64,8 @@ void Game::initializeWindow() {
 
 void Game::initializeScenes() {
     // auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mFontManager);
-    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(mAssetsManager.getSpriteSheetsManager());
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mAssetsManager.getFontsManager(), mAssetsManager.getTexturesManager());
+    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(mAssetsManager);
+    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mAssetsManager);
 }
 
 void Game::handleEvents() {

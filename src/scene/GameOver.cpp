@@ -31,23 +31,19 @@
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
-GameOver::GameOver(const FontsManager &fontManager) :
-        mGameOverTitle("Game Over", fontManager.get(FontId::Mechanical), 64),
-        mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24) {
+GameOver::GameOver(AssetsManager &assetsManager) :
+        mGameOverTitle("Game Over", assetsManager.getFontsManager().get(FontId::Mechanical), 64),
+        mSpaceLabel("[SPACE]", assetsManager.getFontsManager().get(FontId::Mechanical), 24) {
     helpers::centerOrigin(mGameOverTitle, mGameOverTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
-}
-
-void GameOver::adjustAudio(AudioManager &audioManager) noexcept {
-    (void) audioManager;
-    // TODO: play game over soundtrack
 }
 
 SceneId GameOver::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getId();
 }
 
-void GameOver::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
+void GameOver::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+    (void) assetsManager;
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = window.getSize();

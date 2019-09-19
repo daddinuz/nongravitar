@@ -39,11 +39,11 @@ using Player = entt::tag<"player"_hs>;
 constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
-SolarSystem::SolarSystem(const SpriteSheetsManager &spriteSheetManager) : mSpriteSheetManager(spriteSheetManager) {
+SolarSystem::SolarSystem(AssetsManager &assetsManager) {
     mRegistry.group<Renderable, Velocity>();
 
     auto player = mRegistry.create();
-    auto renderable = mSpriteSheetManager.get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    auto renderable = assetsManager.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
 
     helpers::centerOrigin(renderable, renderable.getLocalBounds());
     renderable.setPosition(400.0f, 300.0f);
@@ -56,8 +56,8 @@ SolarSystem::SolarSystem(const SpriteSheetsManager &spriteSheetManager) : mSprit
     mRegistry.assign<Renderable>(player, std::move(renderable));
 }
 
-void SolarSystem::update(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
-    inputSystem(window, elapsed);
+void SolarSystem::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+    inputSystem(window, assetsManager.getSpriteSheetsManager(), elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
 }
@@ -78,7 +78,7 @@ void SolarSystem::render(sf::RenderTarget &window) const noexcept {
     });
 }
 
-void SolarSystem::inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept {
+void SolarSystem::inputSystem(const sf::RenderWindow &window, const SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept {
     mRegistry.view<Player, Renderable, Velocity, Fuel, RechargeTime>().each([&](const auto &player, auto &renderable, auto &velocity, auto &fuel, auto &rechargeTime) {
         (void) player;
         auto speed = SPEED;
@@ -141,7 +141,7 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, sf::Time elapsed) 
         if (rechargeTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             rechargeTime.reset();
             const auto bulletEntity = mRegistry.create();
-            auto bulletRenderable = mSpriteSheetManager.get(SpriteSheetId::Bullet).instanceSprite(0);
+            auto bulletRenderable = spriteSheetsManager.get(SpriteSheetId::Bullet).instanceSprite(0);
 
             helpers::centerOrigin(bulletRenderable, bulletRenderable.getLocalBounds());
             bulletRenderable.setPosition(renderable.getPosition() + helpers::makeVector2(renderable.getRotation(), 22.8f));

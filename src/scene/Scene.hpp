@@ -30,7 +30,7 @@
 #include <limits>
 #include <type_traits>
 #include <SFML/Graphics.hpp>
-#include <assets/AudioManager.hpp>
+#include <assets/AssetsManager.hpp>
 
 namespace gravitar::scene {
     enum class SceneId : std::size_t {};
@@ -39,12 +39,6 @@ namespace gravitar::scene {
     class Scene {
     public:
         friend class SceneManager;
-
-        /**
-         * Update the audio of the scene.
-         * This method is called exactly once per iteration.
-         */
-        virtual void adjustAudio(assets::AudioManager &audioManager) noexcept;
 
         /**
          * React to an event returning a new scene if needed.
@@ -56,7 +50,7 @@ namespace gravitar::scene {
          * Update the logic of the scene.
          * This method is called exactly once per iteration.
          */
-        virtual void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
+        virtual void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept;
 
         /**
          * Render the scene.

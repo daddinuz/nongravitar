@@ -29,14 +29,14 @@
 
 #include <entt/entt.hpp>
 #include <scene/Scene.hpp>
-#include <assets/SpriteSheetsManager.hpp>
+#include <assets/AssetsManager.hpp>
 
 namespace gravitar::scene {
     class SolarSystem final : public Scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        explicit SolarSystem(const assets::SpriteSheetsManager &spriteSheetManager);
+        explicit SolarSystem(assets::AssetsManager &assetsManager);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -44,16 +44,15 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
+        void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) const noexcept final;
 
     private:
-        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
+        void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
-        const assets::SpriteSheetsManager &mSpriteSheetManager;
     };
 }

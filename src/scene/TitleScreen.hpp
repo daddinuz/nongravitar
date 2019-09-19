@@ -27,8 +27,6 @@
 
 #pragma once
 
-#include <assets/TexturesManager.hpp>
-#include <assets/FontsManager.hpp>
 #include <scene/Scene.hpp>
 
 namespace gravitar::scene {
@@ -36,7 +34,7 @@ namespace gravitar::scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId nextSceneId, const assets::FontsManager &fontManager, const assets::TexturesManager &textureManager);
+        TitleScreen(SceneId nextSceneId, assets::AssetsManager &assetsManager);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
@@ -44,11 +42,9 @@ namespace gravitar::scene {
         TitleScreen(TitleScreen &&) = delete; // move-constructible
         TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
 
-        void adjustAudio(assets::AudioManager &audioManager) noexcept final;
-
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
+        void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) const noexcept final;
 
