@@ -25,42 +25,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <assets/AssetsManager.hpp>
 
-#include <map>
-#include <SFML/Graphics.hpp>
+using namespace gravitar::assets;
 
-namespace gravitar::assets {
-    enum class TextureId {
-        GravitarTitle,
-        SpaceShip,
-        Bullet,
-    };
+void AssetsManager::initialize() {
+    mFontsManager.initialize();
+    mAudioManager.initialize();
+    mTexturesManager.initialize();
+    mSpriteSheetsManager.initialize(mTexturesManager);
+}
 
-    class TextureManager final {
-    public:
-        TextureManager() = default; // default-constructible
+const SpriteSheetsManager &AssetsManager::getSpriteSheetsManager() const noexcept {
+    return mSpriteSheetsManager;
+}
 
-        TextureManager(const TextureManager &) = delete; // no copy-constructible
-        TextureManager &operator=(const TextureManager &) = delete; // no copy-assignable
+const TexturesManager &AssetsManager::getTexturesManager() const noexcept {
+    return mTexturesManager;
+}
 
-        TextureManager(TextureManager &&) = delete; // no move-constructible
-        TextureManager &operator=(TextureManager &&) = delete; // no move-assignable
+const FontsManager &AssetsManager::getFontsManager() const noexcept {
+    return mFontsManager;
+}
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
-        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
-
-    private:
-        void load(const char *filename, TextureId id);
-
-        std::map<TextureId, sf::Texture> mTextures;
-    };
+AudioManager &AssetsManager::getAudioManager() noexcept {
+    return mAudioManager;
 }

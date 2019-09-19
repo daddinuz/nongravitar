@@ -25,40 +25,37 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <trace.hpp>
+#include <assets/TexturesManager.hpp>
 
-#include <map>
-#include <SFML/Graphics.hpp>
+using namespace gravitar::assets;
 
-namespace gravitar::assets {
-    enum class FontId {
-        Mechanical
+constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
+
+void TexturesManager::initialize() {
+    std::array<const std::tuple<const char *, TextureId>, 3> items = {
+            std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
+            std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
+            std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
     };
 
-    class FontManager final {
-    public:
-        FontManager() = default; // default-constructible
+    for (const auto &i : items) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+}
 
-        FontManager(const FontManager &) = delete; // no copy-constructible
-        FontManager &operator=(const FontManager &) = delete; // no copy-assignable
+const sf::Texture &TexturesManager::get(TextureId id) const noexcept {
+    return mTextures.at(id);
+}
 
-        FontManager(FontManager &&) = delete; // no move-constructible
-        FontManager &operator=(FontManager &&) = delete; // no move-assignable
+void TexturesManager::load(const char *filename, TextureId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", TEXTURES_PATH, filename);
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
-        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
-
-    private:
-        void load(const char *filename, FontId id);
-
-        std::map<FontId, sf::Font> mFonts;
-    };
+    if (auto &texture = mTextures[id]; texture.loadFromFile(path)) {
+        texture.setSmooth(true);
+    } else {
+        std::snprintf(path, std::size(path), "%sUnable to load texture: %s", __TRACE__, filename);
+        throw std::runtime_error(path);
+    }
 }

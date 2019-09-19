@@ -33,7 +33,7 @@
 using namespace gravitar;
 
 Game &gravitar::Game::initialize() {
-    initializeAssets();
+    mAssetsManager.initialize();
     initializeWindow();
     initializeScenes();
     return *this;
@@ -47,19 +47,12 @@ int Game::run() {
         scene.update(mWindow, mClock.restart());
         mWindow.clear();
         scene.render(mWindow);
-        scene.adjustAudio(mAudioManager);
+        scene.adjustAudio(mAssetsManager.getAudioManager());
         mWindow.display();
     }
 
     mWindow.close();
     return 0;
-}
-
-void Game::initializeAssets() {
-    mFontManager.initialize();
-    mAudioManager.initialize();
-    mTextureManager.initialize();
-    mSpriteSheetManager.initialize(mTextureManager);
 }
 
 void Game::initializeWindow() {
@@ -72,8 +65,8 @@ void Game::initializeWindow() {
 
 void Game::initializeScenes() {
     // auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mFontManager);
-    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(mSpriteSheetManager);
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mFontManager, mTextureManager);
+    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(mAssetsManager.getSpriteSheetsManager());
+    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mAssetsManager.getFontsManager(), mAssetsManager.getTexturesManager());
 }
 
 void Game::handleEvents() {
@@ -87,7 +80,7 @@ void Game::handleEvents() {
                     break;
 
                 case sf::Keyboard::F6:
-                    mAudioManager.toggle();
+                    mAssetsManager.getAudioManager().toggle();
                     break;
 // TODO: remove me
 #ifndef NDEBUG

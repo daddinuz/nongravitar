@@ -31,7 +31,7 @@
 using namespace gravitar::assets;
 using namespace gravitar::scene;
 
-TitleScreen::TitleScreen(const SceneId nextSceneId, const FontManager &fontManager, const TextureManager &textureManager) :
+TitleScreen::TitleScreen(const SceneId nextSceneId, const FontsManager &fontManager, const TexturesManager &textureManager) :
         mGravitarTitle(textureManager.get(assets::TextureId::GravitarTitle)),
         mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24),
         mNextSceneId{nextSceneId} {

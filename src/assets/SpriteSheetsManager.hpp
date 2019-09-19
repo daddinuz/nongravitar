@@ -29,7 +29,7 @@
 
 #include <map>
 #include <SpriteSheet.hpp>
-#include <assets/TextureManager.hpp>
+#include <assets/TexturesManager.hpp>
 
 namespace gravitar::assets {
     enum class SpriteSheetId {
@@ -37,15 +37,15 @@ namespace gravitar::assets {
         Bullet,
     };
 
-    class SpriteSheetManager final {
+    class SpriteSheetsManager final {
     public:
-        SpriteSheetManager() = default; // default-constructible
+        SpriteSheetsManager() = default; // default-constructible
 
-        SpriteSheetManager(const SpriteSheetManager &) = delete; // no copy-constructible
-        SpriteSheetManager &operator=(const SpriteSheetManager &) = delete; // no copy-assignable
+        SpriteSheetsManager(const SpriteSheetsManager &) = delete; // no copy-constructible
+        SpriteSheetsManager &operator=(const SpriteSheetsManager &) = delete; // no copy-assignable
 
-        SpriteSheetManager(SpriteSheetManager &&) = delete; // no move-constructible
-        SpriteSheetManager &operator=(SpriteSheetManager &&) = delete; // no move-assignable
+        SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
+        SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
         [[nodiscard]] const SpriteSheet &get(SpriteSheetId id) const noexcept;
 
@@ -58,7 +58,7 @@ namespace gravitar::assets {
          *
          *  Calling this method with a `TextureManager` not properly initialized will result in an error.
          */
-        void initialize(const TextureManager &textureManager);
+        void initialize(const TexturesManager &textureManager);
 
     private:
         std::map<SpriteSheetId, SpriteSheet> mSpriteSheets;

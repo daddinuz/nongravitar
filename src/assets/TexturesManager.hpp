@@ -25,22 +25,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assets/SpriteSheetManager.hpp>
+#pragma once
 
-using namespace gravitar;
-using namespace gravitar::assets;
+#include <map>
+#include <SFML/Graphics.hpp>
 
-void SpriteSheetManager::initialize(const TextureManager &textureManager) {
-    std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 2> items = {
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
+namespace gravitar::assets {
+    enum class TextureId {
+        GravitarTitle,
+        SpaceShip,
+        Bullet,
     };
 
-    for (const auto &i : items) {
-        mSpriteSheets.emplace(std::get<0>(i), SpriteSheet::from(textureManager.get(std::get<1>(i)), std::get<2>(i)));
-    }
-}
+    class TexturesManager final {
+    public:
+        TexturesManager() = default; // default-constructible
 
-const SpriteSheet &SpriteSheetManager::get(SpriteSheetId id) const noexcept {
-    return mSpriteSheets.at(id);
+        TexturesManager(const TexturesManager &) = delete; // no copy-constructible
+        TexturesManager &operator=(const TexturesManager &) = delete; // no copy-assignable
+
+        TexturesManager(TexturesManager &&) = delete; // no move-constructible
+        TexturesManager &operator=(TexturesManager &&) = delete; // no move-assignable
+
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        void initialize();
+
+        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
+
+    private:
+        void load(const char *filename, TextureId id);
+
+        std::map<TextureId, sf::Texture> mTextures;
+    };
 }

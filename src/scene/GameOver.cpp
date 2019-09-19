@@ -31,7 +31,7 @@
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
-GameOver::GameOver(const FontManager &fontManager) :
+GameOver::GameOver(const FontsManager &fontManager) :
         mGameOverTitle("Game Over", fontManager.get(FontId::Mechanical), 64),
         mSpaceLabel("[SPACE]", fontManager.get(FontId::Mechanical), 24) {
     helpers::centerOrigin(mGameOverTitle, mGameOverTitle.getLocalBounds());

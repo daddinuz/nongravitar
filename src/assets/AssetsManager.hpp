@@ -27,21 +27,21 @@
 
 #pragma once
 
-#include <SFML/Graphics.hpp>
-#include <scene/Scene.hpp>
-#include <scene/SceneManager.hpp>
-#include <assets/AssetsManager.hpp>
+#include <assets/AudioManager.hpp>
+#include <assets/FontsManager.hpp>
+#include <assets/TexturesManager.hpp>
+#include <assets/SpriteSheetsManager.hpp>
 
-namespace gravitar {
-    class Game {
+namespace gravitar::assets {
+    class AssetsManager {
     public:
-        Game() = default; // default-constructible
+        AssetsManager() = default; // default-constructible
 
-        Game(const Game &) = delete; // no copy-constructible
-        Game &operator=(const Game &) = delete; // no copy-assignable
+        AssetsManager(const AssetsManager &) = delete; // no copy-constructible
+        AssetsManager &operator=(const AssetsManager &) = delete; // no copy-assignable
 
-        Game(Game &&) = delete; // no move-constructible
-        Game &operator=(Game &&) = delete; // no move-assignable
+        AssetsManager(AssetsManager &&) = delete; // no move-constructible
+        AssetsManager &operator=(AssetsManager &&) = delete; // no move-assignable
 
         /**
          * Initialize assets loading them into memory.
@@ -50,20 +50,17 @@ namespace gravitar {
          *  This method should be called exactly once in the life-cycle of this object, any usage of this object
          *  without proper initialization will result in a error.
          */
-        Game &initialize();
+        void initialize();
 
-        int run();
+        [[nodiscard]] const SpriteSheetsManager &getSpriteSheetsManager() const noexcept;
+        [[nodiscard]] const TexturesManager &getTexturesManager() const noexcept;
+        [[nodiscard]] const FontsManager &getFontsManager() const noexcept;
+        [[nodiscard]] AudioManager &getAudioManager() noexcept;
 
     private:
-        void initializeWindow();
-        void initializeScenes();
-
-        void handleEvents();
-
-        assets::AssetsManager mAssetsManager;
-        scene::SceneManager mSceneManager;
-        sf::RenderWindow mWindow;
-        sf::Clock mClock;
-        scene::SceneId mSceneId{scene::NullScene};
+        SpriteSheetsManager mSpriteSheetsManager;
+        TexturesManager mTexturesManager;
+        FontsManager mFontsManager;
+        AudioManager mAudioManager;
     };
 }

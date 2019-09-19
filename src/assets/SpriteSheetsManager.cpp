@@ -25,37 +25,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <trace.hpp>
-#include <assets/TextureManager.hpp>
+#include <assets/SpriteSheetsManager.hpp>
 
+using namespace gravitar;
 using namespace gravitar::assets;
 
-constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
-
-void TextureManager::initialize() {
-    std::array<const std::tuple<const char *, TextureId>, 3> items = {
-            std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
-            std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
-            std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
+void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
+    std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 2> items = {
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
     };
 
     for (const auto &i : items) {
-        load(std::get<0>(i), std::get<1>(i));
+        mSpriteSheets.emplace(std::get<0>(i), SpriteSheet::from(textureManager.get(std::get<1>(i)), std::get<2>(i)));
     }
 }
 
-const sf::Texture &TextureManager::get(TextureId id) const noexcept {
-    return mTextures.at(id);
-}
-
-void TextureManager::load(const char *filename, TextureId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", TEXTURES_PATH, filename);
-
-    if (auto &texture = mTextures[id]; texture.loadFromFile(path)) {
-        texture.setSmooth(true);
-    } else {
-        std::snprintf(path, std::size(path), "%sUnable to load texture: %s", __TRACE__, filename);
-        throw std::runtime_error(path);
-    }
+const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
+    return mSpriteSheets.at(id);
 }

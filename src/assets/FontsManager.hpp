@@ -27,34 +27,38 @@
 
 #pragma once
 
-#include <assets/TexturesManager.hpp>
-#include <assets/FontsManager.hpp>
-#include <scene/Scene.hpp>
+#include <map>
+#include <SFML/Graphics.hpp>
 
-namespace gravitar::scene {
-    class TitleScreen final : public Scene {
+namespace gravitar::assets {
+    enum class FontId {
+        Mechanical
+    };
+
+    class FontsManager final {
     public:
-        TitleScreen() = delete;
+        FontsManager() = default; // default-constructible
 
-        TitleScreen(SceneId nextSceneId, const assets::FontsManager &fontManager, const assets::TexturesManager &textureManager);
+        FontsManager(const FontsManager &) = delete; // no copy-constructible
+        FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
 
-        TitleScreen(const TitleScreen &) = delete; // no copy-constructible
-        TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
+        FontsManager(FontsManager &&) = delete; // no move-constructible
+        FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
 
-        TitleScreen(TitleScreen &&) = delete; // move-constructible
-        TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        void initialize();
 
-        void adjustAudio(assets::AudioManager &audioManager) noexcept final;
-
-        SceneId onEvent(const sf::Event &event) noexcept final;
-
-        void update(const sf::RenderWindow &window, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) const noexcept final;
+        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
 
     private:
-        sf::Sprite mGravitarTitle;
-        sf::Text mSpaceLabel;
-        const SceneId mNextSceneId;
+        void load(const char *filename, FontId id);
+
+        std::map<FontId, sf::Font> mFonts;
     };
 }

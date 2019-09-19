@@ -39,7 +39,7 @@ using Player = entt::tag<"player"_hs>;
 constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
-SolarSystem::SolarSystem(const SpriteSheetManager &spriteSheetManager) : mSpriteSheetManager(spriteSheetManager) {
+SolarSystem::SolarSystem(const SpriteSheetsManager &spriteSheetManager) : mSpriteSheetManager(spriteSheetManager) {
     mRegistry.group<Renderable, Velocity>();
 
     auto player = mRegistry.create();

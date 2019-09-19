@@ -26,13 +26,13 @@
  */
 
 #include <trace.hpp>
-#include <assets/FontManager.hpp>
+#include <assets/FontsManager.hpp>
 
 using namespace gravitar::assets;
 
 constexpr auto FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
 
-void FontManager::initialize() {
+void FontsManager::initialize() {
     std::array<const std::tuple<const char *, FontId>, 1> items = {
             std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
     };
@@ -42,11 +42,11 @@ void FontManager::initialize() {
     }
 }
 
-const sf::Font &FontManager::get(const FontId id) const noexcept {
+const sf::Font &FontsManager::get(const FontId id) const noexcept {
     return mFonts.at(id);
 }
 
-void FontManager::load(const char *const filename, const FontId id) {
+void FontsManager::load(const char *const filename, const FontId id) {
     char path[256];
     std::snprintf(path, std::size(path), "%s/%s", FONTS_PATH, filename);
 
