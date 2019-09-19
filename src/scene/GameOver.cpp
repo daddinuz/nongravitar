@@ -39,16 +39,18 @@ GameOver::GameOver(AssetsManager &assetsManager) :
 }
 
 SceneId GameOver::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getId();
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getSceneId();
 }
 
-void GameOver::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+SceneId GameOver::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
     (void) assetsManager;
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = window.getSize();
     mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+
+    return getSceneId();
 }
 
 void GameOver::render(sf::RenderTarget &window) const noexcept {

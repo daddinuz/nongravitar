@@ -36,7 +36,7 @@ namespace gravitar::scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        explicit SolarSystem(assets::AssetsManager &assetsManager);
+        SolarSystem(SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -44,7 +44,7 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) const noexcept final;
 
@@ -52,7 +52,10 @@ namespace gravitar::scene {
         void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
+        void livenessSystem() noexcept;
 
         entt::registry mRegistry;
+        SceneId mGameOverSceneId;
+        bool mIsGameOver{false};
     };
 }

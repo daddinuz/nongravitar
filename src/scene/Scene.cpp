@@ -31,15 +31,16 @@ using namespace gravitar::scene;
 
 SceneId Scene::onEvent(const sf::Event &event) noexcept {
     (void) event;
-    return getId();
+    return getSceneId();
 }
 
-void Scene::update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+SceneId Scene::update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept {
     (void) window;
     (void) assetsManager;
     (void) elapsed;
+    return getSceneId();
 }
 
-SceneId Scene::getId() const noexcept {
+SceneId Scene::getSceneId() const noexcept {
     return mSceneId;
 }

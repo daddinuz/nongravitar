@@ -43,14 +43,18 @@ namespace gravitar::scene {
         /**
          * React to an event returning a new scene if needed.
          * This method may be called many times per iteration depending on how many events have been emitted during the iteration.
+         *
+         * TODO docs about returned SceneId
          */
         [[nodiscard]] virtual SceneId onEvent(const sf::Event &event) noexcept;
 
         /**
          * Update the logic of the scene.
          * This method is called exactly once per iteration.
+         *
+         * TODO docs about returned SceneId
          */
-        virtual void update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept;
+        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept;
 
         /**
          * Render the scene.
@@ -61,7 +65,7 @@ namespace gravitar::scene {
         /**
          * Get the `SceneId` of the scene.
          */
-        [[nodiscard]] SceneId getId() const noexcept;
+        [[nodiscard]] SceneId getSceneId() const noexcept;
 
         virtual ~Scene() = default;
 

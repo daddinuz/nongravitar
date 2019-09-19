@@ -40,10 +40,10 @@ TitleScreen::TitleScreen(const SceneId nextSceneId, AssetsManager &assetsManager
 }
 
 SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getId();
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getSceneId();
 }
 
-void TitleScreen::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+SceneId TitleScreen::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
     (void) elapsed;
 
     const auto[windowWidth, windowHeight] = window.getSize();
@@ -53,6 +53,8 @@ void TitleScreen::update(const sf::RenderWindow &window, AssetsManager &assetsMa
     if (auto &audioManager = assetsManager.getAudioManager(); SoundTrackId::MainTheme != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::MainTheme);
     }
+
+    return getSceneId();
 }
 
 void TitleScreen::render(sf::RenderTarget &window) const noexcept {

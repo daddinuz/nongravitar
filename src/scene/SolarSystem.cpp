@@ -39,8 +39,9 @@ using Player = entt::tag<"player"_hs>;
 constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
-SolarSystem::SolarSystem(AssetsManager &assetsManager) {
+SolarSystem::SolarSystem(SceneId gameOverSceneId, AssetsManager &assetsManager) : mGameOverSceneId{gameOverSceneId} {
     mRegistry.group<Renderable, Velocity>();
+    mRegistry.group<Health, Fuel>();
 
     auto player = mRegistry.create();
     auto renderable = assetsManager.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
@@ -56,10 +57,12 @@ SolarSystem::SolarSystem(AssetsManager &assetsManager) {
     mRegistry.assign<Renderable>(player, std::move(renderable));
 }
 
-void SolarSystem::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+SceneId SolarSystem::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
     inputSystem(window, assetsManager.getSpriteSheetsManager(), elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
+    livenessSystem();
+    return mIsGameOver ? mGameOverSceneId : getSceneId();
 }
 
 void SolarSystem::render(sf::RenderTarget &window) const noexcept {
@@ -186,5 +189,12 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
                 }
             });
         }
+    });
+}
+
+void SolarSystem::livenessSystem() noexcept {
+    mRegistry.view<Player, Health, Fuel>().each([&](const auto &player, const auto &health, const auto &fuel) {
+        (void) player;
+        mIsGameOver = health.isDead() or fuel.isOver();
     });
 }
