@@ -40,6 +40,10 @@ constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
 SolarSystem::SolarSystem(SceneId gameOverSceneId, AssetsManager &assetsManager) : mGameOverSceneId{gameOverSceneId} {
+    mReport.setCharacterSize(18);
+    mReport.setFillColor(sf::Color(105, 235, 245, 255));
+    mReport.setFont(assetsManager.getFontsManager().get(FontId::Mechanical));
+
     mRegistry.group<Renderable, Velocity>();
     mRegistry.group<Health, Fuel>();
 
@@ -62,10 +66,13 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, AssetsManager &asset
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem();
+    reportSystem(window);
     return mIsGameOver ? mGameOverSceneId : getSceneId();
 }
 
 void SolarSystem::render(sf::RenderTarget &window) const noexcept {
+    window.draw(mReport);
+
     mRegistry.view<const Renderable>().each([&](const auto &renderable) {
         helpers::debug([&]() { // display hit-box on debug builds only
             const auto hitBox = renderable.getHitBox();
@@ -196,5 +203,18 @@ void SolarSystem::livenessSystem() noexcept {
     mRegistry.view<Player, Health, Fuel>().each([&](const auto &player, const auto &health, const auto &fuel) {
         (void) player;
         mIsGameOver = health.isDead() or fuel.isOver();
+    });
+}
+
+void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
+    mRegistry.view<Player, Health, Fuel>().each([&](const auto &player, const auto &health, const auto &fuel) {
+        (void) player;
+
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %d    fuel: %3.2f", *health, *fuel);
+
+        mReport.setString(mBuffer);
+        helpers::centerOrigin(mReport, mReport.getLocalBounds());
+
+        mReport.setPosition(window.getSize().x / 2.0f, 18.0f);
     });
 }

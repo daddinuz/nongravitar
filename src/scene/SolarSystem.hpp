@@ -53,8 +53,11 @@ namespace gravitar::scene {
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void livenessSystem() noexcept;
+        void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
+        sf::Text mReport;
+        char mBuffer[128];
         SceneId mGameOverSceneId;
         bool mIsGameOver{false};
     };
