@@ -34,7 +34,7 @@
 
 namespace gravitar::scene {
     enum class SceneId : std::size_t {};
-    constexpr auto NullScene = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()};
+    constexpr auto NullScene = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()}; // TODO: rename to nullSceneId
 
     class Scene {
     public:
@@ -62,9 +62,6 @@ namespace gravitar::scene {
          */
         virtual void render(sf::RenderTarget &window) const noexcept = 0;
 
-        /**
-         * Get the `SceneId` of the scene.
-         */
         [[nodiscard]] SceneId getSceneId() const noexcept;
 
         virtual ~Scene() = default;
