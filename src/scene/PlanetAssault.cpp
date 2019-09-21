@@ -34,8 +34,8 @@ using namespace gravitar::scene;
 using namespace gravitar::assets;
 using namespace gravitar::messages;
 
-PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, AssetsManager &assetsManager) : mGameOverSceneId{gameOverSceneId} {
-    (void) assetsManager;
+PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) : mGameOverSceneId{gameOverSceneId} {
+    (void) assets;
 }
 
 SceneId PlanetAssault::onEvent(const sf::Event &event) noexcept {
@@ -47,9 +47,9 @@ SceneId PlanetAssault::onEvent(const sf::Event &event) noexcept {
     }
 }
 
-SceneId PlanetAssault::update(const sf::RenderWindow &window, AssetsManager &assetsManager, const sf::Time elapsed) noexcept {
+SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     (void) window;
-    (void) assetsManager;
+    (void) assets;
     (void) elapsed;
     return getSceneId();
 }

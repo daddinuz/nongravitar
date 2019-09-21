@@ -34,7 +34,7 @@ namespace gravitar::scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId nextSceneId, assets::AssetsManager &assetsManager);
+        TitleScreen(SceneId nextSceneId, Assets &assets);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
@@ -44,7 +44,7 @@ namespace gravitar::scene {
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 

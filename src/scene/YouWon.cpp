@@ -32,9 +32,9 @@ using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
-YouWon::YouWon(AssetsManager &assetsManager) :
-        mYouWonTitle("You Won", assetsManager.getFontsManager().get(FontId::Mechanical), 64),
-        mSpaceLabel("[SPACE]", assetsManager.getFontsManager().get(FontId::Mechanical), 24) {
+YouWon::YouWon(Assets &assets) :
+        mYouWonTitle("You Won", assets.getFontsManager().get(FontId::Mechanical), 64),
+        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 24) {
     helpers::centerOrigin(mYouWonTitle, mYouWonTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }

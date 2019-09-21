@@ -34,9 +34,9 @@ SceneId Scene::onEvent(const sf::Event &event) noexcept {
     return getSceneId();
 }
 
-SceneId Scene::update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+SceneId Scene::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
     (void) window;
-    (void) assetsManager;
+    (void) assets;
     (void) elapsed;
     return getSceneId();
 }

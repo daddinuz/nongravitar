@@ -31,14 +31,13 @@
 #include <Scene.hpp>
 #include <pubsub.hpp>
 #include <messages.hpp>
-#include <assets/AssetsManager.hpp>
 
 namespace gravitar::scene {
     class SolarSystem final : public pubsub::Listen<messages::PlanetDestroyed>, public Scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
+        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId, Assets &assets);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -48,7 +47,7 @@ namespace gravitar::scene {
 
         void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 

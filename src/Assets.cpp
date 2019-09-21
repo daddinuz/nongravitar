@@ -25,29 +25,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <assets/AssetsManager.hpp>
+#include <Assets.hpp>
 
+using namespace gravitar;
 using namespace gravitar::assets;
 
-void AssetsManager::initialize() {
+void Assets::initialize() {
     mFontsManager.initialize();
     mAudioManager.initialize();
     mTexturesManager.initialize();
     mSpriteSheetsManager.initialize(mTexturesManager);
 }
 
-const SpriteSheetsManager &AssetsManager::getSpriteSheetsManager() const noexcept {
+const SpriteSheetsManager &Assets::getSpriteSheetsManager() const noexcept {
     return mSpriteSheetsManager;
 }
 
-const TexturesManager &AssetsManager::getTexturesManager() const noexcept {
+const TexturesManager &Assets::getTexturesManager() const noexcept {
     return mTexturesManager;
 }
 
-const FontsManager &AssetsManager::getFontsManager() const noexcept {
+const FontsManager &Assets::getFontsManager() const noexcept {
     return mFontsManager;
 }
 
-AudioManager &AssetsManager::getAudioManager() noexcept {
+AudioManager &Assets::getAudioManager() noexcept {
     return mAudioManager;
 }

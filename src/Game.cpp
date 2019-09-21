@@ -35,7 +35,7 @@
 using namespace gravitar;
 
 Game &gravitar::Game::initialize() {
-    mAssetsManager.initialize();
+    mAssets.initialize();
     initializeWindow();
     initializeScenes();
     return *this;
@@ -45,7 +45,7 @@ int Game::run() {
     mClock.restart();
 
     for (handleEvents(); nullSceneId != mSceneId; handleEvents()) {
-        mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssetsManager, mClock.restart());
+        mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssets, mClock.restart());
         mWindow.clear();
         mSceneManager.get(mSceneId).render(mWindow);
         mWindow.display();
@@ -64,12 +64,12 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssetsManager);
-    auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssetsManager);
-    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssetsManager);
-    auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssetsManager);
+    auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
+    auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
+    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets);
+    auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
 
-    auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssetsManager);
+    auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
     planetAssault.setParentSceneId(solarSystem.getSceneId());
     solarSystem.addPlanet(planetAssault.getSceneId());
 
@@ -89,7 +89,7 @@ void Game::handleEvents() {
                     break;
 
                 case sf::Keyboard::F6:
-                    mAssetsManager.getAudioManager().toggle();
+                    mAssets.getAudioManager().toggle();
                     break;
 // TODO: remove me
 #ifndef NDEBUG

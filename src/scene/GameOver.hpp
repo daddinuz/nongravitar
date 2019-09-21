@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <assets/AssetsManager.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::scene {
@@ -35,7 +34,7 @@ namespace gravitar::scene {
     public:
         GameOver() = delete; // no default-constructible
 
-        explicit GameOver(assets::AssetsManager &assetsManager);
+        explicit GameOver(Assets &assets);
 
         GameOver(const GameOver &) = delete; // no copy-constructible
         GameOver &operator=(const GameOver &) = delete; // no copy-assignable

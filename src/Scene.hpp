@@ -30,7 +30,7 @@
 #include <limits>
 #include <type_traits>
 #include <SFML/Graphics.hpp>
-#include <assets/AssetsManager.hpp>
+#include <Assets.hpp>
 
 namespace gravitar {
     enum class SceneId : std::size_t {};
@@ -50,7 +50,7 @@ namespace gravitar {
          * Update the logic of the scene returning a new scene if needed.
          * This method is called exactly once per iteration.
          */
-        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept;
+        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
 
         /**
          * Render the scene.

@@ -40,20 +40,20 @@ using namespace gravitar::components;
 constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
-SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, AssetsManager &assetsManager) :
+SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, Assets &assets) :
         mBuffer{},
         mYouWonSceneId{youWonSceneId},
         mGameOverSceneId{gameOverSceneId} {
     mReport.setCharacterSize(18);
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
-    mReport.setFont(assetsManager.getFontsManager().get(FontId::Mechanical));
+    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 
     mRegistry.group<Planet, SceneSwitcher>();
     mRegistry.group<Renderable, Velocity>();
     mRegistry.group<Health, Fuel>();
 
     auto player = mRegistry.create();
-    auto renderable = assetsManager.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    auto renderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
 
     helpers::centerOrigin(renderable, renderable.getLocalBounds());
     renderable.setPosition(400.0f, 300.0f);
@@ -76,10 +76,10 @@ void SolarSystem::onNotify(const PlanetDestroyed &planetDestroyed) noexcept {
     });
 }
 
-SceneId SolarSystem::update(const sf::RenderWindow &window, AssetsManager &assetsManager, const sf::Time elapsed) noexcept {
+SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     mNextSceneId = getSceneId();
 
-    inputSystem(window, assetsManager.getSpriteSheetsManager(), elapsed);
+    inputSystem(window, assets.getSpriteSheetsManager(), elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem();

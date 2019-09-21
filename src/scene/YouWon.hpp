@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <assets/AssetsManager.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::scene {
@@ -35,7 +34,7 @@ namespace gravitar::scene {
     public:
         YouWon() = delete; // no default-constructible
 
-        explicit YouWon(assets::AssetsManager &assetsManager);
+        explicit YouWon(Assets &assets);
 
         YouWon(const YouWon &) = delete; // no copy-constructible
         YouWon &operator=(const YouWon &) = delete; // no copy-assignable

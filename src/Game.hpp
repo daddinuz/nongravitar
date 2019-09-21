@@ -29,8 +29,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
+#include <Assets.hpp>
 #include <SceneManager.hpp>
-#include <assets/AssetsManager.hpp>
 
 namespace gravitar {
     class Game {
@@ -60,7 +60,7 @@ namespace gravitar {
 
         void handleEvents();
 
-        assets::AssetsManager mAssetsManager;
+        Assets mAssets;
         SceneManager mSceneManager;
         sf::RenderWindow mWindow;
         sf::Clock mClock;

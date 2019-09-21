@@ -32,16 +32,16 @@
 #include <assets/TexturesManager.hpp>
 #include <assets/SpriteSheetsManager.hpp>
 
-namespace gravitar::assets {
-    class AssetsManager {
+namespace gravitar {
+    class Assets {
     public:
-        AssetsManager() = default; // default-constructible
+        Assets() = default; // default-constructible
 
-        AssetsManager(const AssetsManager &) = delete; // no copy-constructible
-        AssetsManager &operator=(const AssetsManager &) = delete; // no copy-assignable
+        Assets(const Assets &) = delete; // no copy-constructible
+        Assets &operator=(const Assets &) = delete; // no copy-assignable
 
-        AssetsManager(AssetsManager &&) = delete; // no move-constructible
-        AssetsManager &operator=(AssetsManager &&) = delete; // no move-assignable
+        Assets(Assets &&) = delete; // no move-constructible
+        Assets &operator=(Assets &&) = delete; // no move-assignable
 
         /**
          * Initialize assets loading them into memory.
@@ -52,15 +52,15 @@ namespace gravitar::assets {
          */
         void initialize();
 
-        [[nodiscard]] const SpriteSheetsManager &getSpriteSheetsManager() const noexcept;
-        [[nodiscard]] const TexturesManager &getTexturesManager() const noexcept;
-        [[nodiscard]] const FontsManager &getFontsManager() const noexcept;
-        [[nodiscard]] AudioManager &getAudioManager() noexcept;
+        [[nodiscard]] const assets::SpriteSheetsManager &getSpriteSheetsManager() const noexcept;
+        [[nodiscard]] const assets::TexturesManager &getTexturesManager() const noexcept;
+        [[nodiscard]] const assets::FontsManager &getFontsManager() const noexcept;
+        [[nodiscard]] assets::AudioManager &getAudioManager() noexcept;
 
     private:
-        SpriteSheetsManager mSpriteSheetsManager;
-        TexturesManager mTexturesManager;
-        FontsManager mFontsManager;
-        AudioManager mAudioManager;
+        assets::SpriteSheetsManager mSpriteSheetsManager;
+        assets::TexturesManager mTexturesManager;
+        assets::FontsManager mFontsManager;
+        assets::AudioManager mAudioManager;
     };
 }

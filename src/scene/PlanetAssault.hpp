@@ -34,7 +34,7 @@ namespace gravitar::scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
-        PlanetAssault(SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
+        PlanetAssault(SceneId gameOverSceneId, Assets &assets);
 
         PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
         PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
@@ -44,7 +44,7 @@ namespace gravitar::scene {
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
