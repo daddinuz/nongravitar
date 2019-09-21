@@ -29,8 +29,8 @@
 #include <scene/SolarSystem.hpp>
 #include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
-#include <Game.hpp>
 #include <scene/YouWon.hpp>
+#include <Game.hpp>
 
 using namespace gravitar;
 
@@ -44,7 +44,7 @@ Game &gravitar::Game::initialize() {
 int Game::run() {
     mClock.restart();
 
-    for (handleEvents(); scene::NullScene != mSceneId; handleEvents()) {
+    for (handleEvents(); nullSceneId != mSceneId; handleEvents()) {
         mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssetsManager, mClock.restart());
         mWindow.clear();
         mSceneManager.get(mSceneId).render(mWindow);
@@ -81,11 +81,11 @@ void Game::initializeScenes() {
 void Game::handleEvents() {
     auto event = sf::Event{};
 
-    while (scene::NullScene != mSceneId and mWindow.pollEvent(event)) {
+    while (nullSceneId != mSceneId and mWindow.pollEvent(event)) {
         if (sf::Event::KeyPressed == event.type) {
             switch (event.key.code) {
                 case sf::Keyboard::Escape:
-                    mSceneId = scene::NullScene;
+                    mSceneId = nullSceneId;
                     break;
 
                 case sf::Keyboard::F6:

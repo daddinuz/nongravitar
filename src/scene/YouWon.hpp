@@ -28,7 +28,7 @@
 #pragma once
 
 #include <assets/AssetsManager.hpp>
-#include <scene/Scene.hpp>
+#include <Scene.hpp>
 
 namespace gravitar::scene {
     class YouWon final : public Scene {

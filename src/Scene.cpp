@@ -25,38 +25,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <Scene.hpp>
 
-#include <memory>
-#include <vector>
-#include <scene/Scene.hpp>
+using namespace gravitar;
 
-namespace gravitar::scene {
-    class SceneManager final {
-    public:
-        SceneManager() = default; // default-constructible
+SceneId Scene::onEvent(const sf::Event &event) noexcept {
+    (void) event;
+    return getSceneId();
+}
 
-        SceneManager(const SceneManager &) = delete; // no copy-constructible
-        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
+SceneId Scene::update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+    (void) window;
+    (void) assetsManager;
+    (void) elapsed;
+    return getSceneId();
+}
 
-        SceneManager(SceneManager &&) = delete; // no move-constructible
-        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
-
-        template<typename T, typename ...Args>
-        T &emplace(Args &&... args) {
-            static_assert(std::is_base_of<Scene, T>::value);
-
-            const auto id = SceneId{mScenes.size()};
-            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
-            scene->mSceneId = id;
-            mScenes.push_back(std::move(scene));
-
-            return dynamic_cast<T &>(*mScenes.back());
-        }
-
-        Scene &get(SceneId id);
-
-    private:
-        std::vector<std::unique_ptr<Scene>> mScenes;
-    };
+SceneId Scene::getSceneId() const noexcept {
+    return mSceneId;
 }

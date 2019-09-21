@@ -28,9 +28,9 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <Scene.hpp>
 #include <pubsub.hpp>
 #include <messages.hpp>
-#include <scene/Scene.hpp>
 #include <assets/AssetsManager.hpp>
 
 namespace gravitar::scene {
@@ -66,6 +66,6 @@ namespace gravitar::scene {
         char mBuffer[128];
         const SceneId mYouWonSceneId;
         const SceneId mGameOverSceneId;
-        SceneId mNextSceneId{NullScene};
+        SceneId mNextSceneId = nullSceneId;
     };
 }

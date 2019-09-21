@@ -28,6 +28,7 @@
 #include <helpers.hpp>
 #include <scene/YouWon.hpp>
 
+using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
@@ -39,7 +40,7 @@ YouWon::YouWon(AssetsManager &assetsManager) :
 }
 
 SceneId YouWon::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getSceneId();
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
 void YouWon::render(sf::RenderTarget &window) noexcept {

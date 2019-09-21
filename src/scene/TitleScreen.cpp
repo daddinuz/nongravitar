@@ -28,8 +28,9 @@
 #include <helpers.hpp>
 #include <scene/TitleScreen.hpp>
 
-using namespace gravitar::assets;
+using namespace gravitar;
 using namespace gravitar::scene;
+using namespace gravitar::assets;
 
 TitleScreen::TitleScreen(const SceneId nextSceneId, AssetsManager &assetsManager) :
         mGravitarTitle(assetsManager.getTexturesManager().get(TextureId::GravitarTitle)),

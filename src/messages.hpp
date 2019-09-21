@@ -28,10 +28,10 @@
 #pragma once
 
 #include <Deref.hpp>
-#include <scene/Scene.hpp>
+#include <Scene.hpp>
 
 namespace gravitar::messages {
-    struct PlanetDestroyed final : public Deref<scene::SceneId> {
-        explicit PlanetDestroyed(const scene::SceneId sceneId) : Deref(sceneId) {}
+    struct PlanetDestroyed final : public Deref<SceneId> {
+        explicit PlanetDestroyed(const SceneId sceneId) : Deref(sceneId) {}
     };
 }

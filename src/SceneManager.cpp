@@ -25,9 +25,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <scene/SceneManager.hpp>
+#include <SceneManager.hpp>
 
-using namespace gravitar::scene;
+using namespace gravitar;
 
 Scene &SceneManager::get(SceneId id) {
     return *mScenes.at(static_cast<typename std::underlying_type<SceneId>::type>(id));

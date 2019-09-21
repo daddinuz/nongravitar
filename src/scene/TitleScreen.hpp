@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <scene/Scene.hpp>
+#include <Scene.hpp>
 
 namespace gravitar::scene {
     class TitleScreen final : public Scene {

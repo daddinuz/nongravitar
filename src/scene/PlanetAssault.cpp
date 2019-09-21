@@ -29,6 +29,7 @@
 #include <messages.hpp>
 #include <scene/PlanetAssault.hpp>
 
+using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 using namespace gravitar::messages;

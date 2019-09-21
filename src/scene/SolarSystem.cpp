@@ -30,6 +30,7 @@
 #include <components.hpp>
 #include <scene/SolarSystem.hpp>
 
+using namespace gravitar;
 using namespace gravitar::tags;
 using namespace gravitar::scene;
 using namespace gravitar::assets;

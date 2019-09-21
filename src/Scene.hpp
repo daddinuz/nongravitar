@@ -32,9 +32,9 @@
 #include <SFML/Graphics.hpp>
 #include <assets/AssetsManager.hpp>
 
-namespace gravitar::scene {
+namespace gravitar {
     enum class SceneId : std::size_t {};
-    constexpr auto NullScene = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()}; // TODO: rename to nullSceneId
+    constexpr auto nullSceneId = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()};
 
     class Scene {
     public:
@@ -63,6 +63,6 @@ namespace gravitar::scene {
         virtual ~Scene() = default;
 
     private:
-        SceneId mSceneId{NullScene};
+        SceneId mSceneId = nullSceneId;
     };
 }

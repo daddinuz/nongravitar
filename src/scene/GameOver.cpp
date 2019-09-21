@@ -28,6 +28,7 @@
 #include <helpers.hpp>
 #include <scene/GameOver.hpp>
 
+using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
@@ -39,7 +40,7 @@ GameOver::GameOver(AssetsManager &assetsManager) :
 }
 
 SceneId GameOver::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getSceneId();
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
 void GameOver::render(sf::RenderTarget &window) noexcept {

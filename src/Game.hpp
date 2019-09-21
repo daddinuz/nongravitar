@@ -28,8 +28,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include <scene/Scene.hpp>
-#include <scene/SceneManager.hpp>
+#include <Scene.hpp>
+#include <SceneManager.hpp>
 #include <assets/AssetsManager.hpp>
 
 namespace gravitar {
@@ -61,9 +61,9 @@ namespace gravitar {
         void handleEvents();
 
         assets::AssetsManager mAssetsManager;
-        scene::SceneManager mSceneManager;
+        SceneManager mSceneManager;
         sf::RenderWindow mWindow;
         sf::Clock mClock;
-        scene::SceneId mSceneId{scene::NullScene};
+        SceneId mSceneId = nullSceneId;
     };
 }

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <scene/Scene.hpp>
+#include <Scene.hpp>
 
 namespace gravitar::scene {
     class PlanetAssault final : public Scene {
@@ -54,6 +54,6 @@ namespace gravitar::scene {
 
     private:
         const SceneId mGameOverSceneId;
-        SceneId mParentSceneId{NullScene};
+        SceneId mParentSceneId = nullSceneId;
     };
 }
