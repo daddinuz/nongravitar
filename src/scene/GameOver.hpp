@@ -45,9 +45,7 @@ namespace gravitar::scene {
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) const noexcept final;
+        void render(sf::RenderTarget &window) noexcept final;
 
     private:
         sf::Text mGameOverTitle;

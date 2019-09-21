@@ -39,7 +39,10 @@ using namespace gravitar::components;
 constexpr float SPEED = 180.0f;
 constexpr float ROTATION_SPEED = 180.0f;
 
-SolarSystem::SolarSystem(const SceneId gameOverSceneId, AssetsManager &assetsManager) : mBuffer{}, mGameOverSceneId{gameOverSceneId} {
+SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, AssetsManager &assetsManager) :
+        mBuffer{},
+        mYouWonSceneId{youWonSceneId},
+        mGameOverSceneId{gameOverSceneId} {
     mReport.setCharacterSize(18);
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
     mReport.setFont(assetsManager.getFontsManager().get(FontId::Mechanical));
@@ -84,7 +87,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, AssetsManager &asset
     return mNextSceneId;
 }
 
-void SolarSystem::render(sf::RenderTarget &window) const noexcept {
+void SolarSystem::render(sf::RenderTarget &window) noexcept {
     window.draw(mReport);
 
     mRegistry.view<const Renderable>().each([&](const auto &renderable) {
@@ -223,6 +226,19 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 }
 
 void SolarSystem::livenessSystem() noexcept {
+    auto livingPlanets = false;
+
+    for (const auto &e : mRegistry.view<Planet>()) {
+        (void) e;
+        livingPlanets = true;
+        break;
+    }
+
+    if (not livingPlanets) {
+        mNextSceneId = mYouWonSceneId;
+        return;
+    }
+
     mRegistry.view<Player, Health, Fuel>().each([&](const auto &player, const auto &health, const auto &fuel) {
         (void) player;
 

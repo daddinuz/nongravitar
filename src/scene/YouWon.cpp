@@ -25,35 +25,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <helpers.hpp>
+#include <scene/YouWon.hpp>
 
-#include <scene/Scene.hpp>
+using namespace gravitar::scene;
+using namespace gravitar::assets;
 
-namespace gravitar::scene {
-    class PlanetAssault final : public Scene {
-    public:
-        PlanetAssault() = delete; // no default-constructible
+YouWon::YouWon(AssetsManager &assetsManager) :
+        mYouWonTitle("You Won", assetsManager.getFontsManager().get(FontId::Mechanical), 64),
+        mSpaceLabel("[SPACE]", assetsManager.getFontsManager().get(FontId::Mechanical), 24) {
+    helpers::centerOrigin(mYouWonTitle, mYouWonTitle.getLocalBounds());
+    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+}
 
-        PlanetAssault(SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
+SceneId YouWon::onEvent(const sf::Event &event) noexcept {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? NullScene : getSceneId();
+}
 
-        PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
-        PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
-
-        PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
-        PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
-
-        SceneId onEvent(const sf::Event &event) noexcept final;
-
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) noexcept final;
-
-        void setParentSceneId(SceneId parentSceneId) noexcept;
-
-        [[nodiscard]] SceneId getParentSceneId() const noexcept;
-
-    private:
-        const SceneId mGameOverSceneId;
-        SceneId mParentSceneId{NullScene};
-    };
+void YouWon::render(sf::RenderTarget &window) noexcept {
+    const auto[windowWidth, windowHeight] = window.getSize();
+    mYouWonTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+    window.draw(mYouWonTitle);
+    window.draw(mSpaceLabel);
 }

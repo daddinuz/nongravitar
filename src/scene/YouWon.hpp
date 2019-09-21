@@ -27,33 +27,28 @@
 
 #pragma once
 
+#include <assets/AssetsManager.hpp>
 #include <scene/Scene.hpp>
 
 namespace gravitar::scene {
-    class PlanetAssault final : public Scene {
+    class YouWon final : public Scene {
     public:
-        PlanetAssault() = delete; // no default-constructible
+        YouWon() = delete; // no default-constructible
 
-        PlanetAssault(SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
+        explicit YouWon(assets::AssetsManager &assetsManager);
 
-        PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
-        PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
+        YouWon(const YouWon &) = delete; // no copy-constructible
+        YouWon &operator=(const YouWon &) = delete; // no copy-assignable
 
-        PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
-        PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
+        YouWon(YouWon &&) = delete; // no move-constructible
+        YouWon &operator=(YouWon &&) = delete; // no move-assignable
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
-
         void render(sf::RenderTarget &window) noexcept final;
 
-        void setParentSceneId(SceneId parentSceneId) noexcept;
-
-        [[nodiscard]] SceneId getParentSceneId() const noexcept;
-
     private:
-        const SceneId mGameOverSceneId;
-        SceneId mParentSceneId{NullScene};
+        sf::Text mYouWonTitle;
+        sf::Text mSpaceLabel;
     };
 }

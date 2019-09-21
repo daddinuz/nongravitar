@@ -30,6 +30,7 @@
 #include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <Game.hpp>
+#include <scene/YouWon.hpp>
 
 using namespace gravitar;
 
@@ -44,10 +45,9 @@ int Game::run() {
     mClock.restart();
 
     for (handleEvents(); scene::NullScene != mSceneId; handleEvents()) {
-        auto &scene = mSceneManager.get(mSceneId);
-        mSceneId = scene.update(mWindow, mAssetsManager, mClock.restart());
+        mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssetsManager, mClock.restart());
         mWindow.clear();
-        scene.render(mWindow);
+        mSceneManager.get(mSceneId).render(mWindow);
         mWindow.display();
     }
 
@@ -64,8 +64,9 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
+    auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssetsManager);
     auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssetsManager);
-    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(gameOver.getSceneId(), mAssetsManager);
+    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssetsManager);
     auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssetsManager);
 
     auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssetsManager);

@@ -44,11 +44,8 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
 }
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, AssetsManager &assetsManager, sf::Time elapsed) noexcept {
+    (void) window;
     (void) elapsed;
-
-    const auto[windowWidth, windowHeight] = window.getSize();
-    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
 
     if (auto &audioManager = assetsManager.getAudioManager(); SoundTrackId::MainTheme != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::MainTheme);
@@ -57,7 +54,11 @@ SceneId TitleScreen::update(const sf::RenderWindow &window, AssetsManager &asset
     return getSceneId();
 }
 
-void TitleScreen::render(sf::RenderTarget &window) const noexcept {
+void TitleScreen::render(sf::RenderTarget &window) noexcept {
+    const auto[windowWidth, windowHeight] = window.getSize();
+    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+
     window.draw(mGravitarTitle);
     window.draw(mSpaceLabel);
 }

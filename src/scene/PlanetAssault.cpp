@@ -53,7 +53,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, AssetsManager &ass
     return getSceneId();
 }
 
-void PlanetAssault::render(sf::RenderTarget &window) const noexcept {
+void PlanetAssault::render(sf::RenderTarget &window) noexcept {
     (void) window;
 }
 
