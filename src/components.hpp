@@ -30,6 +30,7 @@
 #include <variant>
 #include <SFML/Graphics.hpp>
 #include <Deref.hpp>
+#include <scene/Scene.hpp>
 
 namespace gravitar::components {
     struct Velocity final : public Deref<sf::Vector2f> {
@@ -70,9 +71,15 @@ namespace gravitar::components {
         float mSecondsBeforeShoot;
     };
 
+    struct SceneSwitcher final : public Deref<scene::SceneId> {
+        template<typename ...Args>
+        explicit SceneSwitcher(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    };
+
     class Renderable final : public sf::Drawable {
     public:
         explicit Renderable(sf::Sprite &&instance);
+        explicit Renderable(sf::CircleShape &&instance);
 
         void rotate(float angle);
         [[nodiscard]] float getRotation() const noexcept;
@@ -87,6 +94,6 @@ namespace gravitar::components {
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite> mInstance;
+        std::variant<sf::Sprite, sf::CircleShape> mInstance;
     };
 }

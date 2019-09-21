@@ -27,36 +27,33 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
 #include <scene/Scene.hpp>
 
 namespace gravitar::scene {
-    class SceneManager final {
+    class PlanetAssault final : public Scene {
     public:
-        SceneManager() = default; // default-constructible
+        PlanetAssault() = delete; // no default-constructible
 
-        SceneManager(const SceneManager &) = delete; // no copy-constructible
-        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
+        PlanetAssault(SceneId gameOverSceneId, assets::AssetsManager &assetsManager);
 
-        SceneManager(SceneManager &&) = delete; // no move-constructible
-        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
+        PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
+        PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
 
-        template<typename T, typename ...Args>
-        T &emplace(Args &&... args) {
-            static_assert(std::is_base_of<Scene, T>::value);
+        PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
+        PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
-            const auto id = SceneId{mScenes.size()};
-            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
-            scene->mSceneId = id;
-            mScenes.push_back(std::move(scene));
+        SceneId onEvent(const sf::Event &event) noexcept final;
 
-            return dynamic_cast<T &>(*mScenes.back());
-        }
+        SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
-        Scene &get(SceneId id);
+        void render(sf::RenderTarget &window) const noexcept final;
+
+        void setParentSceneId(SceneId parentSceneId) noexcept;
+
+        [[nodiscard]] SceneId getParentSceneId() const noexcept;
 
     private:
-        std::vector<std::unique_ptr<Scene>> mScenes;
+        const SceneId mGameOverSceneId;
+        SceneId mParentSceneId{NullScene};
     };
 }

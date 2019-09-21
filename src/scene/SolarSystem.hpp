@@ -28,11 +28,13 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include <pubsub.hpp>
+#include <messages.hpp>
 #include <scene/Scene.hpp>
 #include <assets/AssetsManager.hpp>
 
 namespace gravitar::scene {
-    class SolarSystem final : public Scene {
+    class SolarSystem final : public pubsub::Listen<messages::PlanetDestroyed>, public Scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
@@ -44,9 +46,13 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
+        void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
+
         SceneId update(const sf::RenderWindow &window, assets::AssetsManager &assetsManager, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) const noexcept final;
+
+        void addPlanet(SceneId sceneId) noexcept;
 
     private:
         void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
@@ -58,7 +64,7 @@ namespace gravitar::scene {
         entt::registry mRegistry;
         sf::Text mReport;
         char mBuffer[128];
-        SceneId mGameOverSceneId;
-        bool mIsGameOver{false};
+        const SceneId mGameOverSceneId;
+        SceneId mNextSceneId{NullScene};
     };
 }

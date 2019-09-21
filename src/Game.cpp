@@ -27,6 +27,7 @@
 
 #include <scene/TitleScreen.hpp>
 #include <scene/SolarSystem.hpp>
+#include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <Game.hpp>
 
@@ -63,9 +64,17 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto gameOverScene = mSceneManager.emplace<scene::GameOver>(mAssetsManager);
-    auto solarSystemScene = mSceneManager.emplace<scene::SolarSystem>(gameOverScene, mAssetsManager);
-    mSceneId = mSceneManager.emplace<scene::TitleScreen>(solarSystemScene, mAssetsManager);
+    auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssetsManager);
+    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(gameOver.getSceneId(), mAssetsManager);
+    auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssetsManager);
+
+    auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssetsManager);
+    planetAssault.setParentSceneId(solarSystem.getSceneId());
+    solarSystem.addPlanet(planetAssault.getSceneId());
+
+    pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
+
+    mSceneId = titleScreen.getSceneId();
 }
 
 void Game::handleEvents() {

@@ -25,38 +25,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <pubsub.hpp>
+#include <messages.hpp>
+#include <scene/PlanetAssault.hpp>
 
-#include <memory>
-#include <vector>
-#include <scene/Scene.hpp>
+using namespace gravitar::scene;
+using namespace gravitar::assets;
+using namespace gravitar::messages;
 
-namespace gravitar::scene {
-    class SceneManager final {
-    public:
-        SceneManager() = default; // default-constructible
+PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, AssetsManager &assetsManager) : mGameOverSceneId{gameOverSceneId} {
+    (void) assetsManager;
+}
 
-        SceneManager(const SceneManager &) = delete; // no copy-constructible
-        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
+SceneId PlanetAssault::onEvent(const sf::Event &event) noexcept {
+    if (sf::Event::KeyPressed == event.type and sf::Keyboard::Q == event.key.code) {
+        pubsub::notify<PlanetDestroyed>(getSceneId());
+        return getParentSceneId();
+    } else {
+        return getSceneId();
+    }
+}
 
-        SceneManager(SceneManager &&) = delete; // no move-constructible
-        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
+SceneId PlanetAssault::update(const sf::RenderWindow &window, AssetsManager &assetsManager, const sf::Time elapsed) noexcept {
+    (void) window;
+    (void) assetsManager;
+    (void) elapsed;
+    return getSceneId();
+}
 
-        template<typename T, typename ...Args>
-        T &emplace(Args &&... args) {
-            static_assert(std::is_base_of<Scene, T>::value);
+void PlanetAssault::render(sf::RenderTarget &window) const noexcept {
+    (void) window;
+}
 
-            const auto id = SceneId{mScenes.size()};
-            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
-            scene->mSceneId = id;
-            mScenes.push_back(std::move(scene));
+void PlanetAssault::setParentSceneId(SceneId parentSceneId) noexcept {
+    mParentSceneId = parentSceneId;
+}
 
-            return dynamic_cast<T &>(*mScenes.back());
-        }
-
-        Scene &get(SceneId id);
-
-    private:
-        std::vector<std::unique_ptr<Scene>> mScenes;
-    };
+SceneId PlanetAssault::getParentSceneId() const noexcept {
+    return mParentSceneId;
 }

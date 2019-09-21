@@ -31,6 +31,8 @@ using namespace gravitar::components;
 
 Renderable::Renderable(sf::Sprite &&instance) : mInstance(std::move(instance)) {}
 
+Renderable::Renderable(sf::CircleShape &&instance) : mInstance(std::move(instance)) {}
+
 void Renderable::rotate(float angle) {
     std::visit([&angle](auto &instance) { instance.rotate(angle); }, mInstance);
 }

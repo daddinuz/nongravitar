@@ -27,36 +27,10 @@
 
 #pragma once
 
-#include <memory>
-#include <vector>
-#include <scene/Scene.hpp>
+#include <entt/entt.hpp>
 
-namespace gravitar::scene {
-    class SceneManager final {
-    public:
-        SceneManager() = default; // default-constructible
-
-        SceneManager(const SceneManager &) = delete; // no copy-constructible
-        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
-
-        SceneManager(SceneManager &&) = delete; // no move-constructible
-        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
-
-        template<typename T, typename ...Args>
-        T &emplace(Args &&... args) {
-            static_assert(std::is_base_of<Scene, T>::value);
-
-            const auto id = SceneId{mScenes.size()};
-            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
-            scene->mSceneId = id;
-            mScenes.push_back(std::move(scene));
-
-            return dynamic_cast<T &>(*mScenes.back());
-        }
-
-        Scene &get(SceneId id);
-
-    private:
-        std::vector<std::unique_ptr<Scene>> mScenes;
-    };
+namespace gravitar::tags {
+    using Bullet = entt::tag<"bullet"_hs>;
+    using Player = entt::tag<"player"_hs>;
+    using Planet = entt::tag<"planet"_hs>;
 }
