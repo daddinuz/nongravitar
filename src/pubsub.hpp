@@ -28,11 +28,30 @@
 #pragma once
 
 #include <unordered_set>
-#include <trace.hpp>
 
 namespace gravitar::pubsub {
     template<typename T>
-    class Listen;
+    class Listen {
+    public:
+        template<typename U>
+        friend void notify(const U &);
+
+        template<typename U, typename ...Args>
+        friend void notify(Args &&...);
+
+        template<typename U>
+        friend void subscribe(Listen<U> &);
+
+        template<typename U>
+        friend void unsubscribe(Listen<U> &);
+
+        virtual void onNotify(const T &) noexcept = 0;
+
+        virtual ~Listen();
+
+    private:
+        inline static std::unordered_set<Listen<T> *> mListeners; // mutex is not needed until we are single-threaded
+    };
 
     template<typename T>
     void notify(const T &message) {
@@ -60,30 +79,7 @@ namespace gravitar::pubsub {
     }
 
     template<typename T>
-    class Listen {
-    public:
-        template<typename U>
-        friend void notify(const U &);
-
-        template<typename U, typename ...Args>
-        friend void notify(Args &&...);
-
-        template<typename U>
-        friend void subscribe(Listen<U> &);
-
-        template<typename U>
-        friend void unsubscribe(Listen<U> &);
-
-        virtual void onNotify(const T &) noexcept = 0;
-
-        virtual ~Listen() {
-            unsubscribe<T>(*this);
-        }
-
-    private:
-        static std::unordered_set<Listen<T> *> mListeners;
-    };
-
-    template<typename T>
-    std::unordered_set<Listen<T> *> Listen<T>::mListeners;
+    Listen<T>::~Listen() {
+        unsubscribe<T>(*this);
+    }
 }
