@@ -25,18 +25,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <SceneManager.hpp>
 
 using namespace gravitar;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
-
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
-
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+Scene &SceneManager::get(SceneId id) {
+    return *mScenes.at(static_cast<typename std::underlying_type<SceneId>::type>(id));
 }

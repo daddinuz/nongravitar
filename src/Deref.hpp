@@ -31,16 +31,16 @@
 
 namespace gravitar {
     template<typename T>
-    class Wrapper {
+    class Deref {
     public:
         template<typename ...Args>
-        explicit Wrapper(Args &&... args);
+        explicit Deref(Args &&... args);
 
-        Wrapper(Wrapper<T> &&) noexcept = default; // move-constructible
-        Wrapper &operator=(Wrapper<T> &&) noexcept = default; // move-assignable
+        Deref(Deref<T> &&) noexcept = default; // move-constructible
+        Deref &operator=(Deref<T> &&) noexcept = default; // move-assignable
 
-        [[nodiscard]] const T &get() const noexcept;
-        [[nodiscard]] T &get() noexcept;
+        [[nodiscard]] const T &deref() const noexcept;
+        [[nodiscard]] T &deref() noexcept;
 
         [[nodiscard]] const T &operator*() const noexcept;
         [[nodiscard]] T &operator*() noexcept;
@@ -48,7 +48,7 @@ namespace gravitar {
         [[nodiscard]] const T *operator->() const noexcept;
         [[nodiscard]] T *operator->() noexcept;
 
-        virtual ~Wrapper() = 0;
+        virtual ~Deref() = 0;
 
     private:
         T mInstance;
@@ -60,38 +60,38 @@ namespace gravitar {
 
     template<typename T>
     template<typename... Args>
-    Wrapper<T>::Wrapper(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+    Deref<T>::Deref(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
 
     template<typename T>
-    const T &Wrapper<T>::get() const noexcept {
+    const T &Deref<T>::deref() const noexcept {
         return mInstance;
     }
 
     template<typename T>
-    T &Wrapper<T>::get() noexcept {
+    T &Deref<T>::deref() noexcept {
         return mInstance;
     }
 
     template<typename T>
-    const T &Wrapper<T>::operator*() const noexcept {
+    const T &Deref<T>::operator*() const noexcept {
         return mInstance;
     }
 
     template<typename T>
-    T &Wrapper<T>::operator*() noexcept {
+    T &Deref<T>::operator*() noexcept {
         return this->mInstance;
     }
 
     template<typename T>
-    const T *Wrapper<T>::operator->() const noexcept {
+    const T *Deref<T>::operator->() const noexcept {
         return &mInstance;
     }
 
     template<typename T>
-    T *Wrapper<T>::operator->() noexcept {
+    T *Deref<T>::operator->() noexcept {
         return &this->mInstance;
     }
 
     template<typename T>
-    Wrapper<T>::~Wrapper() = default;
+    Deref<T>::~Deref() = default;
 }

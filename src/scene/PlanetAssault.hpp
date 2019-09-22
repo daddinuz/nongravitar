@@ -25,18 +25,35 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <Scene.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
+namespace gravitar::scene {
+    class PlanetAssault final : public Scene {
+    public:
+        PlanetAssault() = delete; // no default-constructible
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
+        PlanetAssault(SceneId gameOverSceneId, Assets &assets);
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+        PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
+        PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
+
+        PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
+        PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
+
+        SceneId onEvent(const sf::Event &event) noexcept final;
+
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+
+        void render(sf::RenderTarget &window) noexcept final;
+
+        void setParentSceneId(SceneId parentSceneId) noexcept;
+
+        [[nodiscard]] SceneId getParentSceneId() const noexcept;
+
+    private:
+        const SceneId mGameOverSceneId;
+        SceneId mParentSceneId = nullSceneId;
+    };
 }

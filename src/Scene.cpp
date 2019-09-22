@@ -25,18 +25,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <Scene.hpp>
 
 using namespace gravitar;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+SceneId Scene::onEvent(const sf::Event &event) noexcept {
+    (void) event;
+    return getSceneId();
 }
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
+SceneId Scene::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
+    (void) window;
+    (void) assets;
+    (void) elapsed;
+    return getSceneId();
 }
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+SceneId Scene::getSceneId() const noexcept {
+    return mSceneId;
 }

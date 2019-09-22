@@ -25,18 +25,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <Assets.hpp>
 
 using namespace gravitar;
+using namespace gravitar::assets;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+void Assets::initialize() {
+    mFontsManager.initialize();
+    mAudioManager.initialize();
+    mTexturesManager.initialize();
+    mSpriteSheetsManager.initialize(mTexturesManager);
 }
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
+const SpriteSheetsManager &Assets::getSpriteSheetsManager() const noexcept {
+    return mSpriteSheetsManager;
 }
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+const TexturesManager &Assets::getTexturesManager() const noexcept {
+    return mTexturesManager;
+}
+
+const FontsManager &Assets::getFontsManager() const noexcept {
+    return mFontsManager;
+}
+
+AudioManager &Assets::getAudioManager() noexcept {
+    return mAudioManager;
 }

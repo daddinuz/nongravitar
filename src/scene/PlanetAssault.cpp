@@ -25,18 +25,43 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <pubsub.hpp>
+#include <messages.hpp>
+#include <scene/PlanetAssault.hpp>
 
 using namespace gravitar;
+using namespace gravitar::scene;
+using namespace gravitar::assets;
+using namespace gravitar::messages;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) : mGameOverSceneId{gameOverSceneId} {
+    (void) assets;
 }
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
+SceneId PlanetAssault::onEvent(const sf::Event &event) noexcept {
+    if (sf::Event::KeyPressed == event.type and sf::Keyboard::Q == event.key.code) {
+        pubsub::notify<PlanetDestroyed>(getSceneId());
+        return getParentSceneId();
+    } else {
+        return getSceneId();
+    }
 }
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+    (void) window;
+    (void) assets;
+    (void) elapsed;
+    return getSceneId();
+}
+
+void PlanetAssault::render(sf::RenderTarget &window) noexcept {
+    (void) window;
+}
+
+void PlanetAssault::setParentSceneId(SceneId parentSceneId) noexcept {
+    mParentSceneId = parentSceneId;
+}
+
+SceneId PlanetAssault::getParentSceneId() const noexcept {
+    return mParentSceneId;
 }

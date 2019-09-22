@@ -25,18 +25,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <entt/entt.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
-
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
-
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+namespace gravitar::tags {
+    using Bullet = entt::tag<"bullet"_hs>;
+    using Player = entt::tag<"player"_hs>;
+    using Planet = entt::tag<"planet"_hs>;
 }

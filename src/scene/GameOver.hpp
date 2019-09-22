@@ -25,18 +25,29 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <Scene.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
+namespace gravitar::scene {
+    class GameOver final : public Scene {
+    public:
+        GameOver() = delete; // no default-constructible
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
+        explicit GameOver(Assets &assets);
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+        GameOver(const GameOver &) = delete; // no copy-constructible
+        GameOver &operator=(const GameOver &) = delete; // no copy-assignable
+
+        GameOver(GameOver &&) = delete; // no move-constructible
+        GameOver &operator=(GameOver &&) = delete; // no move-assignable
+
+        SceneId onEvent(const sf::Event &event) noexcept final;
+
+        void render(sf::RenderTarget &window) noexcept final;
+
+    private:
+        sf::Text mGameOverTitle;
+        sf::Text mSpaceLabel;
+    };
 }

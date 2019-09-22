@@ -25,18 +25,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <Scene.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
+namespace gravitar::scene {
+    class TitleScreen final : public Scene {
+    public:
+        TitleScreen() = delete;
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
+        TitleScreen(SceneId nextSceneId, Assets &assets);
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+        TitleScreen(const TitleScreen &) = delete; // no copy-constructible
+        TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
+
+        TitleScreen(TitleScreen &&) = delete; // move-constructible
+        TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
+
+        SceneId onEvent(const sf::Event &event) noexcept final;
+
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+
+        void render(sf::RenderTarget &window) noexcept final;
+
+    private:
+        sf::Sprite mGravitarTitle;
+        sf::Text mSpaceLabel;
+        const SceneId mNextSceneId;
+    };
 }

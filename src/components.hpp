@@ -28,19 +28,72 @@
 #pragma once
 
 #include <variant>
-
-#include "wrapper.hpp"
-#include "helpers.hpp"
+#include <SFML/Graphics.hpp>
+#include <Deref.hpp>
+#include <Scene.hpp>
 
 namespace gravitar::components {
-    struct Velocity final : public Wrapper<sf::Vector2f> {
+    struct Velocity final : public Deref<sf::Vector2f> {
         template<typename ...Args>
-        explicit Velocity(Args &&... args) : Wrapper(std::forward<Args>(args)...) {}
+        explicit Velocity(Args &&... args) : Deref(std::forward<Args>(args)...) {}
     };
 
-    struct Renderable final : public Wrapper<std::variant<sf::Sprite>> {
-        Renderable() = delete;
+    struct Health final : public Deref<int> {
+        template<typename ...Args>
+        explicit Health(Args &&... args) : Deref(std::forward<Args>(args)...) {}
 
+        [[nodiscard]] inline bool isDead() const noexcept {
+            return this->deref() <= 0;
+        }
+    };
+
+    struct Fuel final : public Deref<float> {
+        template<typename ...Args>
+        explicit Fuel(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline bool isOver() const noexcept {
+            return this->deref() <= 0;
+        }
+    };
+
+    class RechargeTime final {
+    public:
+        explicit RechargeTime(float secondsBeforeShoot);
+
+        void reset();
+
+        void elapse(const sf::Time &time);
+
+        [[nodiscard]] bool canShoot() const noexcept;
+
+    private:
+        float mElapsed;
+        float mSecondsBeforeShoot;
+    };
+
+    struct SceneSwitcher final : public Deref<SceneId> {
+        template<typename ...Args>
+        explicit SceneSwitcher(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    };
+
+    class Renderable final : public sf::Drawable {
+    public:
         explicit Renderable(sf::Sprite &&instance);
+        explicit Renderable(sf::CircleShape &&instance);
+
+        void rotate(float angle);
+        [[nodiscard]] float getRotation() const noexcept;
+
+        void move(const sf::Vector2f &offset);
+        void setPosition(const sf::Vector2f &position);
+        [[nodiscard]] sf::Vector2f getPosition() const noexcept;
+
+        [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
+        [[nodiscard]] sf::FloatRect getHitBox() const noexcept;
+
+    private:
+        void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
+
+        std::variant<sf::Sprite, sf::CircleShape> mInstance;
     };
 }

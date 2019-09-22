@@ -25,18 +25,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <Deref.hpp>
+#include <Scene.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
-
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
-
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+namespace gravitar::messages {
+    struct PlanetDestroyed final : public Deref<SceneId> {
+        explicit PlanetDestroyed(const SceneId sceneId) : Deref(sceneId) {}
+    };
 }

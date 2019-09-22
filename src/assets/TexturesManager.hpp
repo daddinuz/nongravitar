@@ -25,18 +25,42 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <map>
+#include <SFML/Graphics.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
+namespace gravitar::assets {
+    enum class TextureId {
+        GravitarTitle,
+        SpaceShip,
+        Bullet,
+    };
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
+    class TexturesManager final {
+    public:
+        TexturesManager() = default; // default-constructible
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+        TexturesManager(const TexturesManager &) = delete; // no copy-constructible
+        TexturesManager &operator=(const TexturesManager &) = delete; // no copy-assignable
+
+        TexturesManager(TexturesManager &&) = delete; // no move-constructible
+        TexturesManager &operator=(TexturesManager &&) = delete; // no move-assignable
+
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        void initialize();
+
+        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
+
+    private:
+        void load(const char *filename, TextureId id);
+
+        std::map<TextureId, sf::Texture> mTextures;
+    };
 }

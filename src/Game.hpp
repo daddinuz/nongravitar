@@ -27,20 +27,14 @@
 
 #pragma once
 
-#include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
-
-#include "assets.hpp"
+#include <Scene.hpp>
+#include <Assets.hpp>
+#include <SceneManager.hpp>
 
 namespace gravitar {
-    class Game final {
+    class Game {
     public:
-        enum class Scene {
-            Curtain,
-            SolarSystem,
-            PlanetAssault,
-        };
-
         Game() = default; // default-constructible
 
         Game(const Game &) = delete; // no copy-constructible
@@ -49,37 +43,27 @@ namespace gravitar {
         Game(Game &&) = delete; // no move-constructible
         Game &operator=(Game &&) = delete; // no move-assignable
 
+        /**
+         * Initialize assets loading them into memory.
+         *
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
         Game &initialize();
 
-        void update();
-
-        void run();
+        int run();
 
     private:
-        void initializeSolarSystemScene();
+        void initializeWindow();
+        void initializeScenes();
 
-        void handleGeneralInputs();
+        void handleEvents();
 
-        void updateCurtainScene();
-        void updateSolarSystemScene();
-        void updatePlanetAssaultScene();
-
-        void inputSystem();
-        void motionSystem();
-        void renderSystem();
-
-        entt::registry mRegistry;
-
-        FontsManager mFontsManager;
-        TexturesManager mTexturesManager;
-        SoundTracksManager mSoundTracksManager;
-        SpriteSheetsManager mSpriteSheetsManager;
-
-        SpaceLabel mSpaceLabel;
-        GravitarTitle mGravitarTitle;
-
+        Assets mAssets;
+        SceneManager mSceneManager;
         sf::RenderWindow mWindow;
-        sf::Clock mTimer{};
-        Scene mScene{Scene::Curtain};
+        sf::Clock mClock;
+        SceneId mSceneId = nullSceneId;
     };
 }

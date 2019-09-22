@@ -26,17 +26,27 @@
  */
 
 #include <helpers.hpp>
+#include <scene/YouWon.hpp>
 
 using namespace gravitar;
+using namespace gravitar::scene;
+using namespace gravitar::assets;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+YouWon::YouWon(Assets &assets) :
+        mYouWonTitle("You Won", assets.getFontsManager().get(FontId::Mechanical), 64),
+        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 24) {
+    helpers::centerOrigin(mYouWonTitle, mYouWonTitle.getLocalBounds());
+    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
+SceneId YouWon::onEvent(const sf::Event &event) noexcept {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+void YouWon::render(sf::RenderTarget &window) noexcept {
+    const auto[windowWidth, windowHeight] = window.getSize();
+    mYouWonTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+    window.draw(mYouWonTitle);
+    window.draw(mSpaceLabel);
 }

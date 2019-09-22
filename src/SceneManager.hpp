@@ -25,18 +25,38 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#pragma once
 
-using namespace gravitar;
+#include <memory>
+#include <vector>
+#include <Scene.hpp>
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
-}
+namespace gravitar {
+    class SceneManager final {
+    public:
+        SceneManager() = default; // default-constructible
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
+        SceneManager(const SceneManager &) = delete; // no copy-constructible
+        SceneManager &operator=(const SceneManager &) = delete; // no copy-assignable
 
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+        SceneManager(SceneManager &&) = delete; // no move-constructible
+        SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
+
+        template<typename T, typename ...Args>
+        T &emplace(Args &&... args) {
+            static_assert(std::is_base_of<Scene, T>::value);
+
+            const auto id = SceneId{mScenes.size()};
+            auto scene = std::make_unique<T>(std::forward<Args>(args)...);
+            scene->mSceneId = id;
+            mScenes.push_back(std::move(scene));
+
+            return dynamic_cast<T &>(*mScenes.back());
+        }
+
+        Scene &get(SceneId id);
+
+    private:
+        std::vector<std::unique_ptr<Scene>> mScenes;
+    };
 }

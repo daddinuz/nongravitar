@@ -25,19 +25,19 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "spritesheet.hpp"
-#include "trace.hpp"
+#include <trace.hpp>
+#include <SpriteSheet.hpp>
 
 using namespace gravitar;
 
-SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer, sf::Vector2u size) noexcept
-        : mBuffer(std::move(buffer)), mTexture(texture), mSize(size) {}
+SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept
+        : mBuffer(std::move(buffer)), mTexture(texture) {}
 
-SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u frame, const sf::Vector2u startCoord) {
+SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u frameSize, const sf::Vector2u startCoord) {
     const auto[textureWidth, textureHeight] = texture.getSize();
-    const auto columns = textureWidth / frame.x, rows = textureHeight / frame.y;
+    const auto columns = textureWidth / frameSize.x, rows = textureHeight / frameSize.y;
 
-    if (startCoord.x + columns * frame.x > textureWidth || startCoord.y + rows * frame.y > textureHeight) {
+    if (startCoord.x + columns * frameSize.x > textureWidth || startCoord.y + rows * frameSize.y > textureHeight) {
         throw std::invalid_argument(trace("bad dimensions supplied"));
     }
 
@@ -45,14 +45,14 @@ SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u fra
     buffer.reserve(rows * columns);
 
     for (auto row = 0u; row < rows; ++row) {
-        const auto top = startCoord.y + row * frame.y;
+        const auto top = startCoord.y + row * frameSize.y;
 
         for (auto column = 0u; column < columns; ++column) {
-            buffer.emplace_back(startCoord.x + column * frame.x, top, frame.x, frame.y);
+            buffer.emplace_back(startCoord.x + column * frameSize.x, top, frameSize.x, frameSize.y);
         }
     }
 
-    return SpriteSheet(texture, std::move(buffer), {columns, rows});
+    return SpriteSheet(texture, std::move(buffer));
 }
 
 SpriteSheet::const_iterator SpriteSheet::cbegin() const noexcept {
@@ -71,18 +71,6 @@ const sf::Texture &SpriteSheet::getTexture() const noexcept {
     return mTexture;
 }
 
-const SpriteSheet::Frame &SpriteSheet::getFrame(const sf::Vector2u &frameCoord) const {
-    return mBuffer.at(frameIndex(frameCoord));
-}
-
-sf::Sprite SpriteSheet::instanceSprite(const sf::Vector2u &frameCoord) const {
-    return sf::Sprite(mTexture, getFrame(frameCoord));
-}
-
-const sf::Vector2u &SpriteSheet::getSize() const noexcept {
-    return mSize;
-}
-
-std::size_t SpriteSheet::frameIndex(const sf::Vector2u &frameCoord) const noexcept {
-    return frameCoord.x + frameCoord.y * mSize.x;
+sf::Sprite SpriteSheet::instanceSprite(const std::size_t frameIndex) const {
+    return sf::Sprite(mTexture, mBuffer.at(frameIndex));
 }

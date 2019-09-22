@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <vector>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar {
@@ -41,9 +42,11 @@ namespace gravitar {
         using value_type = Buffer::value_type;
         using pointer = Buffer::pointer;
         using reference = Buffer::reference;
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::random_access_iterator_tag;
 
         SpriteSheet() = delete; // no default-constructible
+
+        SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept;
 
         SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
@@ -51,29 +54,20 @@ namespace gravitar {
         SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
         SpriteSheet &operator=(SpriteSheet &&) noexcept = delete; // no move-assignable;
 
-        [[nodiscard]] static SpriteSheet from(const sf::Texture &texture, sf::Vector2u frame, sf::Vector2u startCoord = {0, 0});
-
-        [[nodiscard]] const_iterator cbegin() const noexcept;
-
-        [[nodiscard]] const_iterator cend() const noexcept;
+        [[nodiscard]] static SpriteSheet from(const sf::Texture &texture, sf::Vector2u frameSize, sf::Vector2u startCoord = {0, 0});
 
         [[nodiscard]] const Buffer &getBuffer() const noexcept;
 
         [[nodiscard]] const sf::Texture &getTexture() const noexcept;
 
-        [[nodiscard]] const Frame &getFrame(const sf::Vector2u &frameCoord) const;
+        [[nodiscard]] sf::Sprite instanceSprite(std::size_t frameIndex) const;
 
-        [[nodiscard]] sf::Sprite instanceSprite(const sf::Vector2u &frameCoord) const;
+        [[nodiscard]] const_iterator cbegin() const noexcept;
 
-        [[nodiscard]] const sf::Vector2u &getSize() const noexcept;
+        [[nodiscard]] const_iterator cend() const noexcept;
 
     private:
-        SpriteSheet(const sf::Texture &texture, Buffer &&buffer, sf::Vector2u size) noexcept;
-
-        [[nodiscard]] std::size_t frameIndex(const sf::Vector2u &frameCoord) const noexcept;
-
         Buffer mBuffer;
         const sf::Texture &mTexture;
-        sf::Vector2u mSize;
     };
 }

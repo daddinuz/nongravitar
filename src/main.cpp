@@ -25,12 +25,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "game.hpp"
+#include <Game.hpp>
 
 using namespace gravitar;
 
 int main() {
     auto game = Game();
-    game.initialize().run();
-    return 0;
+    return game.initialize().run();
 }

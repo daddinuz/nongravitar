@@ -25,18 +25,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <helpers.hpp>
+#include <assets/SpriteSheetsManager.hpp>
 
 using namespace gravitar;
+using namespace gravitar::assets;
 
-float helpers::deg2rad(const float deg) {
-    return deg * static_cast<float>(M_PI) / 180.0f;
+void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
+    std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 2> items = {
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
+    };
+
+    for (const auto &i : items) {
+        mSpriteSheets.emplace(std::get<0>(i), SpriteSheet::from(textureManager.get(std::get<1>(i)), std::get<2>(i)));
+    }
 }
 
-float helpers::rad2deg(const float rad) {
-    return rad * 180.0f / static_cast<float>(M_PI);
-}
-
-float helpers::shortestRotation(const float currentBearing, const float targetBearing) {
-    return std::fmod(targetBearing - currentBearing + 540.0f, 361.0f) - 180.0f;
+const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
+    return mSpriteSheets.at(id);
 }
