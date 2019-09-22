@@ -45,9 +45,10 @@ namespace gravitar::pubsub {
         template<typename U>
         friend void unsubscribe(Listen<U> &);
 
-        virtual void onNotify(const T &) noexcept = 0;
-
         virtual ~Listen();
+
+    protected:
+        virtual void onNotify(const T &) noexcept = 0;
 
     private:
         inline static std::unordered_set<Listen<T> *> mListeners; // mutex is not needed until we are single-threaded
