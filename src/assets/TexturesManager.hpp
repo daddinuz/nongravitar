@@ -35,6 +35,7 @@ namespace gravitar::assets {
         GravitarTitle,
         SpaceShip,
         Bullet,
+        Bunker,
     };
 
     class TexturesManager final {

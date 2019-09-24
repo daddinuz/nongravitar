@@ -35,6 +35,7 @@ namespace gravitar::assets {
     enum class SpriteSheetId {
         SpaceShip,
         Bullet,
+        Bunker,
     };
 
     class SpriteSheetsManager final {
