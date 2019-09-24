@@ -73,7 +73,9 @@ void Game::initializeScenes() {
     planetAssault.setParentSceneId(solarSystem.getSceneId());
     solarSystem.addPlanet(planetAssault.getSceneId());
 
+    pubsub::subscribe<messages::PlanetExited>(solarSystem);
     pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
+    pubsub::subscribe<messages::PlanetEntered>(planetAssault);
 
     mSceneId = titleScreen.getSceneId();
 }

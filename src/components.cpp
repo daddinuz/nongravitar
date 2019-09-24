@@ -29,6 +29,32 @@
 
 using namespace gravitar::components;
 
+/*
+ * SceneSwitcher
+ */
+
+SceneSwitcher::SceneSwitcher(gravitar::SceneId sceneId) : mSceneId(sceneId) {}
+
+/*
+ * RechargeTime
+ */
+
+RechargeTime::RechargeTime(float secondsBeforeShoot) : mElapsed(secondsBeforeShoot), mSecondsBeforeShoot(secondsBeforeShoot) {}
+
+void RechargeTime::reset() {
+    mElapsed = 0;
+}
+
+void RechargeTime::elapse(const sf::Time &time) {
+    if (not canShoot()) {
+        mElapsed += time.asSeconds();
+    }
+}
+
+/*
+ * Renderable
+ */
+
 Renderable::Renderable(sf::Sprite &&instance) : mInstance(std::move(instance)) {}
 
 Renderable::Renderable(sf::CircleShape &&instance) : mInstance(std::move(instance)) {}
@@ -68,20 +94,4 @@ sf::FloatRect Renderable::getHitBox() const noexcept {
 void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     (void) states;
     std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
-}
-
-RechargeTime::RechargeTime(float secondsBeforeShoot) : mElapsed(secondsBeforeShoot), mSecondsBeforeShoot(secondsBeforeShoot) {}
-
-void RechargeTime::reset() {
-    mElapsed = 0;
-}
-
-void RechargeTime::elapse(const sf::Time &time) {
-    if (not canShoot()) {
-        mElapsed += time.asSeconds();
-    }
-}
-
-bool RechargeTime::canShoot() const noexcept {
-    return mElapsed >= mSecondsBeforeShoot;
 }

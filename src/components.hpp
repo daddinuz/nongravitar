@@ -29,30 +29,26 @@
 
 #include <variant>
 #include <SFML/Graphics.hpp>
-#include <Deref.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::components {
-    struct Velocity final : public Deref<sf::Vector2f> {
-        template<typename ...Args>
-        explicit Velocity(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Velocity final {
+        sf::Vector2f value;
     };
 
-    struct Health final : public Deref<int> {
-        template<typename ...Args>
-        explicit Health(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Health final {
+        int value;
 
         [[nodiscard]] inline bool isDead() const noexcept {
-            return this->deref() <= 0;
+            return value <= 0;
         }
     };
 
-    struct Fuel final : public Deref<float> {
-        template<typename ...Args>
-        explicit Fuel(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Fuel final {
+        float value;
 
         [[nodiscard]] inline bool isOver() const noexcept {
-            return this->deref() <= 0;
+            return value <= 0;
         }
     };
 
@@ -64,16 +60,25 @@ namespace gravitar::components {
 
         void elapse(const sf::Time &time);
 
-        [[nodiscard]] bool canShoot() const noexcept;
+        [[nodiscard]] inline bool canShoot() const noexcept {
+            return mElapsed >= mSecondsBeforeShoot;
+        }
 
     private:
         float mElapsed;
         float mSecondsBeforeShoot;
     };
 
-    struct SceneSwitcher final : public Deref<SceneId> {
-        template<typename ...Args>
-        explicit SceneSwitcher(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    class SceneSwitcher final {
+    public:
+        explicit SceneSwitcher(SceneId sceneId);
+
+        [[nodiscard]] inline SceneId getSceneId() const noexcept {
+            return mSceneId;
+        }
+
+    private:
+        SceneId mSceneId;
     };
 
     class Renderable final : public sf::Drawable {

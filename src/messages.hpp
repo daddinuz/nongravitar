@@ -28,23 +28,22 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include <Deref.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::messages {
     struct PlanetEntered final {
         const SceneId planetSceneId;
         const entt::entity playerId;
-        entt::registry &sourceRegistry;
+        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
     };
 
     struct PlanetExited final {
         const SceneId planetSceneId;
         const entt::entity playerId;
-        entt::registry &sourceRegistry;
+        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
     };
 
-    struct PlanetDestroyed final : public Deref<SceneId> {
-        explicit PlanetDestroyed(const SceneId planetSceneId) : Deref(planetSceneId) {}
+    struct PlanetDestroyed final {
+        const SceneId planetSceneId;
     };
 }

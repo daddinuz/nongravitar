@@ -27,10 +27,13 @@
 
 #pragma once
 
+#include <entt/entt.hpp>
 #include <Scene.hpp>
+#include <pubsub.hpp>
+#include <messages.hpp>
 
 namespace gravitar::scene {
-    class PlanetAssault final : public Scene {
+    class PlanetAssault final : public pubsub::Listen<messages::PlanetEntered>, public Scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
@@ -42,8 +45,6 @@ namespace gravitar::scene {
         PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
         PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
-        SceneId onEvent(const sf::Event &event) noexcept final;
-
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
@@ -53,7 +54,20 @@ namespace gravitar::scene {
         [[nodiscard]] SceneId getParentSceneId() const noexcept;
 
     private:
+        void onNotify(const messages::PlanetEntered &planetEntered) noexcept final;
+
+        void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
+        void motionSystem(sf::Time elapsed) noexcept;
+        void collisionSystem(const sf::RenderWindow &window) noexcept;
+        void livenessSystem() noexcept;
+        void reportSystem(const sf::RenderWindow &window) noexcept;
+
+        entt::registry mRegistry;
+        sf::Text mReport;
+        char mBuffer[128];
+
         const SceneId mGameOverSceneId;
         SceneId mParentSceneId = nullSceneId;
+        SceneId mNextSceneId = nullSceneId;
     };
 }

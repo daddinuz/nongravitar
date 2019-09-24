@@ -33,7 +33,9 @@
 #include <messages.hpp>
 
 namespace gravitar::scene {
-    class SolarSystem final : public pubsub::Listen<messages::PlanetDestroyed>, public Scene {
+    class SolarSystem final : public Scene,
+                              public pubsub::Listen<messages::PlanetExited>,
+                              public pubsub::Listen<messages::PlanetDestroyed> {
     public:
         SolarSystem() = delete; // no default-constructible
 
@@ -45,15 +47,16 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
-
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
-        void addPlanet(SceneId sceneId) noexcept;
+        void addPlanet(SceneId sceneId) noexcept; // TODO maybe should be private
 
     private:
+        void onNotify(const messages::PlanetExited &planetExited) noexcept final;
+        void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
+
         void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
