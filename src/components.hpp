@@ -82,6 +82,8 @@ namespace gravitar::components {
     };
 
     class Renderable final : public sf::Drawable {
+        using Instance = std::variant<sf::Sprite, sf::CircleShape>;
+
     public:
         explicit Renderable(sf::Sprite &&instance);
         explicit Renderable(sf::CircleShape &&instance);
@@ -96,9 +98,12 @@ namespace gravitar::components {
         [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
         [[nodiscard]] sf::FloatRect getHitBox() const noexcept;
 
+        [[nodiscard]] Instance &operator*() noexcept;
+        [[nodiscard]] const Instance &operator*() const noexcept;
+
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite, sf::CircleShape> mInstance;
+        Instance mInstance;
     };
 }

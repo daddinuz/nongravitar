@@ -25,7 +25,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <iostream>
 #include <tags.hpp>
+#include <trace.hpp>
 #include <helpers.hpp>
 #include <components.hpp>
 #include <scene/SolarSystem.hpp>
@@ -51,19 +53,6 @@ SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverScen
     mRegistry.group<Planet, SceneSwitcher>();
     mRegistry.group<Renderable, Velocity>();
     mRegistry.group<Health, Fuel>();
-
-    auto player = mRegistry.create();
-    auto renderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
-
-    helpers::centerOrigin(renderable, renderable.getLocalBounds());
-    renderable.setPosition(400.0f, 300.0f);
-
-    mRegistry.assign<Player>(player);
-    mRegistry.assign<Health>(player, 3);
-    mRegistry.assign<Fuel>(player, 20000.0f);
-    mRegistry.assign<Velocity>(player);
-    mRegistry.assign<RechargeTime>(player, RechargeTime(1.0f));
-    mRegistry.assign<Renderable>(player, std::move(renderable));
 }
 
 void SolarSystem::onNotify(const PlanetExited &planetExited) noexcept {
@@ -276,16 +265,70 @@ void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
     });
 }
 
-void SolarSystem::addPlanet(const SceneId sceneId) noexcept {
-    // TODO: randomly generated position and color
-
-    auto planet = mRegistry.create();
-    auto renderable = sf::CircleShape(32, 256); // TODO: make planets sprite sheet
+void SolarSystem::addSpaceShip(const sf::RenderWindow &window, Assets &assets) noexcept {
+    auto player = mRegistry.create();
+    auto renderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
 
     helpers::centerOrigin(renderable, renderable.getLocalBounds());
-    renderable.setPosition(200.0f, 150.0f);
+    renderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
 
-    mRegistry.assign<Planet>(planet);
-    mRegistry.assign<SceneSwitcher>(planet, sceneId);
-    mRegistry.assign<Renderable>(planet, std::move(renderable));
+    mRegistry.assign<Player>(player);
+    mRegistry.assign<Health>(player, 3);
+    mRegistry.assign<Fuel>(player, 20000.0f);
+    mRegistry.assign<Velocity>(player);
+    mRegistry.assign<RechargeTime>(player, RechargeTime(1.0f));
+    mRegistry.assign<Renderable>(player, std::move(renderable));
+}
+
+void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept {
+    using u8_distribution = std::uniform_int_distribution<sf::Uint8>;
+    using f32_distribution = std::uniform_real_distribution<float>;
+
+    const auto[windowWidth, windowHeight] = window.getSize();
+
+    auto collides = true;
+    auto planetId = mRegistry.create();
+    decltype(auto) planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
+    decltype(auto) circleShape = std::get<sf::CircleShape>(*planetRenderable);
+    mRegistry.assign<SceneSwitcher>(planetId, sceneId);
+    mRegistry.assign<Planet>(planetId);
+
+    for (auto i = 0; collides and i < 32; i++) {
+        collides = false;
+
+        circleShape.setRadius(f32_distribution(24, 56)(randomEngine));
+        circleShape.setPosition(
+                f32_distribution(0, windowWidth)(randomEngine),
+                f32_distribution(0, windowHeight)(randomEngine)
+        );
+        helpers::centerOrigin(circleShape, circleShape.getLocalBounds());
+
+        // if planet collides with other entities then retry
+        const auto view = mRegistry.view<const Renderable>();
+        for (const auto entityId : view) {
+            if (planetId != entityId and view.get(entityId).getHitBox().intersects(planetRenderable.getHitBox())) {
+                collides = true;
+                break;
+            }
+        }
+    }
+
+    if (collides) {
+        std::cerr << trace("Unable to generate a random planet") << std::endl;
+        std::terminate();
+    } else {
+        circleShape.setFillColor(sf::Color(
+                u8_distribution(63, 255)(randomEngine),
+                u8_distribution(63, 255)(randomEngine),
+                u8_distribution(63, 255)(randomEngine),
+                u8_distribution(63, 199)(randomEngine)
+        ));
+        circleShape.setOutlineColor(sf::Color(
+                u8_distribution(31, 127)(randomEngine),
+                u8_distribution(31, 127)(randomEngine),
+                u8_distribution(31, 127)(randomEngine),
+                u8_distribution(63, 127)(randomEngine)
+        ));
+        circleShape.setOutlineThickness(f32_distribution(4, 8)(randomEngine));
+    }
 }

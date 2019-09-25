@@ -95,3 +95,11 @@ void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     (void) states;
     std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
 }
+
+Renderable::Instance &Renderable::operator*() noexcept {
+    return mInstance;
+}
+
+const Renderable::Instance &Renderable::operator*() const noexcept {
+    return mInstance;
+}

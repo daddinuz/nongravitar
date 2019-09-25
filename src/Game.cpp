@@ -64,18 +64,26 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
+    auto randomDevice = std::random_device();
+    auto randomEngine = std::mt19937(randomDevice());
+
     auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
     auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
     auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets);
     auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
 
-    auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
-    planetAssault.setParentSceneId(solarSystem.getSceneId());
-    solarSystem.addPlanet(planetAssault.getSceneId());
+    solarSystem.addSpaceShip(mWindow, mAssets);
+
+    // generate a random number of planets in range [4, 8]
+    for (auto i = 0; i < std::uniform_int_distribution(4, 8)(randomEngine); i++) {
+        auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
+        planetAssault.setParentSceneId(solarSystem.getSceneId());
+        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);
+        pubsub::subscribe<messages::PlanetEntered>(planetAssault);
+    }
 
     pubsub::subscribe<messages::PlanetExited>(solarSystem);
     pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
-    pubsub::subscribe<messages::PlanetEntered>(planetAssault);
 
     mSceneId = titleScreen.getSceneId();
 }

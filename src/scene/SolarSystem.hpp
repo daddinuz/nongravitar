@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <random>
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 #include <pubsub.hpp>
@@ -51,7 +52,9 @@ namespace gravitar::scene {
 
         void render(sf::RenderTarget &window) noexcept final;
 
-        void addPlanet(SceneId sceneId) noexcept; // TODO maybe should be private
+        void addSpaceShip(const sf::RenderWindow &window, Assets &assets) noexcept;
+
+        void addPlanet(SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept;
 
     private:
         void onNotify(const messages::PlanetExited &planetExited) noexcept final;
