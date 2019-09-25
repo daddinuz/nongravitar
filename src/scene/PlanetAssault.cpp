@@ -92,7 +92,7 @@ SceneId PlanetAssault::getParentSceneId() const noexcept {
     return mParentSceneId;
 }
 
-void PlanetAssault::onNotify(const PlanetEntered &planetEntered) noexcept {
+void PlanetAssault::operator()(const PlanetEntered &planetEntered) noexcept {
     if (planetEntered.planetSceneId == getSceneId()) {
         const auto players = mRegistry.view<Player>();
         mRegistry.destroy(players.begin(), players.end());
@@ -190,7 +190,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
         if (not viewport.intersects(playerRenderable.getHitBox())) {
             playerRenderable.setPosition({viewport.width / 2, viewport.height / 2});
-            pubsub::notify<PlanetExited>({getSceneId(), playerId, mRegistry});
+            pubsub::publish<PlanetExited>({getSceneId(), playerId, mRegistry});
             mNextSceneId = getParentSceneId();
         } else {
             mRegistry.view<Planet, SceneSwitcher, Renderable>().each([&](const auto &planetTag, const auto &sceneSwitcher, const auto &planetRenderable) {
@@ -233,7 +233,7 @@ void PlanetAssault::livenessSystem() noexcept {
     }
 
     if (not livingBunkers) {
-        pubsub::notify<PlanetDestroyed>({getSceneId()});
+        pubsub::publish<PlanetDestroyed>({getSceneId()});
         mNextSceneId = mParentSceneId;
         return;
     }

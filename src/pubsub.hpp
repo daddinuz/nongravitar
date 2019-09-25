@@ -31,56 +31,56 @@
 
 namespace gravitar::pubsub {
     template<typename T>
-    class Listen {
+    class Handler {
     public:
         template<typename U>
-        friend void notify(const U &);
+        friend void publish(const U &message);
 
         template<typename U, typename ...Args>
-        friend void notify(Args &&...);
+        friend void publish(Args &&... args);
 
         template<typename U>
-        friend void subscribe(Listen<U> &);
+        friend void subscribe(Handler<U> &handler);
 
         template<typename U>
-        friend void unsubscribe(Listen<U> &);
+        friend void unsubscribe(Handler<U> &handler);
 
-        virtual ~Listen();
+        virtual ~Handler();
 
     protected:
-        virtual void onNotify(const T &) noexcept = 0;
+        virtual void operator()(const T &) noexcept = 0;
 
     private:
-        inline static std::unordered_set<Listen<T> *> mListeners; // mutex is not needed until we are single-threaded
+        inline static std::unordered_set<Handler<T> *> mHandlers; // mutex is not needed because we are single-threaded
     };
 
     template<typename T>
-    void notify(const T &message) {
-        for (auto listener : Listen<T>::mListeners) {
-            listener->onNotify(message);
+    void publish(const T &message) {
+        for (auto handler : Handler<T>::mHandlers) {
+            (*handler)(message);
         }
     }
 
     template<typename T, typename ...Args>
-    void notify(Args &&... args) {
+    void publish(Args &&... args) {
         auto message = T(std::forward<Args>(args)...);
-        for (auto listener : Listen<T>::mListeners) {
-            listener->onNotify(message);
+        for (auto handler : Handler<T>::mHandlers) {
+            (*handler)(message);
         }
     }
 
     template<typename T>
-    void subscribe(Listen<T> &listener) {
-        Listen<T>::mListeners.insert(&listener);
+    void subscribe(Handler<T> &handler) {
+        Handler<T>::mHandlers.insert(&handler);
     }
 
     template<typename T>
-    void unsubscribe(Listen<T> &listener) {
-        Listen<T>::mListeners.erase(&listener);
+    void unsubscribe(Handler<T> &handler) {
+        Handler<T>::mHandlers.erase(&handler);
     }
 
     template<typename T>
-    Listen<T>::~Listen() {
+    Handler<T>::~Handler() {
         unsubscribe<T>(*this);
     }
 }

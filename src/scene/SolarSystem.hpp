@@ -35,8 +35,8 @@
 
 namespace gravitar::scene {
     class SolarSystem final : public Scene,
-                              public pubsub::Listen<messages::PlanetExited>,
-                              public pubsub::Listen<messages::PlanetDestroyed> {
+                              public pubsub::Handler<messages::PlanetExited>,
+                              public pubsub::Handler<messages::PlanetDestroyed> {
     public:
         SolarSystem() = delete; // no default-constructible
 
@@ -57,8 +57,8 @@ namespace gravitar::scene {
         void addPlanet(SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept;
 
     private:
-        void onNotify(const messages::PlanetExited &planetExited) noexcept final;
-        void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
+        void operator()(const messages::PlanetExited &planetExited) noexcept final;
+        void operator()(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
 
         void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;

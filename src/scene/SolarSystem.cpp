@@ -55,7 +55,7 @@ SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverScen
     mRegistry.group<Health, Fuel>();
 }
 
-void SolarSystem::onNotify(const PlanetExited &planetExited) noexcept {
+void SolarSystem::operator()(const PlanetExited &planetExited) noexcept {
     mRegistry.group<Planet, SceneSwitcher>().each([&](const auto &planetTag, const auto &sceneSwitcher) {
         (void) planetTag;
 
@@ -67,7 +67,7 @@ void SolarSystem::onNotify(const PlanetExited &planetExited) noexcept {
     });
 }
 
-void SolarSystem::onNotify(const PlanetDestroyed &planetDestroyed) noexcept {
+void SolarSystem::operator()(const PlanetDestroyed &planetDestroyed) noexcept {
     mRegistry.group<Planet, SceneSwitcher>().each([&](const auto planetId, const auto &planetTag, const auto &sceneSwitcher) {
         (void) planetTag;
 
@@ -204,7 +204,7 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 
             if (playerRenderable.getHitBox().intersects(planetRenderable.getHitBox())) {
                 playerRenderable.setPosition({400.0f, 300.0f});
-                pubsub::notify<PlanetEntered>({sceneSwitcher.getSceneId(), playerId, mRegistry});
+                pubsub::publish<PlanetEntered>({sceneSwitcher.getSceneId(), playerId, mRegistry});
                 mNextSceneId = sceneSwitcher.getSceneId();
             }
         });

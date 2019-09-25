@@ -33,7 +33,7 @@
 #include <messages.hpp>
 
 namespace gravitar::scene {
-    class PlanetAssault final : public pubsub::Listen<messages::PlanetEntered>, public Scene {
+    class PlanetAssault final : public pubsub::Handler<messages::PlanetEntered>, public Scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
@@ -54,7 +54,7 @@ namespace gravitar::scene {
         [[nodiscard]] SceneId getParentSceneId() const noexcept;
 
     private:
-        void onNotify(const messages::PlanetEntered &planetEntered) noexcept final;
+        void operator()(const messages::PlanetEntered &planetEntered) noexcept final;
 
         void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
