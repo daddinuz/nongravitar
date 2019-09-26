@@ -50,26 +50,31 @@ SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverScen
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
     mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 
-    mRegistry.group<Planet, SceneSwitcher>();
     mRegistry.group<Renderable, Velocity>();
-    mRegistry.group<Health, Fuel>();
+    mRegistry.group<Player>(entt::get < Renderable > );
+    mRegistry.group<Planet, SceneSwitcher>(entt::get < Renderable > );
+    mRegistry.group<Bullet>(entt::get < Renderable > );
+
+    mRegistry.group<>(entt::get < Player, Health, Fuel > );
 }
 
 void SolarSystem::operator()(const PlanetExited &planetExited) noexcept {
-    mRegistry.group<Planet, SceneSwitcher>().each([&](const auto &planetTag, const auto &sceneSwitcher) {
+    mRegistry.group<Planet, SceneSwitcher>(entt::get < Renderable > ).each([&](const auto &planetTag, const auto &sceneSwitcher, const auto &planetRenderable) {
         (void) planetTag;
+        (void) planetRenderable;
 
         if (planetExited.planetSceneId == sceneSwitcher.getSceneId()) {
             const auto players = mRegistry.view<Player>();
             mRegistry.destroy(players.begin(), players.end());
-            mRegistry.create<Player, Health, Fuel, Velocity, RechargeTime, Renderable>(planetExited.playerId, planetExited.sourceRegistry);
+            mRegistry.create<Player, Fuel, Health, Velocity, RechargeTime, Renderable>(planetExited.playerId, planetExited.sourceRegistry);
         }
     });
 }
 
 void SolarSystem::operator()(const PlanetDestroyed &planetDestroyed) noexcept {
-    mRegistry.group<Planet, SceneSwitcher>().each([&](const auto planetId, const auto &planetTag, const auto &sceneSwitcher) {
+    mRegistry.group<Planet, SceneSwitcher>(entt::get < Renderable > ).each([&](const auto planetId, const auto planetTag, const auto &sceneSwitcher, const auto &planetRenderable) {
         (void) planetTag;
+        (void) planetRenderable;
 
         if (planetDestroyed.planetSceneId == sceneSwitcher.getSceneId()) {
             mRegistry.destroy(planetId);
@@ -78,9 +83,10 @@ void SolarSystem::operator()(const PlanetDestroyed &planetDestroyed) noexcept {
 }
 
 SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+    (void) assets;
     mNextSceneId = getSceneId();
 
-    inputSystem(window, assets.getSpriteSheetsManager(), elapsed);
+    inputSystem(window, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem();
@@ -92,7 +98,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, cons
 void SolarSystem::render(sf::RenderTarget &window) noexcept {
     window.draw(mReport);
 
-    mRegistry.view<const Renderable>().each([&](const auto &renderable) {
+    mRegistry.view<Renderable>().each([&](const auto &renderable) {
         helpers::debug([&]() { // display hit-box on debug builds only
             const auto hitBox = renderable.getHitBox();
             auto shape = sf::RectangleShape({hitBox.width, hitBox.height});
@@ -107,10 +113,12 @@ void SolarSystem::render(sf::RenderTarget &window) noexcept {
     });
 }
 
-void SolarSystem::inputSystem(const sf::RenderWindow &window, const SpriteSheetsManager &spriteSheetsManager, const sf::Time elapsed) noexcept {
-    mRegistry.view<Player, Renderable, Velocity, Fuel, RechargeTime>().each([&](const auto &playerTag, auto &renderable, auto &velocity, auto &fuel, auto &rechargeTime) {
+void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time elapsed) noexcept {
+    mRegistry.group<Player>(entt::get < Renderable > ).each([&](const auto playerId, const auto playerTag, auto &renderable) {
         (void) playerTag;
+
         auto speed = SPEED;
+        const auto &[fuel, velocity] = mRegistry.get<Fuel, Velocity>(playerId);
         const auto input = (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ? 2 : 0) +
                            (sf::Keyboard::isKeyPressed(sf::Keyboard::W) ? 4 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::S) ? 8 : 0);
 
@@ -165,20 +173,6 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const SpriteSheets
 
         velocity.value = helpers::makeVector2(renderable.getRotation(), speed);
         fuel.value -= speed * elapsed.asSeconds();
-        rechargeTime.elapse(elapsed);
-
-        if (rechargeTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            rechargeTime.reset();
-            const auto bulletEntity = mRegistry.create();
-            auto bulletRenderable = spriteSheetsManager.get(SpriteSheetId::Bullet).instanceSprite(0);
-
-            helpers::centerOrigin(bulletRenderable, bulletRenderable.getLocalBounds());
-            bulletRenderable.setPosition(renderable.getPosition() + helpers::makeVector2(renderable.getRotation(), 22.8f));
-
-            mRegistry.assign<Bullet>(bulletEntity);
-            mRegistry.assign<Velocity>(bulletEntity, helpers::makeVector2(renderable.getRotation(), 800.0f));
-            mRegistry.assign<Renderable>(bulletEntity, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
-        }
     });
 }
 
@@ -191,39 +185,24 @@ void SolarSystem::motionSystem(const sf::Time elapsed) noexcept {
 void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
-    mRegistry.view<Player, Renderable>().each([&](const auto &playerId, const auto &playerTag, auto &playerRenderable) {
+    mRegistry.group<Player>(entt::get < Renderable > ).each([&](const auto playerId, const auto playerTag, auto &playerRenderable) {
         (void) playerTag;
 
-        if (not viewport.intersects(playerRenderable.getHitBox())) {
+        if (not playerRenderable.getHitBox().intersects(viewport)) { // player-window intersection
             mRegistry.get<Health>(playerId).value -= 1;
-            playerRenderable.setPosition({viewport.width / 2, viewport.height / 2});
-        }
+            playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+        } else { // player-planet intersection
+            const auto group = mRegistry.group<Planet, SceneSwitcher>(entt::get < Renderable > );
+            for (const auto planetId : group) {
+                const auto &[sceneSwitcher, planetRenderable] = group.get<SceneSwitcher, Renderable>(planetId);
 
-        mRegistry.view<Planet, SceneSwitcher, Renderable>().each([&](const auto &planetTag, const auto &sceneSwitcher, const auto &planetRenderable) {
-            (void) planetTag;
-
-            if (playerRenderable.getHitBox().intersects(planetRenderable.getHitBox())) {
-                playerRenderable.setPosition({400.0f, 300.0f});
-                pubsub::publish<PlanetEntered>({sceneSwitcher.getSceneId(), playerId, mRegistry});
-                mNextSceneId = sceneSwitcher.getSceneId();
-            }
-        });
-    });
-
-    mRegistry.view<Bullet, Renderable>().each([&](const auto &bulletId, const auto &bulletTag, const auto &bulletRenderable) {
-        (void) bulletTag;
-
-        if (not viewport.intersects(bulletRenderable.getHitBox())) {
-            mRegistry.destroy(bulletId);
-        } else {
-            mRegistry.view<Player, Renderable>().each([&](const auto &playerId, const auto &playerTag, auto &playerRenderable) {
-                (void) playerTag;
-
-                if (bulletRenderable.getHitBox().intersects(playerRenderable.getHitBox())) {
-                    mRegistry.destroy(bulletId);
-                    mRegistry.get<Health>(playerId).value -= 1;
+                if (playerRenderable.getHitBox().intersects(planetRenderable.getHitBox())) {
+                    mNextSceneId = sceneSwitcher.getSceneId();
+                    playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+                    pubsub::publish<PlanetEntered>(sceneSwitcher.getSceneId(), playerId, mRegistry);
+                    break;
                 }
-            });
+            }
         }
     });
 }
@@ -231,29 +210,28 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 void SolarSystem::livenessSystem() noexcept {
     auto livingPlanets = false;
 
-    for (const auto &e : mRegistry.view<Planet>()) {
-        (void) e;
+    for (const auto planetId : mRegistry.view<Planet>()) {
+        (void) planetId;
         livingPlanets = true;
         break;
     }
 
     if (not livingPlanets) {
         mNextSceneId = mYouWonSceneId;
-        return;
     }
 
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto &playerTag, const auto &health, const auto &fuel) {
+    mRegistry.group<>(entt::get < Player, Health, Fuel > ).each([&](const auto playerId, const auto playerTag, const auto &health, const auto &fuel) {
         (void) playerTag;
 
         if (health.isDead() or fuel.isOver()) {
-            // TODO maybe remove player entity
+            mRegistry.destroy(playerId);
             mNextSceneId = mGameOverSceneId;
         }
     });
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto &playerTag, const auto &health, const auto &fuel) {
+    mRegistry.group<>(entt::get < Player, Health, Fuel > ).each([&](const auto playerTag, const auto &health, const auto &fuel) {
         (void) playerTag;
 
         std::snprintf(mBuffer, std::size(mBuffer), "health: %d    fuel: %3.0f", health.value, fuel.value);
@@ -265,19 +243,19 @@ void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
     });
 }
 
-void SolarSystem::addSpaceShip(const sf::RenderWindow &window, Assets &assets) noexcept {
-    auto player = mRegistry.create();
+void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noexcept {
+    auto playerId = mRegistry.create();
     auto renderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
 
     helpers::centerOrigin(renderable, renderable.getLocalBounds());
     renderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
 
-    mRegistry.assign<Player>(player);
-    mRegistry.assign<Health>(player, 3);
-    mRegistry.assign<Fuel>(player, 20000.0f);
-    mRegistry.assign<Velocity>(player);
-    mRegistry.assign<RechargeTime>(player, RechargeTime(1.0f));
-    mRegistry.assign<Renderable>(player, std::move(renderable));
+    mRegistry.assign<Player>(playerId);
+    mRegistry.assign<Health>(playerId, 3);
+    mRegistry.assign<Fuel>(playerId, 20000.0f);
+    mRegistry.assign<Velocity>(playerId);
+    mRegistry.assign<RechargeTime>(playerId, RechargeTime(1.0f));
+    mRegistry.assign<Renderable>(playerId, std::move(renderable));
 }
 
 void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept {

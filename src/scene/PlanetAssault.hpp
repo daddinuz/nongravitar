@@ -49,6 +49,12 @@ namespace gravitar::scene {
 
         void render(sf::RenderTarget &window) noexcept final;
 
+        // TODO maybe remove (initialize method)
+        void addBunker(const sf::RenderWindow &window, Assets &assets) noexcept;
+
+        // TODO maybe remove (initialize method)
+        void addTerrain(const sf::RenderWindow &window, Assets &assets) noexcept;
+
         void setParentSceneId(SceneId parentSceneId) noexcept;
 
         [[nodiscard]] SceneId getParentSceneId() const noexcept;

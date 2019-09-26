@@ -52,7 +52,7 @@ namespace gravitar::scene {
 
         void render(sf::RenderTarget &window) noexcept final;
 
-        void addSpaceShip(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void addPlayer(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         void addPlanet(SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept;
 
@@ -60,7 +60,7 @@ namespace gravitar::scene {
         void operator()(const messages::PlanetExited &planetExited) noexcept final;
         void operator()(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
 
-        void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
+        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void livenessSystem() noexcept;

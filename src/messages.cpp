@@ -25,31 +25,14 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
+#include <messages.hpp>
 
-#include <entt/entt.hpp>
-#include <Scene.hpp>
+using namespace gravitar::messages;
 
-namespace gravitar::messages {
-    struct PlanetEntered final {
-        PlanetEntered(SceneId planetSceneId, entt::entity playerId, entt::registry &sourceRegistry);
+PlanetEntered::PlanetEntered(const SceneId planetSceneId, const entt::entity playerId, entt::registry &sourceRegistry)
+        : sourceRegistry(sourceRegistry), playerId(playerId), planetSceneId(planetSceneId) {}
 
-        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
-        const entt::entity playerId;
-        const SceneId planetSceneId;
-    };
+PlanetExited::PlanetExited(const SceneId planetSceneId, const entt::entity playerId, entt::registry &sourceRegistry)
+        : sourceRegistry(sourceRegistry), playerId(playerId), planetSceneId(planetSceneId) {}
 
-    struct PlanetExited final {
-        PlanetExited(SceneId planetSceneId, entt::entity playerId, entt::registry &sourceRegistry);
-
-        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
-        const entt::entity playerId;
-        const SceneId planetSceneId;
-    };
-
-    struct PlanetDestroyed final {
-        explicit PlanetDestroyed(SceneId planetSceneId);
-
-        const SceneId planetSceneId;
-    };
-}
+PlanetDestroyed::PlanetDestroyed(const SceneId planetSceneId) : planetSceneId(planetSceneId) {}

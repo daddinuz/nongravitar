@@ -72,12 +72,18 @@ void Game::initializeScenes() {
     auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets);
     auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
 
-    solarSystem.addSpaceShip(mWindow, mAssets);
+    solarSystem.addPlayer(mWindow, mAssets);
 
     // generate a random number of planets in range [4, 8]
     for (auto i = 0; i < std::uniform_int_distribution(4, 8)(randomEngine); i++) {
         auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
+
+        // TODO initialize method
         planetAssault.setParentSceneId(solarSystem.getSceneId());
+        planetAssault.addTerrain(mWindow, mAssets);
+        planetAssault.addBunker(mWindow, mAssets);
+        // -------------------------------------------------------
+
         solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);
         pubsub::subscribe<messages::PlanetEntered>(planetAssault);
     }

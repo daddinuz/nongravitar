@@ -49,9 +49,13 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
     mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 
-    mRegistry.group<Planet, SceneSwitcher>();
     mRegistry.group<Renderable, Velocity>();
-    mRegistry.group<Health, Fuel>();
+    mRegistry.group<Player>(entt::get < Renderable > );
+    mRegistry.group<Bunker>(entt::get < Renderable > );
+    mRegistry.group<Bullet>(entt::get < Renderable > );
+
+    mRegistry.group<>(entt::get < Player, Health, Fuel > );
+    mRegistry.group<>(entt::get < Bunker, Health > );
 }
 
 SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
@@ -69,7 +73,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
 void PlanetAssault::render(sf::RenderTarget &window) noexcept {
     window.draw(mReport);
 
-    mRegistry.view<const Renderable>().each([&](const auto &renderable) {
+    mRegistry.view<Renderable>().each([&](const auto &renderable) {
         helpers::debug([&]() { // display hit-box on debug builds only
             const auto hitBox = renderable.getHitBox();
             auto shape = sf::RectangleShape({hitBox.width, hitBox.height});
@@ -84,6 +88,29 @@ void PlanetAssault::render(sf::RenderTarget &window) noexcept {
     });
 }
 
+void PlanetAssault::addBunker(const sf::RenderWindow &window, Assets &assets) noexcept {
+    (void) window;
+    (void) assets;
+
+    // TODO randomly generate bunkers
+    auto bunkerId = mRegistry.create();
+    auto bunkerRenderable = sf::CircleShape(32, 8);
+
+    helpers::centerOrigin(bunkerRenderable, bunkerRenderable.getLocalBounds());
+    bunkerRenderable.setPosition(400.0f, 300.0f);
+    bunkerRenderable.setFillColor(sf::Color::Red);
+
+    mRegistry.assign<Bunker>(bunkerId);
+    mRegistry.assign<Health>(bunkerId, 1);
+    mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
+}
+
+void PlanetAssault::addTerrain(const sf::RenderWindow &window, Assets &assets) noexcept {
+    (void) window;
+    (void) assets;
+    // TODO terrain generation
+}
+
 void PlanetAssault::setParentSceneId(SceneId parentSceneId) noexcept {
     mParentSceneId = parentSceneId;
 }
@@ -96,15 +123,16 @@ void PlanetAssault::operator()(const PlanetEntered &planetEntered) noexcept {
     if (planetEntered.planetSceneId == getSceneId()) {
         const auto players = mRegistry.view<Player>();
         mRegistry.destroy(players.begin(), players.end());
-        mRegistry.create<Player, Health, Fuel, Velocity, RechargeTime, Renderable>(planetEntered.playerId, planetEntered.sourceRegistry);
+        mRegistry.create<Player, Fuel, Health, Velocity, RechargeTime, Renderable>(planetEntered.playerId, planetEntered.sourceRegistry);
     }
 }
 
 void PlanetAssault::inputSystem(const sf::RenderWindow &window, const SpriteSheetsManager &spriteSheetsManager, const sf::Time elapsed) noexcept {
-    mRegistry.view<Player, Renderable, Velocity, Fuel, RechargeTime>().each([&](const auto &playerTag, auto &renderable, auto &velocity, auto &fuel, auto &rechargeTime) {
+    mRegistry.group<Player>(entt::get < Renderable > ).each([&](const auto playerId, const auto playerTag, auto &renderable) {
         (void) playerTag;
 
         auto speed = SPEED;
+        const auto &[fuel, velocity, rechargeTime] = mRegistry.get<Fuel, Velocity, RechargeTime>(playerId);
         const auto input = (sf::Keyboard::isKeyPressed(sf::Keyboard::A) ? 1 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::D) ? 2 : 0) +
                            (sf::Keyboard::isKeyPressed(sf::Keyboard::W) ? 4 : 0) + (sf::Keyboard::isKeyPressed(sf::Keyboard::S) ? 8 : 0);
 
@@ -163,15 +191,15 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, const SpriteShee
 
         if (rechargeTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             rechargeTime.reset();
-            const auto bulletEntity = mRegistry.create();
+            const auto bulletId = mRegistry.create();
             auto bulletRenderable = spriteSheetsManager.get(SpriteSheetId::Bullet).instanceSprite(0);
 
             helpers::centerOrigin(bulletRenderable, bulletRenderable.getLocalBounds());
             bulletRenderable.setPosition(renderable.getPosition() + helpers::makeVector2(renderable.getRotation(), 22.8f));
 
-            mRegistry.assign<Bullet>(bulletEntity);
-            mRegistry.assign<Velocity>(bulletEntity, helpers::makeVector2(renderable.getRotation(), 800.0f));
-            mRegistry.assign<Renderable>(bulletEntity, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
+            mRegistry.assign<Bullet>(bulletId);
+            mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(renderable.getRotation(), 800.0f));
+            mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
         }
     });
 }
@@ -185,72 +213,95 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
 void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
-    mRegistry.view<Player, Renderable>().each([&](const auto &playerId, const auto &playerTag, auto &playerRenderable) {
+    mRegistry.group<Player>(entt::get < Renderable > ).each([&](const auto playerId, const auto playerTag, auto &playerRenderable) {
         (void) playerTag;
 
-        if (not viewport.intersects(playerRenderable.getHitBox())) {
-            playerRenderable.setPosition({viewport.width / 2, viewport.height / 2});
-            pubsub::publish<PlanetExited>({getSceneId(), playerId, mRegistry});
+        if (not playerRenderable.getHitBox().intersects(viewport)) { // player-window intersection
             mNextSceneId = getParentSceneId();
-        } else {
-            mRegistry.view<Planet, SceneSwitcher, Renderable>().each([&](const auto &planetTag, const auto &sceneSwitcher, const auto &planetRenderable) {
-                (void) planetTag;
+            playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+            pubsub::publish<PlanetExited>(getSceneId(), playerId, mRegistry);
+        } else { // player-bunker intersection
+            mRegistry.group<Bunker>(entt::get < Renderable > ).each([&](const auto bunkerTag, const auto &bunkerRenderable) {
+                (void) bunkerTag;
 
-                if (playerRenderable.getHitBox().intersects(planetRenderable.getHitBox())) {
-                    playerRenderable.setPosition({400.0f, 300.0f});
-                    mNextSceneId = sceneSwitcher.getSceneId();
+                if (playerRenderable.getHitBox().intersects(bunkerRenderable.getHitBox())) {
+                    mRegistry.get<Health>(playerId).value -= 1;
+                    playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
                 }
             });
         }
     });
 
-    mRegistry.view<Bullet, Renderable>().each([&](const auto &bulletId, const auto &bulletTag, const auto &bulletRenderable) {
+    mRegistry.group<Bullet>(entt::get < Renderable > ).each([&](const auto bulletId, const auto bulletTag, const auto &bulletRenderable) {
         (void) bulletTag;
 
-        if (not viewport.intersects(bulletRenderable.getHitBox())) {
+        if (not bulletRenderable.getHitBox().intersects(viewport)) { // bullet-window intersection
             mRegistry.destroy(bulletId);
         } else {
-            mRegistry.view<Player, Renderable>().each([&](const auto &playerEntity, const auto &playerTag, auto &playerRenderable) {
+            auto bulletsToDestroy = std::vector<entt::entity>();
+
+            // bullet-player intersection
+            mRegistry.view<Player, Renderable>().each([&](const auto playerId, const auto playerTag, const auto &playerRenderable) {
                 (void) playerTag;
 
                 if (bulletRenderable.getHitBox().intersects(playerRenderable.getHitBox())) {
-                    mRegistry.destroy(bulletId);
-                    mRegistry.get<Health>(playerEntity).value -= 1;
+                    mRegistry.get<Health>(playerId).value -= 1;
+                    bulletsToDestroy.push_back(bulletId);
                 }
             });
+
+            // bullet-bunker intersection
+            mRegistry.view<Bunker, Renderable>().each([&](const auto bunkerId, const auto bunkerTag, const auto &bunkerRenderable) {
+                (void) bunkerTag;
+
+                if (bulletRenderable.getHitBox().intersects(bunkerRenderable.getHitBox())) {
+                    mRegistry.get<Health>(bunkerId).value -= 1;
+                    bulletsToDestroy.push_back(bulletId);
+                }
+            });
+
+            // TODO handle bullet-terrain collision
+
+            mRegistry.destroy(bulletsToDestroy.begin(), bulletsToDestroy.end());
         }
     });
 }
 
 void PlanetAssault::livenessSystem() noexcept {
-    /*
     auto livingBunkers = false;
 
-    for (const auto &e : mRegistry.view<Bunker>()) {
-        (void) e;
+    for (const auto bunkerId : mRegistry.view<Bunker>()) {
+        (void) bunkerId;
         livingBunkers = true;
         break;
     }
 
     if (not livingBunkers) {
-        pubsub::publish<PlanetDestroyed>({getSceneId()});
         mNextSceneId = mParentSceneId;
-        return;
+        pubsub::publish<PlanetExited>(getSceneId(), *mRegistry.view<Player>().begin(), mRegistry);
+        pubsub::publish<PlanetDestroyed>(getSceneId());
     }
-     */
 
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto &playerTag, const auto &health, const auto &fuel) {
+    mRegistry.group<>(entt::get < Player, Health, Fuel > ).each([&](const auto playerId, const auto playerTag, const auto &health, const auto &fuel) {
         (void) playerTag;
 
         if (health.isDead() or fuel.isOver()) {
-            // TODO maybe remove player entity
+            mRegistry.destroy(playerId);
             mNextSceneId = mGameOverSceneId;
+        }
+    });
+
+    mRegistry.group<>(entt::get < Bunker, Health > ).each([&](const auto playerId, const auto bunkerTag, const auto &health) {
+        (void) bunkerTag;
+
+        if (health.isDead()) {
+            mRegistry.destroy(playerId);
         }
     });
 }
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto &playerTag, const auto &health, const auto &fuel) {
+    mRegistry.group<>(entt::get < Player, Health, Fuel > ).each([&](const auto playerTag, const auto &health, const auto &fuel) {
         (void) playerTag;
 
         std::snprintf(mBuffer, std::size(mBuffer), "health: %d    fuel: %3.0f", health.value, fuel.value);
