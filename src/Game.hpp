@@ -33,7 +33,7 @@
 #include <SceneManager.hpp>
 
 namespace gravitar {
-    class Game {
+    class Game final {
     public:
         Game() = default; // default-constructible
 
