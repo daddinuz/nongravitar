@@ -81,6 +81,18 @@ namespace gravitar::components {
         SceneId mSceneId;
     };
 
+    class HitRadius final {
+    public:
+        explicit HitRadius(float value);
+
+        [[nodiscard]] inline float getRadius() const noexcept {
+            return mRadius;
+        }
+
+    private:
+        float mRadius;
+    };
+
     class Renderable final : public sf::Drawable {
         using Instance = std::variant<sf::Sprite, sf::CircleShape>;
 
@@ -96,7 +108,6 @@ namespace gravitar::components {
         [[nodiscard]] sf::Vector2f getPosition() const noexcept;
 
         [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
-        [[nodiscard]] sf::FloatRect getHitBox() const noexcept;
 
         [[nodiscard]] Instance &operator*() noexcept;
         [[nodiscard]] const Instance &operator*() const noexcept;

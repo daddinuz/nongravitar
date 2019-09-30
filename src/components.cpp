@@ -52,6 +52,12 @@ void RechargeTime::elapse(const sf::Time &time) {
 }
 
 /*
+ * HitRadius
+ */
+
+HitRadius::HitRadius(const float value) : mRadius(value) {}
+
+/*
  * Renderable
  */
 
@@ -81,14 +87,6 @@ sf::Vector2f Renderable::getPosition() const noexcept {
 
 sf::Vector2f Renderable::getOrigin() const noexcept {
     return std::visit([](const auto &instance) { return instance.getOrigin(); }, mInstance);
-}
-
-sf::FloatRect Renderable::getHitBox() const noexcept {
-    return std::visit([](const auto &instance) {
-        const auto bounds = instance.getLocalBounds();
-        const auto position = instance.getPosition();
-        return sf::FloatRect(position.x - bounds.width / 2, position.y - bounds.height / 2, bounds.width, bounds.height);
-    }, mInstance);
 }
 
 void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
