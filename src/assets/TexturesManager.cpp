@@ -33,11 +33,12 @@ using namespace gravitar::assets;
 constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
 
 void TexturesManager::initialize() {
-    std::array<const std::tuple<const char *, TextureId>, 4> items = {
+    std::array<const std::tuple<const char *, TextureId>, 5> items = {
             std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
             std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
             std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
             std::make_tuple<const char *, TextureId>("bunker.png", TextureId::Bunker),
+            std::make_tuple<const char *, TextureId>("terrain.png", TextureId::Terrain),
     };
 
     for (const auto &i : items) {

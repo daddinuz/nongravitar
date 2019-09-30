@@ -34,4 +34,5 @@ namespace gravitar::tags {
     using Bunker = entt::tag<"bunker"_hs>;
     using Player = entt::tag<"player"_hs>;
     using Planet = entt::tag<"planet"_hs>;
+    using Terrain = entt::tag<"terrain"_hs>;
 }

@@ -36,6 +36,7 @@ namespace gravitar::assets {
         SpaceShip,
         Bullet,
         Bunker,
+        Terrain,
     };
 
     class TexturesManager final {
