@@ -28,6 +28,7 @@
 #pragma once
 
 #include <variant>
+#include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
 
@@ -89,6 +90,20 @@ namespace gravitar::components {
 
     private:
         float mInstance;
+    };
+
+    template<typename T>
+    class EntityRef final {
+    public:
+        template<typename ...Args>
+        explicit EntityRef(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline entt::entity operator*() const noexcept {
+            return mInstance;
+        }
+
+    private:
+        entt::entity mInstance;
     };
 
     class RechargeTime final {
