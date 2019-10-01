@@ -32,24 +32,63 @@
 #include <Scene.hpp>
 
 namespace gravitar::components {
-    struct Velocity final {
-        sf::Vector2f value;
+    class Velocity final {
+    public:
+        template<typename ...Args>
+        explicit Velocity(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline sf::Vector2f &operator*() noexcept {
+            return mInstance;
+        }
+
+        [[nodiscard]] inline const sf::Vector2f &operator*() const noexcept {
+            return mInstance;
+        }
+
+    private:
+        sf::Vector2f mInstance;
     };
 
-    struct Health final {
-        int value;
+    class Health final {
+    public:
+        template<typename ...Args>
+        explicit Health(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline int &operator*() noexcept {
+            return mInstance;
+        }
+
+        [[nodiscard]] inline const int &operator*() const noexcept {
+            return mInstance;
+        }
 
         [[nodiscard]] inline bool isDead() const noexcept {
-            return value <= 0;
+            return mInstance <= 0;
         }
+
+    private:
+        int mInstance;
     };
 
-    struct Fuel final {
-        float value;
+    class Fuel final {
+    public:
+        template<typename ...Args>
+        explicit Fuel(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline float &operator*() noexcept {
+            return mInstance;
+        }
+
+        [[nodiscard]] inline const float &operator*() const noexcept {
+            return mInstance;
+        }
 
         [[nodiscard]] inline bool isOver() const noexcept {
-            return value <= 0;
+            return mInstance <= 0.0f;
         }
+
+    private:
+        float mInstance;
     };
 
     class RechargeTime final {
@@ -73,7 +112,7 @@ namespace gravitar::components {
     public:
         explicit SceneSwitcher(SceneId sceneId);
 
-        [[nodiscard]] inline SceneId getSceneId() const noexcept {
+        [[nodiscard]] inline SceneId sceneId() const noexcept {
             return mSceneId;
         }
 
@@ -83,38 +122,41 @@ namespace gravitar::components {
 
     class HitRadius final {
     public:
-        explicit HitRadius(float value);
+        template<typename ...Args>
+        explicit HitRadius(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
 
-        [[nodiscard]] inline float getRadius() const noexcept {
-            return mRadius;
+        [[nodiscard]] inline const float &operator*() const noexcept {
+            return mInstance;
         }
 
     private:
-        float mRadius;
+        float mInstance;
     };
 
     class Renderable final : public sf::Drawable {
-        using Instance = std::variant<sf::Sprite, sf::CircleShape>;
-
     public:
         explicit Renderable(sf::Sprite &&instance);
         explicit Renderable(sf::CircleShape &&instance);
 
-        void rotate(float angle);
-        [[nodiscard]] float getRotation() const noexcept;
+        [[nodiscard]] sf::Transformable &operator*() noexcept;
+        [[nodiscard]] const sf::Transformable &operator*() const noexcept;
 
-        void move(const sf::Vector2f &offset);
-        void setPosition(const sf::Vector2f &position);
-        [[nodiscard]] sf::Vector2f getPosition() const noexcept;
+        [[nodiscard]] sf::Transformable *operator->() noexcept;
+        [[nodiscard]] const sf::Transformable *operator->() const noexcept;
 
-        [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
+        template<typename T>
+        [[nodiscard]] inline T &as() noexcept {
+            return std::get<T>(mInstance);
+        }
 
-        [[nodiscard]] Instance &operator*() noexcept;
-        [[nodiscard]] const Instance &operator*() const noexcept;
+        template<typename T>
+        [[nodiscard]] inline const T &as() const noexcept {
+            return std::get<T>(mInstance);
+        }
 
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        Instance mInstance;
+        std::variant<sf::Sprite, sf::CircleShape> mInstance;
     };
 }

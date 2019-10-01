@@ -32,24 +32,22 @@
 
 namespace gravitar::messages {
     struct PlanetEntered final {
-        PlanetEntered(SceneId planetSceneId, entt::entity playerId, entt::registry &sourceRegistry);
+        PlanetEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
 
-        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
-        const entt::entity playerId;
-        const SceneId planetSceneId;
+        entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
+        const SceneId sceneId;
     };
 
     struct PlanetExited final {
-        PlanetExited(SceneId planetSceneId, entt::entity playerId, entt::registry &sourceRegistry);
+        PlanetExited(SceneId planetSceneId, entt::registry &sourceRegistry);
 
-        entt::registry &sourceRegistry; // this should be const but EnTT requires a mutable &
-        const entt::entity playerId;
-        const SceneId planetSceneId;
+        entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
+        const SceneId sceneId;
     };
 
     struct PlanetDestroyed final {
         explicit PlanetDestroyed(SceneId planetSceneId);
 
-        const SceneId planetSceneId;
+        const SceneId sceneId;
     };
 }

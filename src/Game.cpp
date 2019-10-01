@@ -30,6 +30,7 @@
 #include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <scene/YouWon.hpp>
+#include <helpers.hpp>
 #include <Game.hpp>
 
 using namespace gravitar;
@@ -80,7 +81,7 @@ void Game::initializeScenes() {
 
         // TODO initialize method
         planetAssault.setParentSceneId(solarSystem.getSceneId());
-        planetAssault.addTerrain(mWindow, mAssets);
+        planetAssault.addTerrain(mWindow, mAssets, randomEngine);
         planetAssault.addBunker(mWindow, mAssets);
         // -------------------------------------------------------
 
@@ -107,16 +108,15 @@ void Game::handleEvents() {
                 case sf::Keyboard::F6:
                     mAssets.getAudioManager().toggle();
                     break;
-// TODO: remove me
-#ifndef NDEBUG
+
                 case sf::Keyboard::Delete:
-                    mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
+                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Close); });
                     break;
 
                 case sf::Keyboard::F4:
-                    mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen); });
                     break;
-#endif
+
                 default:
                     mSceneId = mSceneManager.get(mSceneId).onEvent(event);
                     break;

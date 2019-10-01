@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <random>
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 #include <pubsub.hpp>
@@ -53,7 +54,7 @@ namespace gravitar::scene {
         void addBunker(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         // TODO maybe remove (initialize method)
-        void addTerrain(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void addTerrain(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept;
 
         void setParentSceneId(SceneId parentSceneId) noexcept;
 

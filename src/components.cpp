@@ -33,13 +33,14 @@ using namespace gravitar::components;
  * SceneSwitcher
  */
 
-SceneSwitcher::SceneSwitcher(gravitar::SceneId sceneId) : mSceneId(sceneId) {}
+SceneSwitcher::SceneSwitcher(const gravitar::SceneId sceneId) : mSceneId(sceneId) {}
 
 /*
  * RechargeTime
  */
 
-RechargeTime::RechargeTime(float secondsBeforeShoot) : mElapsed(secondsBeforeShoot), mSecondsBeforeShoot(secondsBeforeShoot) {}
+RechargeTime::RechargeTime(const float secondsBeforeShoot)
+        : mElapsed(secondsBeforeShoot), mSecondsBeforeShoot(secondsBeforeShoot) {}
 
 void RechargeTime::reset() {
     mElapsed = 0;
@@ -52,12 +53,6 @@ void RechargeTime::elapse(const sf::Time &time) {
 }
 
 /*
- * HitRadius
- */
-
-HitRadius::HitRadius(const float value) : mRadius(value) {}
-
-/*
  * Renderable
  */
 
@@ -65,39 +60,23 @@ Renderable::Renderable(sf::Sprite &&instance) : mInstance(std::move(instance)) {
 
 Renderable::Renderable(sf::CircleShape &&instance) : mInstance(std::move(instance)) {}
 
-void Renderable::rotate(float angle) {
-    std::visit([&angle](auto &instance) { instance.rotate(angle); }, mInstance);
-}
-
-float Renderable::getRotation() const noexcept {
-    return std::visit([](const auto &instance) { return instance.getRotation(); }, mInstance);
-}
-
-void Renderable::move(const sf::Vector2f &offset) {
-    std::visit([&offset](auto &instance) { instance.move(offset); }, mInstance);
-}
-
-void Renderable::setPosition(const sf::Vector2f &position) {
-    std::visit([&position](auto &instance) { instance.setPosition(position); }, mInstance);
-}
-
-sf::Vector2f Renderable::getPosition() const noexcept {
-    return std::visit([](const auto &instance) { return instance.getPosition(); }, mInstance);
-}
-
-sf::Vector2f Renderable::getOrigin() const noexcept {
-    return std::visit([](const auto &instance) { return instance.getOrigin(); }, mInstance);
-}
-
 void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     (void) states;
     std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
 }
 
-Renderable::Instance &Renderable::operator*() noexcept {
-    return mInstance;
+sf::Transformable &Renderable::operator*() noexcept {
+    return std::visit([&](auto &instance) -> sf::Transformable & { return instance; }, mInstance);
 }
 
-const Renderable::Instance &Renderable::operator*() const noexcept {
-    return mInstance;
+const sf::Transformable &Renderable::operator*() const noexcept {
+    return std::visit([&](const auto &instance) -> const sf::Transformable & { return instance; }, mInstance);
+}
+
+sf::Transformable *Renderable::operator->() noexcept {
+    return std::visit([&](auto &instance) -> sf::Transformable * { return &instance; }, mInstance);
+}
+
+const sf::Transformable *Renderable::operator->() const noexcept {
+    return std::visit([&](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
 }
