@@ -304,7 +304,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
         if (not viewport.contains(playerRenderable->getPosition())) {
             mNextSceneId = getParentSceneId();
             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f); // TODO handle positioning inside message handling
-            pubsub::publish<PlanetExited>(getSceneId(), mRegistry);
+            pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
         }
     }
@@ -369,7 +369,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 void PlanetAssault::livenessSystem() noexcept {
     if (mRegistry.view<Bunker>().begin() == mRegistry.view<Bunker>().end()) { // no more bunkers left
         mNextSceneId = mParentSceneId;
-        pubsub::publish<PlanetExited>(getSceneId(), mRegistry);
+        pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
         pubsub::publish<PlanetDestroyed>(getSceneId());
     }
 

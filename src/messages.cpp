@@ -32,7 +32,7 @@ using namespace gravitar::messages;
 PlanetEntered::PlanetEntered(const SceneId planetSceneId, entt::registry &sourceRegistry)
         : sourceRegistry(sourceRegistry), sceneId(planetSceneId) {}
 
-PlanetExited::PlanetExited(const SceneId planetSceneId, entt::registry &sourceRegistry)
+SolarSystemEntered::SolarSystemEntered(const SceneId planetSceneId, entt::registry &sourceRegistry)
         : sourceRegistry(sourceRegistry), sceneId(planetSceneId) {}
 
 PlanetDestroyed::PlanetDestroyed(const SceneId planetSceneId) : sceneId(planetSceneId) {}

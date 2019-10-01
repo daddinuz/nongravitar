@@ -31,15 +31,15 @@
 #include <Scene.hpp>
 
 namespace gravitar::messages {
-    struct PlanetEntered final {
-        PlanetEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
+    struct SolarSystemEntered final {
+        SolarSystemEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
 
         entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
         const SceneId sceneId;
     };
 
-    struct PlanetExited final {
-        PlanetExited(SceneId planetSceneId, entt::registry &sourceRegistry);
+    struct PlanetEntered final {
+        PlanetEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
 
         entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
         const SceneId sceneId;

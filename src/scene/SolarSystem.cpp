@@ -51,16 +51,16 @@ SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverScen
     mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 }
 
-void SolarSystem::operator()(const PlanetExited &planetExited) noexcept {
+void SolarSystem::operator()(const SolarSystemEntered &solarSystemEntered) noexcept {
     mRegistry.view<Planet, SceneSwitcher>().each([&](const auto tag, const auto &sceneSwitcher) {
         (void) tag;
 
-        if (planetExited.sceneId == sceneSwitcher.sceneId()) {
+        if (solarSystemEntered.sceneId == sceneSwitcher.sceneId()) {
             const auto players = mRegistry.view<Player>();
 
             mRegistry.destroy(players.begin(), players.end());
-            for (const auto sourcePlayerId : planetExited.sourceRegistry.view<Player>()) {
-                const auto playerId = mRegistry.create(sourcePlayerId, planetExited.sourceRegistry);
+            for (const auto sourcePlayerId : solarSystemEntered.sourceRegistry.view<Player>()) {
+                const auto playerId = mRegistry.create(sourcePlayerId, solarSystemEntered.sourceRegistry);
                 mRegistry.reset<EntityRef<Tractor>>(playerId);
             }
         }

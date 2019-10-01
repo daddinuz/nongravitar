@@ -89,7 +89,7 @@ void Game::initializeScenes() {
         pubsub::subscribe<messages::PlanetEntered>(planetAssault);
     }
 
-    pubsub::subscribe<messages::PlanetExited>(solarSystem);
+    pubsub::subscribe<messages::SolarSystemEntered>(solarSystem);
     pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
 
     mSceneId = titleScreen.getSceneId();
