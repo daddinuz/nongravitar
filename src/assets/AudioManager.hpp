@@ -36,6 +36,10 @@ namespace gravitar::assets {
         MainTheme,
     };
 
+    enum class SoundId {
+        LucaShoot,
+    };
+
     class AudioManager final {
     public:
         AudioManager() = default; // default-constructible
@@ -55,6 +59,8 @@ namespace gravitar::assets {
          */
         void initialize();
 
+        void play(SoundId id) noexcept;
+
         void play(SoundTrackId id) noexcept;
 
         void toggle() noexcept;
@@ -62,10 +68,14 @@ namespace gravitar::assets {
         [[nodiscard]] SoundTrackId getPlaying() const noexcept;
 
     private:
+        void load(const char *filename, SoundId id);
         void load(const char *filename, SoundTrackId id);
 
         std::map<SoundTrackId, sf::Music> mSoundtracks;
+        std::map<SoundId, sf::SoundBuffer> mSoundBuffers;
+        std::map<SoundId, sf::Sound> mSounds;
         SoundTrackId mCurrentSoundtrackId{SoundTrackId::None};
         SoundTrackId mPreviousSoundtrackId{SoundTrackId::None};
+        bool mMuted{false};
     };
 }

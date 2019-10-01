@@ -30,32 +30,50 @@
 
 using namespace gravitar::assets;
 
+constexpr auto SOUNDS_PATH = GRAVITAR_DIRECTORY "/assets/sounds";
 constexpr auto SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
 
 void AudioManager::initialize() {
-    std::array<const std::tuple<const char *, SoundTrackId>, 1> items = {
+    std::array<const std::tuple<const char *, SoundId>, 1> sounds = {
+            std::make_tuple<const char *, SoundId>("lucashoot.ogg", SoundId::LucaShoot),
+    };
+    std::array<const std::tuple<const char *, SoundTrackId>, 1> soundtracks = {
             std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
     };
 
-    for (const auto &i : items) {
+    for (const auto &i : sounds) {
+        load(std::get<0>(i), std::get<1>(i));
+    }
+
+    for (const auto &i : soundtracks) {
         load(std::get<0>(i), std::get<1>(i));
     }
 }
 
-void AudioManager::play(const SoundTrackId id) noexcept {
-    if (SoundTrackId::None != mPreviousSoundtrackId) {
-        mSoundtracks.at(mPreviousSoundtrackId).stop();
+void AudioManager::play(SoundId id) noexcept {
+    if (not mMuted) {
+        mSounds.at(id).play();
     }
+}
 
-    mPreviousSoundtrackId = mCurrentSoundtrackId;
-    mCurrentSoundtrackId = id;
+void AudioManager::play(const SoundTrackId id) noexcept {
+    if (not mMuted) {
+        if (SoundTrackId::None != mPreviousSoundtrackId) {
+            mSoundtracks.at(mPreviousSoundtrackId).stop();
+        }
 
-    if (SoundTrackId::None != mCurrentSoundtrackId) {
-        mSoundtracks.at(mCurrentSoundtrackId).play();
+        mPreviousSoundtrackId = mCurrentSoundtrackId;
+        mCurrentSoundtrackId = id;
+
+        if (SoundTrackId::None != mCurrentSoundtrackId) {
+            mSoundtracks.at(mCurrentSoundtrackId).play();
+        }
     }
 }
 
 void AudioManager::toggle() noexcept {
+    mMuted ^= true;
+
     if (SoundTrackId::None != mCurrentSoundtrackId) {
         auto &soundtrack = mSoundtracks.at(mCurrentSoundtrackId);
         switch (soundtrack.getStatus()) {
@@ -72,6 +90,18 @@ void AudioManager::toggle() noexcept {
 
 SoundTrackId AudioManager::getPlaying() const noexcept {
     return mCurrentSoundtrackId;
+}
+
+void AudioManager::load(const char *filename, SoundId id) {
+    char path[256];
+    std::snprintf(path, std::size(path), "%s/%s", SOUNDS_PATH, filename);
+
+    if (decltype(auto) sound = mSoundBuffers[id]; not sound.loadFromFile(path)) {
+        std::snprintf(path, std::size(path), "%sUnable to load sound: %s", __TRACE__, filename);
+        throw std::runtime_error(path);
+    }
+
+    mSounds.emplace(id, mSoundBuffers[id]);
 }
 
 void AudioManager::load(const char *const filename, const SoundTrackId id) {
