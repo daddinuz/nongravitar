@@ -59,8 +59,9 @@ void SolarSystem::operator()(const PlanetExited &planetExited) noexcept {
             const auto players = mRegistry.view<Player>();
 
             mRegistry.destroy(players.begin(), players.end());
-            for (const auto playerId : planetExited.sourceRegistry.view<Player>()) {
-                mRegistry.create(playerId, planetExited.sourceRegistry);
+            for (const auto sourcePlayerId : planetExited.sourceRegistry.view<Player>()) {
+                const auto playerId = mRegistry.create(sourcePlayerId, planetExited.sourceRegistry);
+                mRegistry.reset<EntityRef<Tractor>>(playerId);
             }
         }
     });
@@ -233,19 +234,19 @@ void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
 
 void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noexcept {
     auto playerId = mRegistry.create();
-    auto renderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
-    const auto localBounds = renderable.getLocalBounds();
+    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    const auto playerBounds = playerRenderable.getLocalBounds();
 
-    helpers::centerOrigin(renderable, renderable.getLocalBounds());
-    renderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+    helpers::centerOrigin(playerRenderable, playerBounds);
+    playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
 
     mRegistry.assign<Player>(playerId);
     mRegistry.assign<Health>(playerId, 3);
     mRegistry.assign<Fuel>(playerId, 20000.0f);
     mRegistry.assign<Velocity>(playerId);
-    mRegistry.assign<RechargeTime>(playerId, RechargeTime(1.0f));
-    mRegistry.assign<HitRadius>(playerId, std::max(localBounds.width / 2.0f, localBounds.height / 2.0f));
-    mRegistry.assign<Renderable>(playerId, std::move(renderable));
+    mRegistry.assign<RechargeTime>(playerId, 0.64f);
+    mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
+    mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
 void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept {
