@@ -63,7 +63,7 @@ namespace gravitar::scene {
     private:
         void operator()(const messages::PlanetEntered &planetEntered) noexcept final;
 
-        void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
+        void inputSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void livenessSystem() noexcept;

@@ -39,8 +39,9 @@ using namespace gravitar::assets;
 using namespace gravitar::messages;
 using namespace gravitar::components;
 
-constexpr float SPEED = 180.0f;
-constexpr float ROTATION_SPEED = 180.0f;
+constexpr auto SPEED = 180.0f;
+constexpr auto TRACTOR_RADIUS = 48.0f;
+constexpr auto ROTATION_SPEED = 180.0f;
 
 PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
         mBuffer{},
@@ -56,12 +57,14 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > );
+
+    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
 }
 
 SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     mNextSceneId = getSceneId();
 
-    inputSystem(window, assets.getSpriteSheetsManager(), elapsed);
+    inputSystem(window, assets, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem();
@@ -73,7 +76,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
 void PlanetAssault::render(sf::RenderTarget &window) noexcept {
     window.draw(mReport);
 
-    mRegistry.view<Renderable>().each([&](const auto id, const auto &renderable) {
+    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
         helpers::debug([&]() { // display hit-circle on debug builds only
             if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
                 auto shape = sf::CircleShape(**hitRadius);
@@ -170,21 +173,37 @@ SceneId PlanetAssault::getParentSceneId() const noexcept {
 void PlanetAssault::operator()(const PlanetEntered &planetEntered) noexcept {
     if (planetEntered.sceneId == getSceneId()) {
         const auto players = mRegistry.view<Player>();
+        const auto tractors = mRegistry.view<Tractor>();
 
         mRegistry.destroy(players.begin(), players.end());
-        for (const auto playerId : planetEntered.sourceRegistry.view<Player>()) {
-            mRegistry.create(playerId, planetEntered.sourceRegistry);
+        mRegistry.destroy(tractors.begin(), tractors.end());
+
+        for (const auto sourcePlayerId : planetEntered.sourceRegistry.view<Player>()) {
+            auto tractorId = mRegistry.create();
+            auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
+
+            helpers::centerOrigin(tractorRenderable, tractorRenderable.getLocalBounds());
+            tractorRenderable.setFillColor(sf::Color::Transparent);
+            tractorRenderable.setOutlineThickness(1.0f);
+            tractorRenderable.setOutlineColor(sf::Color(100, 150, 250, 80));
+            mRegistry.assign<Hidden>(tractorId);
+            mRegistry.assign<Tractor>(tractorId);
+            mRegistry.assign<HitRadius>(tractorId, TRACTOR_RADIUS);
+            mRegistry.assign<Renderable>(tractorId, std::move(tractorRenderable));
+
+            const auto playerId = mRegistry.create(sourcePlayerId, planetEntered.sourceRegistry);
+            mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
         }
     }
 }
 
-void PlanetAssault::inputSystem(const sf::RenderWindow &window, const SpriteSheetsManager &spriteSheetsManager, const sf::Time elapsed) noexcept {
+void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
     decltype(auto) keyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, Fuel, Velocity, RechargeTime, HitRadius, Renderable>()
-            .each([&](const auto playerTag, auto &playerFuel, auto &playerVelocity,
+            .each([&](const auto playerId, const auto playerTag, auto &playerFuel, auto &playerVelocity,
                       auto &playerRechargeTime, const auto &playerHitRadius, auto &playerRenderable) {
                 (void) playerTag;
 
@@ -241,10 +260,18 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, const SpriteShee
                 *playerFuel -= speed * elapsed.asSeconds();
                 playerRechargeTime.elapse(elapsed);
 
+                const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+                    mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
+                    mRegistry.reset<Hidden>(tractorId);
+                } else {
+                    mRegistry.assign_or_replace<Hidden>(tractorId);
+                }
+
                 if (playerRechargeTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                     playerRechargeTime.reset();
 
-                    auto bulletRenderable = spriteSheetsManager.get(SpriteSheetId::Bullet).instanceSprite(0);
+                    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
                     const auto bulletBounds = bulletRenderable.getLocalBounds();
                     const auto bulletId = mRegistry.create();
 
@@ -255,6 +282,8 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, const SpriteShee
                     mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(playerRenderable->getRotation(), 800.0f));
                     mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
                     mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
+
+                    assets.getAudioManager().play(SoundId::LucaShoot);
                 }
             });
 }
@@ -288,8 +317,9 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
             mRegistry.group<HitRadius, Renderable>().each([&](const auto entityId, const auto &entityHitRadius, const auto &entityRenderable) {
                 if (entityId != bulletId and helpers::magnitude(entityRenderable->getPosition(), bulletRenderable->getPosition()) <= *entityHitRadius + *bulletHitRadius) {
-                    // TODO handle "raggio traente"
-                    bulletsToDestroy.push_back(bulletId);
+                    if (not mRegistry.has<Tractor>(entityId)) {
+                        bulletsToDestroy.push_back(bulletId);
+                    }
 
                     if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
                         *mRegistry.get<Health>(entityId) -= 1;
@@ -332,6 +362,8 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                     }
                 });
     });
+
+    // TODO tractor-fuel collision
 }
 
 void PlanetAssault::livenessSystem() noexcept {
