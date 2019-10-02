@@ -69,13 +69,15 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     using i32_distribution = std::uniform_int_distribution<int>;
     using f32_distribution = std::uniform_real_distribution<float>;
 
+    const auto[halfWindowWidth, halfWindowHeight] = sf::Vector2f(window.getSize()) / 2.0f;
+
     // TODO randomly generate bunkers
     auto bunkerId = mRegistry.create();
     auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(0);
     const auto bunkerBounds = bunkerRenderable.getLocalBounds();
 
     helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-    bunkerRenderable.setPosition(400.0f, 300.0f);
+    bunkerRenderable.setPosition(halfWindowWidth, halfWindowHeight * 1.75f);
     bunkerRenderable.rotate(-90.0f);
 
     mRegistry.assign<Bunker>(bunkerId);
@@ -120,7 +122,6 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
 
     // playerRenderable.setPosition({32.0f, 32.0f});
     // const auto playerPosition = playerRenderable.getPosition();
-    const auto[halfWindowWidth, halfWindowHeight] = sf::Vector2f(window.getSize()) / 2.0f;
 
     // const auto quadrant = sf::FloatRect(
     //         (playerPosition.x < halfWindowWidth) ? 0.0f : halfWindowWidth,
@@ -134,14 +135,12 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     //         f32_distribution(halfWindowHeight, halfWindowHeight * 2.0f)(randomEngine)
     // );
 
-    auto startPoint = sf::Vector2f(128.0f, 128.0f);
+    // auto startPoint = sf::Vector2f(128.0f, 128.0f);
 
-    auto endPoint = sf::Vector2f(
-            halfWindowWidth * 2.0f,
-            f32_distribution(0, halfWindowHeight)(randomEngine)
-    );
-
-    (void) endPoint;
+    // auto endPoint = sf::Vector2f(
+    //         halfWindowWidth * 2.0f,
+    //         f32_distribution(0, halfWindowHeight)(randomEngine)
+    // );
 
     // while (true) {
     auto terrainId = mRegistry.create();
@@ -149,8 +148,8 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     const auto terrainBounds = terrainRenderable.getLocalBounds();
 
     helpers::centerOrigin(terrainRenderable, terrainBounds);
-    terrainRenderable.setPosition(startPoint);
-    terrainRenderable.rotate(45.0f);
+    terrainRenderable.setPosition(halfWindowWidth, halfWindowHeight * 1.8f);
+    terrainRenderable.rotate(90.0f);
 
     mRegistry.assign<Terrain>(terrainId);
     mRegistry.assign<HitRadius>(terrainId, std::max(terrainBounds.width / 2.0f, terrainBounds.height / 2.0f));
@@ -362,16 +361,15 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                 });
     }
 
+    auto bulletsToDestroy = std::set<entt::entity>();
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > ).each([&](const auto bulletId, const auto bulletTag, const auto &bulletHitRadius, const auto &bulletRenderable) {
         (void) bulletTag;
 
         if (viewport.contains(bulletRenderable->getPosition())) {
-            auto bulletsToDestroy = std::vector<entt::entity>();
-
             mRegistry.group<HitRadius, Renderable>().each([&](const auto entityId, const auto &entityHitRadius, const auto &entityRenderable) {
                 if (entityId != bulletId and helpers::magnitude(entityRenderable->getPosition(), bulletRenderable->getPosition()) <= *entityHitRadius + *bulletHitRadius) {
                     if (not mRegistry.has<Tractor>(entityId)) {
-                        bulletsToDestroy.push_back(bulletId);
+                        bulletsToDestroy.insert(bulletId);
                     }
 
                     if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
@@ -379,12 +377,11 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                     }
                 }
             });
-
-            mRegistry.destroy(bulletsToDestroy.begin(), bulletsToDestroy.end());
         } else {
-            mRegistry.destroy(bulletId);
+            bulletsToDestroy.insert(bulletId);
         }
     });
+    mRegistry.destroy(bulletsToDestroy.begin(), bulletsToDestroy.end());
 
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > ).each([&](const auto terrainTag, const auto &terrainHitRadius, const auto &terrainRenderable) {
         (void) terrainTag;

@@ -30,6 +30,8 @@
 #include <entt/entt.hpp>
 
 namespace gravitar::tags {
+    using AI1 = entt::tag<"AI1"_hs>;
+    using AI2 = entt::tag<"AI2"_hs>;
     using Bullet = entt::tag<"Bullet"_hs>;
     using Bunker = entt::tag<"Bunker"_hs>;
     using Hidden = entt::tag<"Hidden"_hs>;
