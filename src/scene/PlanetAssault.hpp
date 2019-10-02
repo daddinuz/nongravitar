@@ -62,10 +62,14 @@ namespace gravitar::scene {
         void inputSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
+        void rechargeSystem(sf::Time elapsed) noexcept;
+        void AISystem(Assets &assets) noexcept;
         void livenessSystem() noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
+        std::mt19937 mRandomEngine; // TODO think about sharing
+
         sf::Text mReport;
         char mBuffer[128];
 

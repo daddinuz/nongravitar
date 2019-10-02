@@ -41,9 +41,11 @@ using namespace gravitar::components;
 
 constexpr auto SPEED = 180.0f;
 constexpr auto TRACTOR_RADIUS = 48.0f;
+constexpr auto BULLET_SPEED = 1024.0f;
 constexpr auto ROTATION_SPEED = 180.0f;
 
 PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
+        mRandomEngine(std::random_device()()), // TODO maybe share
         mBuffer{},
         mGameOverSceneId{gameOverSceneId} {
     mReport.setCharacterSize(18);
@@ -52,6 +54,9 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
 
     mRegistry.group<HitRadius, Renderable>();
     mRegistry.group<Velocity>(entt::get < Renderable > );
+
+    mRegistry.group<AI1>(entt::get < RechargeTime, HitRadius, Renderable > );
+    mRegistry.group<AI2>(entt::get < RechargeTime, HitRadius, Renderable > );
 
     mRegistry.group<Bunker>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > );
@@ -77,11 +82,13 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     const auto bunkerBounds = bunkerRenderable.getLocalBounds();
 
     helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-    bunkerRenderable.setPosition(halfWindowWidth, halfWindowHeight * 1.75f);
+    bunkerRenderable.setPosition(halfWindowWidth, halfWindowHeight * 1.775f);
     bunkerRenderable.rotate(-90.0f);
 
+    mRegistry.assign<AI2>(bunkerId);
     mRegistry.assign<Bunker>(bunkerId);
     mRegistry.assign<Health>(bunkerId, 1);
+    mRegistry.assign<RechargeTime>(bunkerId, 1.28f);
     mRegistry.assign<HitRadius>(bunkerId, std::max(bunkerBounds.width / 2.0f, bunkerBounds.height / 2.0f));
     mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
 
@@ -92,7 +99,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
 
     helpers::centerOrigin(fuelSupplyRenderable, fuelSupplyBounds);
     fuelSupplyRenderable.setOutlineThickness(1.0f);
-    fuelSupplyRenderable.setOutlineColor(sf::Color::Green);
+    fuelSupplyRenderable.setOutlineColor(sf::Color::Yellow);
     fuelSupplyRenderable.setFillColor(sf::Color::Transparent);
     fuelSupplyRenderable.setPosition(256.0f, 256.0f);
 
@@ -164,6 +171,8 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
     inputSystem(window, assets, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
+    rechargeSystem(elapsed);
+    AISystem(assets);
     livenessSystem();
     reportSystem(window);
 
@@ -287,7 +296,6 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
                 playerFuel.value -= speed * elapsed.asSeconds();
-                playerRechargeTime.elapse(elapsed);
 
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
@@ -308,7 +316,7 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                     bulletRenderable.setPosition(playerRenderable->getPosition() + helpers::makeVector2(playerRenderable->getRotation(), 2.0f + *playerHitRadius));
 
                     mRegistry.assign<Bullet>(bulletId);
-                    mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(playerRenderable->getRotation(), 800.0f));
+                    mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(playerRenderable->getRotation(), BULLET_SPEED));
                     mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
                     mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
 
@@ -437,6 +445,69 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                             }
                         });
             });
+}
+
+void PlanetAssault::rechargeSystem(sf::Time elapsed) noexcept {
+    mRegistry.view<RechargeTime>().each([&](auto &rechargeTime) {
+        rechargeTime.elapse(elapsed);
+    });
+}
+
+void PlanetAssault::AISystem(Assets &assets) noexcept {
+    using f32_distribution = std::uniform_real_distribution<float>;
+
+    mRegistry.group<AI1>(entt::get < RechargeTime, HitRadius, Renderable > ).each([&](const auto AITag, auto &AIRechargeTime, const auto &AIHitRadius, const auto &AIRenderable) {
+        (void) AITag;
+
+        if (AIRechargeTime.canShoot()) {
+            AIRechargeTime.reset();
+
+            auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
+            const auto bulletBounds = bulletRenderable.getLocalBounds();
+            const auto bulletRotation = f32_distribution(225.0f, 315.0f)(mRandomEngine);
+            const auto bulletId = mRegistry.create();
+
+            helpers::centerOrigin(bulletRenderable, bulletBounds);
+            bulletRenderable.setRotation(bulletRotation);
+            bulletRenderable.setPosition(AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, 2.0f + *AIHitRadius));
+
+            mRegistry.assign<Bullet>(bulletId);
+            mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(bulletRotation, BULLET_SPEED));
+            mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
+            mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
+
+            assets.getAudioManager().play(SoundId::LucaShoot);
+        }
+    });
+
+    mRegistry.view<Player, Renderable>().each([&](const auto playerTag, const auto playerRenderable) {
+        (void) playerTag;
+
+        mRegistry.group<AI2>(entt::get < RechargeTime, HitRadius, Renderable > ).each(
+                [&](const auto AITag, auto &AIRechargeTime, const auto &AIHitRadius, const auto &AIRenderable) {
+                    (void) AITag;
+
+                    if (AIRechargeTime.canShoot()) {
+                        AIRechargeTime.reset();
+
+                        auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
+                        const auto bulletBounds = bulletRenderable.getLocalBounds();
+                        const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition());
+                        const auto bulletId = mRegistry.create();
+
+                        helpers::centerOrigin(bulletRenderable, bulletBounds);
+                        bulletRenderable.setRotation(bulletRotation);
+                        bulletRenderable.setPosition(AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, 2.0f + *AIHitRadius));
+
+                        mRegistry.assign<Bullet>(bulletId);
+                        mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(bulletRotation, BULLET_SPEED));
+                        mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
+                        mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
+
+                        assets.getAudioManager().play(SoundId::LucaShoot);
+                    }
+                });
+    });
 }
 
 void PlanetAssault::livenessSystem() noexcept {
