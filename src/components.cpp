@@ -30,12 +30,6 @@
 using namespace gravitar::components;
 
 /*
- * SceneSwitcher
- */
-
-SceneSwitcher::SceneSwitcher(const gravitar::SceneId sceneId) : mSceneId(sceneId) {}
-
-/*
  * RechargeTime
  */
 
@@ -55,10 +49,6 @@ void RechargeTime::elapse(const sf::Time &time) {
 /*
  * Renderable
  */
-
-Renderable::Renderable(sf::Sprite &&instance) : mInstance(std::move(instance)) {}
-
-Renderable::Renderable(sf::CircleShape &&instance) : mInstance(std::move(instance)) {}
 
 void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     (void) states;

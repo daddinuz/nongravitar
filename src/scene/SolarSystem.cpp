@@ -52,10 +52,10 @@ SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverScen
 }
 
 void SolarSystem::operator()(const SolarSystemEntered &solarSystemEntered) noexcept {
-    mRegistry.view<Planet, SceneSwitcher>().each([&](const auto tag, const auto &sceneSwitcher) {
+    mRegistry.view<Planet, SceneRef>().each([&](const auto tag, const auto &sceneRef) {
         (void) tag;
 
-        if (solarSystemEntered.sceneId == sceneSwitcher.sceneId()) {
+        if (solarSystemEntered.sceneId == *sceneRef) {
             const auto players = mRegistry.view<Player>();
 
             mRegistry.destroy(players.begin(), players.end());
@@ -68,10 +68,10 @@ void SolarSystem::operator()(const SolarSystemEntered &solarSystemEntered) noexc
 }
 
 void SolarSystem::operator()(const PlanetDestroyed &planetDestroyed) noexcept {
-    mRegistry.view<Planet, SceneSwitcher>().each([&](const auto id, const auto tag, const auto &sceneSwitcher) {
+    mRegistry.view<Planet, SceneRef>().each([&](const auto id, const auto tag, const auto &sceneRef) {
         (void) tag;
 
-        if (planetDestroyed.sceneId == sceneSwitcher.sceneId()) {
+        if (planetDestroyed.sceneId == *sceneRef) {
             mRegistry.destroy(id);
         }
     });
@@ -166,14 +166,14 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
             }
         }
 
-        *velocity = helpers::makeVector2(renderable->getRotation(), speed);
-        *fuel -= speed * elapsed.asSeconds();
+        velocity.value = helpers::makeVector2(renderable->getRotation(), speed);
+        fuel.value -= speed * elapsed.asSeconds();
     });
 }
 
 void SolarSystem::motionSystem(const sf::Time elapsed) noexcept {
     mRegistry.view<Velocity, Renderable>().each([&](const auto &velocity, auto &renderable) {
-        renderable->move(*velocity * elapsed.asSeconds());
+        renderable->move(velocity.value * elapsed.asSeconds());
     });
 }
 
@@ -186,20 +186,20 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
                 (void) playerTag;
 
                 if (viewport.contains(playerRenderable->getPosition())) {
-                    const auto planets = mRegistry.view<Planet, Renderable, HitRadius, SceneSwitcher>();
+                    const auto planets = mRegistry.view<Planet, Renderable, HitRadius, SceneRef>();
 
                     for (const auto planetId : planets) {
-                        const auto &[planetRenderable, planetHitRadius, planetSceneSwitcher] = planets.get<Renderable, HitRadius, SceneSwitcher>(planetId);
+                        const auto &[planetRenderable, planetHitRadius, planetSceneRef] = planets.get<Renderable, HitRadius, SceneRef>(planetId);
 
                         if (helpers::magnitude(playerRenderable->getPosition(), planetRenderable->getPosition()) <= *playerHitRadius + *planetHitRadius) {
-                            mNextSceneId = planetSceneSwitcher.sceneId();
-                            pubsub::publish<PlanetEntered>(planetSceneSwitcher.sceneId(), mRegistry);
+                            mNextSceneId = *planetSceneRef;
+                            pubsub::publish<PlanetEntered>(*planetSceneRef, mRegistry);
                             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-                            break; // we can enter only one planet
+                            break; // we can enter only one planet at a time
                         }
                     }
                 } else {
-                    *mRegistry.get<Health>(playerId) -= 1;
+                    mRegistry.get<Health>(playerId).value -= 1;
                     playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
                 }
             });
@@ -224,7 +224,7 @@ void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
     mRegistry.view<Player, Health, Fuel>().each([&](const auto tag, const auto &health, const auto &fuel) {
         (void) tag;
 
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %d    fuel: %3.0f", *health, *fuel);
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %d fuel: %.0f", health.value, fuel.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);
@@ -256,7 +256,7 @@ void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &windo
     const auto[windowWidth, windowHeight] = window.getSize();
     const auto planetId = mRegistry.create();
     auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
-    mRegistry.assign<SceneSwitcher>(planetId, sceneId);
+    mRegistry.assign<SceneRef>(planetId, sceneId);
     mRegistry.assign<Planet>(planetId);
 
     auto collides = true;

@@ -33,66 +33,40 @@
 #include <Scene.hpp>
 
 namespace gravitar::components {
-    class Velocity final {
-    public:
-        template<typename ...Args>
-        explicit Velocity(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
-
-        [[nodiscard]] inline sf::Vector2f &operator*() noexcept {
-            return mInstance;
-        }
-
-        [[nodiscard]] inline const sf::Vector2f &operator*() const noexcept {
-            return mInstance;
-        }
-
-    private:
-        sf::Vector2f mInstance;
+    struct Velocity final {
+        sf::Vector2f value;
     };
 
-    class Health final {
-    public:
-        template<typename ...Args>
-        explicit Health(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
-
-        [[nodiscard]] inline int &operator*() noexcept {
-            return mInstance;
-        }
-
-        [[nodiscard]] inline const int &operator*() const noexcept {
-            return mInstance;
-        }
+    struct Health final {
+        int value;
 
         [[nodiscard]] inline bool isDead() const noexcept {
-            return mInstance <= 0;
+            return value <= 0;
         }
-
-    private:
-        int mInstance;
     };
 
-    class Fuel final {
-    public:
-        template<typename ...Args>
-        explicit Fuel(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
-
-        [[nodiscard]] inline float &operator*() noexcept {
-            return mInstance;
-        }
-
-        [[nodiscard]] inline const float &operator*() const noexcept {
-            return mInstance;
-        }
+    struct Fuel final {
+        float value;
 
         [[nodiscard]] inline bool isOver() const noexcept {
-            return mInstance <= 0.0f;
+            return value <= 0.0f;
+        }
+    };
+
+    class SceneRef final {
+    public:
+        template<typename ...Args>
+        explicit SceneRef(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+
+        [[nodiscard]] inline SceneId operator*() const noexcept {
+            return mInstance;
         }
 
     private:
-        float mInstance;
+        SceneId mInstance;
     };
 
-    template<typename T>
+    template<typename>
     class EntityRef final {
     public:
         template<typename ...Args>
@@ -123,24 +97,12 @@ namespace gravitar::components {
         float mSecondsBeforeShoot;
     };
 
-    class SceneSwitcher final {
-    public:
-        explicit SceneSwitcher(SceneId sceneId);
-
-        [[nodiscard]] inline SceneId sceneId() const noexcept {
-            return mSceneId;
-        }
-
-    private:
-        SceneId mSceneId;
-    };
-
     class HitRadius final {
     public:
         template<typename ...Args>
         explicit HitRadius(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
 
-        [[nodiscard]] inline const float &operator*() const noexcept {
+        [[nodiscard]] inline float operator*() const noexcept {
             return mInstance;
         }
 
@@ -150,8 +112,8 @@ namespace gravitar::components {
 
     class Renderable final : public sf::Drawable {
     public:
-        explicit Renderable(sf::Sprite &&instance);
-        explicit Renderable(sf::CircleShape &&instance);
+        template<typename ...Args>
+        explicit Renderable(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
 
         [[nodiscard]] sf::Transformable &operator*() noexcept;
         [[nodiscard]] const sf::Transformable &operator*() const noexcept;
@@ -172,6 +134,6 @@ namespace gravitar::components {
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite, sf::CircleShape> mInstance;
+        std::variant<sf::Sprite, sf::CircleShape, sf::RectangleShape> mInstance;
     };
 }

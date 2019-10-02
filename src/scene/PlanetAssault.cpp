@@ -256,8 +256,8 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                     }
                 }
 
-                *playerVelocity = helpers::makeVector2(playerRenderable->getRotation(), speed);
-                *playerFuel -= speed * elapsed.asSeconds();
+                playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
+                playerFuel.value -= speed * elapsed.asSeconds();
                 playerRechargeTime.elapse(elapsed);
 
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
@@ -290,7 +290,7 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
 
 void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
     mRegistry.group<Velocity>(entt::get < Renderable > ).each([&](const auto &velocity, auto &renderable) {
-        renderable->move(*velocity * elapsed.asSeconds());
+        renderable->move(velocity.value * elapsed.asSeconds());
     });
 }
 
@@ -322,7 +322,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                     }
 
                     if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
-                        *mRegistry.get<Health>(entityId) -= 1;
+                        mRegistry.get<Health>(entityId).value -= 1;
                     }
                 }
             });
@@ -343,7 +343,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
                     if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
                         playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-                        *mRegistry.get<Health>(playerId) -= 1;
+                        mRegistry.get<Health>(playerId).value -= 1;
                     }
                 });
     });
@@ -358,7 +358,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
                     if (helpers::magnitude(bunkerRenderable->getPosition(), playerRenderable->getPosition()) <= *bunkerHitRadius + *playerHitRadius) {
                         playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-                        *mRegistry.get<Health>(playerId) -= 1;
+                        mRegistry.get<Health>(playerId).value -= 1;
                     }
                 });
     });
@@ -395,7 +395,7 @@ void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
     mRegistry.view<Player, Health, Fuel>().each([&](const auto tag, const auto &health, const auto &fuel) {
         (void) tag;
 
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %d    fuel: %3.0f", *health, *fuel);
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %d fuel: %.0f", health.value, fuel.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);
