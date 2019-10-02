@@ -58,43 +58,16 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
     mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > );
 
+    mRegistry.group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > );
+    mRegistry.group<Supply<Fuel>>(entt::get < HitRadius, Renderable > );
+    mRegistry.group<Supply<Health>>(entt::get < HitRadius, Renderable > );
+
     mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
 }
 
-SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
-    mNextSceneId = getSceneId();
-
-    inputSystem(window, assets, elapsed);
-    motionSystem(elapsed);
-    collisionSystem(window);
-    livenessSystem();
-    reportSystem(window);
-
-    return mNextSceneId;
-}
-
-void PlanetAssault::render(sf::RenderTarget &window) noexcept {
-    window.draw(mReport);
-
-    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
-        helpers::debug([&]() { // display hit-circle on debug builds only
-            if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
-                auto shape = sf::CircleShape(**hitRadius);
-                helpers::centerOrigin(shape, shape.getLocalBounds());
-                shape.setPosition(renderable->getPosition());
-                shape.setFillColor(sf::Color::Transparent);
-                shape.setOutlineColor(sf::Color::Red);
-                shape.setOutlineThickness(1);
-                window.draw(shape);
-            }
-        });
-
-        window.draw(renderable);
-    });
-}
-
-void PlanetAssault::addBunker(const sf::RenderWindow &window, Assets &assets) noexcept {
-    (void) window;
+void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept {
+    using i32_distribution = std::uniform_int_distribution<int>;
+    using f32_distribution = std::uniform_real_distribution<float>;
 
     // TODO randomly generate bunkers
     auto bunkerId = mRegistry.create();
@@ -109,14 +82,38 @@ void PlanetAssault::addBunker(const sf::RenderWindow &window, Assets &assets) no
     mRegistry.assign<Health>(bunkerId, 1);
     mRegistry.assign<HitRadius>(bunkerId, std::max(bunkerBounds.width / 2.0f, bunkerBounds.height / 2.0f));
     mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
-}
 
-void PlanetAssault::addTerrain(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept {
-    (void) window;
-    (void) assets;
+    // TODO randomly generate fuel-supplies
+    auto fuelSupplyId = mRegistry.create();
+    auto fuelSupplyRenderable = sf::RectangleShape({32.0f, 32.0f});
+    const auto fuelSupplyBounds = fuelSupplyRenderable.getLocalBounds();
 
-    using f32_distribution = std::uniform_real_distribution<float>;
+    helpers::centerOrigin(fuelSupplyRenderable, fuelSupplyBounds);
+    fuelSupplyRenderable.setOutlineThickness(1.0f);
+    fuelSupplyRenderable.setOutlineColor(sf::Color::Green);
+    fuelSupplyRenderable.setFillColor(sf::Color::Transparent);
+    fuelSupplyRenderable.setPosition(256.0f, 256.0f);
 
+    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, f32_distribution(500.0f, 1000.0f)(randomEngine));
+    mRegistry.assign<HitRadius>(fuelSupplyId, std::max(fuelSupplyBounds.width / 2.0f, fuelSupplyBounds.height / 2.0f));
+    mRegistry.assign<Renderable>(fuelSupplyId, std::move(fuelSupplyRenderable));
+
+    // TODO randomly generate health-supplies
+    auto healthSupplyId = mRegistry.create();
+    auto healthSupplyRenderable = sf::RectangleShape({32.0f, 32.0f});
+    const auto healthSupplyBounds = healthSupplyRenderable.getLocalBounds();
+
+    helpers::centerOrigin(healthSupplyRenderable, healthSupplyBounds);
+    healthSupplyRenderable.setOutlineThickness(1.0f);
+    healthSupplyRenderable.setOutlineColor(sf::Color::Blue);
+    healthSupplyRenderable.setFillColor(sf::Color::Transparent);
+    healthSupplyRenderable.setPosition(512.0f, 512.0f);
+
+    mRegistry.assign<Supply<Health>>(healthSupplyId, i32_distribution(1, 3)(randomEngine));
+    mRegistry.assign<HitRadius>(healthSupplyId, std::max(healthSupplyBounds.width / 2.0f, healthSupplyBounds.height / 2.0f));
+    mRegistry.assign<Renderable>(healthSupplyId, std::move(healthSupplyRenderable));
+
+    // TODO randomly generate terrain
     // const auto view = mRegistry.view<Player, Renderable>();
     // const auto playerId = *view.begin();
     // auto &playerRenderable = view.get<Renderable>(playerId);
@@ -162,6 +159,38 @@ void PlanetAssault::addTerrain(const sf::RenderWindow &window, Assets &assets, s
     // }
 }
 
+SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+    mNextSceneId = getSceneId();
+
+    inputSystem(window, assets, elapsed);
+    motionSystem(elapsed);
+    collisionSystem(window);
+    livenessSystem();
+    reportSystem(window);
+
+    return mNextSceneId;
+}
+
+void PlanetAssault::render(sf::RenderTarget &window) noexcept {
+    window.draw(mReport);
+
+    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
+        helpers::debug([&]() { // display hit-circle on debug builds only
+            if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
+                auto shape = sf::CircleShape(**hitRadius);
+                helpers::centerOrigin(shape, shape.getLocalBounds());
+                shape.setPosition(renderable->getPosition());
+                shape.setFillColor(sf::Color::Transparent);
+                shape.setOutlineColor(sf::Color::Red);
+                shape.setOutlineThickness(1);
+                window.draw(shape);
+            }
+        });
+
+        window.draw(renderable);
+    });
+}
+
 void PlanetAssault::setParentSceneId(const SceneId parentSceneId) noexcept {
     mParentSceneId = parentSceneId;
 }
@@ -193,6 +222,7 @@ void PlanetAssault::operator()(const PlanetEntered &planetEntered) noexcept {
 
             const auto playerId = mRegistry.create(sourcePlayerId, planetEntered.sourceRegistry);
             mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
+            mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
         }
     }
 }
@@ -299,6 +329,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
     const auto players = mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
     for (const auto playerId : players) {
+        const auto &playerHitRadius = players.get<HitRadius>(playerId);
         auto &playerRenderable = players.get<Renderable>(playerId);
 
         if (not viewport.contains(playerRenderable->getPosition())) {
@@ -307,6 +338,28 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
             pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
         }
+
+        mRegistry
+                .group<Supply<Fuel>>(entt::get < HitRadius, Renderable > )
+                .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                    (void) supply;
+
+                    if (helpers::magnitude(playerRenderable->getPosition(), supplyRenderable->getPosition()) <= *playerHitRadius + *supplyHitRadius) {
+                        mRegistry.get<Health>(playerId).value -= 1;
+                        mRegistry.destroy(supplyId);
+                    }
+                });
+
+        mRegistry
+                .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
+                .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                    (void) supply;
+
+                    if (helpers::magnitude(playerRenderable->getPosition(), supplyRenderable->getPosition()) <= *playerHitRadius + *supplyHitRadius) {
+                        mRegistry.get<Health>(playerId).value -= 1;
+                        mRegistry.destroy(supplyId);
+                    }
+                });
     }
 
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > ).each([&](const auto bulletId, const auto bulletTag, const auto &bulletHitRadius, const auto &bulletRenderable) {
@@ -363,7 +416,30 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                 });
     });
 
-    // TODO tractor-fuel collision
+    mRegistry
+            .group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > )
+            .each([&](const auto tractorTag, const auto &playerRef, const auto &tractorHitRadius, const auto &tractorRenderable) {
+                (void) tractorTag;
+                const auto playerId = *playerRef;
+
+                mRegistry
+                        .group<Supply<Fuel>>(entt::get < HitRadius, Renderable > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                mRegistry.get<Fuel>(playerId).value += supply->value;
+                                mRegistry.destroy(supplyId);
+                            }
+                        });
+
+                mRegistry
+                        .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                mRegistry.get<Health>(playerId).value += supply->value;
+                                mRegistry.destroy(supplyId);
+                            }
+                        });
+            });
 }
 
 void PlanetAssault::livenessSystem() noexcept {

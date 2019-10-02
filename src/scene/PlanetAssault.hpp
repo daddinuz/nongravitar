@@ -46,15 +46,11 @@ namespace gravitar::scene {
         PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
         PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
+        void initialize(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept;
+
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
-
-        // TODO maybe remove (initialize method)
-        void addBunker(const sf::RenderWindow &window, Assets &assets) noexcept;
-
-        // TODO maybe remove (initialize method)
-        void addTerrain(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept;
 
         void setParentSceneId(SceneId parentSceneId) noexcept;
 

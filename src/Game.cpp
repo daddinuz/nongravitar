@@ -79,10 +79,9 @@ void Game::initializeScenes() {
     for (auto i = 0; i < std::uniform_int_distribution(4, 8)(randomEngine); i++) {
         auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
 
-        // TODO initialize method
+        // TODO maybe merge methods
         planetAssault.setParentSceneId(solarSystem.getSceneId());
-        planetAssault.addTerrain(mWindow, mAssets, randomEngine);
-        planetAssault.addBunker(mWindow, mAssets);
+        planetAssault.initialize(mWindow, mAssets, randomEngine);
         // -------------------------------------------------------
 
         solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);

@@ -61,7 +61,7 @@ void SolarSystem::operator()(const SolarSystemEntered &solarSystemEntered) noexc
             mRegistry.destroy(players.begin(), players.end());
             for (const auto sourcePlayerId : solarSystemEntered.sourceRegistry.view<Player>()) {
                 const auto playerId = mRegistry.create(sourcePlayerId, solarSystemEntered.sourceRegistry);
-                mRegistry.reset<EntityRef<Tractor>>(playerId);
+                mRegistry.remove<EntityRef<Tractor>>(playerId);
             }
         }
     });

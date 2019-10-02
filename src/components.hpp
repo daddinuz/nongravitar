@@ -53,10 +53,28 @@ namespace gravitar::components {
         }
     };
 
+    template<typename T>
+    class Supply final {
+    public:
+        template<typename ...Args>
+        explicit Supply(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
+
+        [[nodiscard]] inline T *operator->() noexcept {
+            return &mInstance;
+        }
+
+        [[nodiscard]] inline const T *operator->() const noexcept {
+            return &mInstance;
+        }
+
+    private:
+        T mInstance;
+    };
+
     class SceneRef final {
     public:
         template<typename ...Args>
-        explicit SceneRef(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+        explicit SceneRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
         [[nodiscard]] inline SceneId operator*() const noexcept {
             return mInstance;
@@ -70,7 +88,7 @@ namespace gravitar::components {
     class EntityRef final {
     public:
         template<typename ...Args>
-        explicit EntityRef(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+        explicit EntityRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
         [[nodiscard]] inline entt::entity operator*() const noexcept {
             return mInstance;
@@ -100,7 +118,7 @@ namespace gravitar::components {
     class HitRadius final {
     public:
         template<typename ...Args>
-        explicit HitRadius(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+        explicit HitRadius(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
         [[nodiscard]] inline float operator*() const noexcept {
             return mInstance;
@@ -113,7 +131,7 @@ namespace gravitar::components {
     class Renderable final : public sf::Drawable {
     public:
         template<typename ...Args>
-        explicit Renderable(Args &&... args) : mInstance(std::forward<Args>(args)...) {}
+        explicit Renderable(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
         [[nodiscard]] sf::Transformable &operator*() noexcept;
         [[nodiscard]] const sf::Transformable &operator*() const noexcept;

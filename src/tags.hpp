@@ -35,7 +35,6 @@ namespace gravitar::tags {
     using Hidden = entt::tag<"Hidden"_hs>;
     using Player = entt::tag<"Player"_hs>;
     using Planet = entt::tag<"Planet"_hs>;
-    using FuelSupply = entt::tag<"FuelSupply"_hs>;
     using Tractor = entt::tag<"Tractor"_hs>;
     using Terrain = entt::tag<"Terrain"_hs>;
 }
