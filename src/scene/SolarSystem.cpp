@@ -29,6 +29,7 @@
 #include <tags.hpp>
 #include <trace.hpp>
 #include <helpers.hpp>
+#include <constants.hpp>
 #include <components.hpp>
 #include <scene/SolarSystem.hpp>
 
@@ -37,10 +38,8 @@ using namespace gravitar::tags;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 using namespace gravitar::messages;
+using namespace gravitar::constants;
 using namespace gravitar::components;
-
-constexpr float SPEED = 180.0f;
-constexpr float ROTATION_SPEED = 180.0f;
 
 SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, Assets &assets) :
         mBuffer{},
@@ -117,7 +116,7 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
     mRegistry.view<Player, Fuel, Velocity, Renderable>().each([&](const auto tag, auto &fuel, auto &velocity, auto &renderable) {
         (void) tag;
 
-        auto speed = SPEED;
+        auto speed = PLAYER_SPEED;
         const auto input = (keyPressed(Key::A) ? 1 : 0) + (keyPressed(Key::D) ? 2 : 0) +
                            (keyPressed(Key::W) ? 4 : 0) + (keyPressed(Key::S) ? 8 : 0);
 

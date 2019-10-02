@@ -30,10 +30,12 @@
 #include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <scene/YouWon.hpp>
+#include <constants.hpp>
 #include <helpers.hpp>
 #include <Game.hpp>
 
 using namespace gravitar;
+using namespace gravitar::constants;
 
 Game &gravitar::Game::initialize() {
     mAssets.initialize();
@@ -60,7 +62,7 @@ void Game::initializeWindow() {
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
     mWindow.setKeyRepeatEnabled(false);
-    mWindow.setFramerateLimit(60); // roughly 60 fps
+    mWindow.setFramerateLimit(FPS);
     mWindow.setActive(true);
 }
 

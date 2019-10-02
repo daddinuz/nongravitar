@@ -29,6 +29,7 @@
 #include <pubsub.hpp>
 #include <helpers.hpp>
 #include <messages.hpp>
+#include <constants.hpp>
 #include <components.hpp>
 #include <scene/PlanetAssault.hpp>
 
@@ -37,12 +38,8 @@ using namespace gravitar::tags;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 using namespace gravitar::messages;
+using namespace gravitar::constants;
 using namespace gravitar::components;
-
-constexpr auto SPEED = 180.0f;
-constexpr auto TRACTOR_RADIUS = 48.0f;
-constexpr auto BULLET_SPEED = 1024.0f;
-constexpr auto ROTATION_SPEED = 180.0f;
 
 PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
         mRandomEngine(std::random_device()()), // TODO maybe share
@@ -245,7 +242,7 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                       auto &playerReloadTime, const auto &playerHitRadius, auto &playerRenderable) {
                 (void) playerTag;
 
-                auto speed = SPEED;
+                auto speed = PLAYER_SPEED;
                 const auto input = (keyPressed(Key::A) ? 1 : 0) + (keyPressed(Key::D) ? 2 : 0) +
                                    (keyPressed(Key::W) ? 4 : 0) + (keyPressed(Key::S) ? 8 : 0);
 
