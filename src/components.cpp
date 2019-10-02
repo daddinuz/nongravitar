@@ -30,17 +30,17 @@
 using namespace gravitar::components;
 
 /*
- * RechargeTime
+ * ReloadTime
  */
 
-RechargeTime::RechargeTime(const float secondsBeforeShoot)
+ReloadTime::ReloadTime(const float secondsBeforeShoot)
         : mElapsed(secondsBeforeShoot), mSecondsBeforeShoot(secondsBeforeShoot) {}
 
-void RechargeTime::reset() {
+void ReloadTime::reset() {
     mElapsed = 0;
 }
 
-void RechargeTime::elapse(const sf::Time &time) {
+void ReloadTime::elapse(const sf::Time &time) {
     if (not canShoot()) {
         mElapsed += time.asSeconds();
     }

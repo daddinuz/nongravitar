@@ -244,7 +244,7 @@ void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noex
     mRegistry.assign<Health>(playerId, 3);
     mRegistry.assign<Fuel>(playerId, 20000.0f);
     mRegistry.assign<Velocity>(playerId);
-    mRegistry.assign<RechargeTime>(playerId, 0.64f);
+    mRegistry.assign<ReloadTime>(playerId, 0.64f);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }

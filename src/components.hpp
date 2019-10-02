@@ -98,9 +98,9 @@ namespace gravitar::components {
         entt::entity mInstance;
     };
 
-    class RechargeTime final {
+    class ReloadTime final {
     public:
-        explicit RechargeTime(float secondsBeforeShoot);
+        explicit ReloadTime(float secondsBeforeShoot);
 
         void reset();
 

@@ -55,8 +55,8 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
     mRegistry.group<HitRadius, Renderable>();
     mRegistry.group<Velocity>(entt::get < Renderable > );
 
-    mRegistry.group<AI1>(entt::get < RechargeTime, HitRadius, Renderable > );
-    mRegistry.group<AI2>(entt::get < RechargeTime, HitRadius, Renderable > );
+    mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > );
+    mRegistry.group<AI2>(entt::get < ReloadTime, HitRadius, Renderable > );
 
     mRegistry.group<Bunker>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > );
@@ -88,7 +88,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     mRegistry.assign<AI2>(bunkerId);
     mRegistry.assign<Bunker>(bunkerId);
     mRegistry.assign<Health>(bunkerId, 1);
-    mRegistry.assign<RechargeTime>(bunkerId, 1.28f);
+    mRegistry.assign<ReloadTime>(bunkerId, 1.28f);
     mRegistry.assign<HitRadius>(bunkerId, std::max(bunkerBounds.width / 2.0f, bunkerBounds.height / 2.0f));
     mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
 
@@ -171,7 +171,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
     inputSystem(window, assets, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
-    rechargeSystem(elapsed);
+    reloadSystem(elapsed);
     AISystem(assets);
     livenessSystem();
     reportSystem(window);
@@ -240,9 +240,9 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
     decltype(auto) keyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Fuel, Velocity, RechargeTime, HitRadius, Renderable>()
+            .view<Player, Fuel, Velocity, ReloadTime, HitRadius, Renderable>()
             .each([&](const auto playerId, const auto playerTag, auto &playerFuel, auto &playerVelocity,
-                      auto &playerRechargeTime, const auto &playerHitRadius, auto &playerRenderable) {
+                      auto &playerReloadTime, const auto &playerHitRadius, auto &playerRenderable) {
                 (void) playerTag;
 
                 auto speed = SPEED;
@@ -305,8 +305,8 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                     mRegistry.assign_or_replace<Hidden>(tractorId);
                 }
 
-                if (playerRechargeTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                    playerRechargeTime.reset();
+                if (playerReloadTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                    playerReloadTime.reset();
 
                     auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
                     const auto bulletBounds = bulletRenderable.getLocalBounds();
@@ -447,20 +447,20 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
             });
 }
 
-void PlanetAssault::rechargeSystem(sf::Time elapsed) noexcept {
-    mRegistry.view<RechargeTime>().each([&](auto &rechargeTime) {
-        rechargeTime.elapse(elapsed);
+void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
+    mRegistry.view<ReloadTime>().each([&](auto &reloadTime) {
+        reloadTime.elapse(elapsed);
     });
 }
 
 void PlanetAssault::AISystem(Assets &assets) noexcept {
     using f32_distribution = std::uniform_real_distribution<float>;
 
-    mRegistry.group<AI1>(entt::get < RechargeTime, HitRadius, Renderable > ).each([&](const auto AITag, auto &AIRechargeTime, const auto &AIHitRadius, const auto &AIRenderable) {
+    mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > ).each([&](const auto AITag, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
         (void) AITag;
 
-        if (AIRechargeTime.canShoot()) {
-            AIRechargeTime.reset();
+        if (AIReloadTime.canShoot()) {
+            AIReloadTime.reset();
 
             auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
             const auto bulletBounds = bulletRenderable.getLocalBounds();
@@ -483,12 +483,12 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     mRegistry.view<Player, Renderable>().each([&](const auto playerTag, const auto playerRenderable) {
         (void) playerTag;
 
-        mRegistry.group<AI2>(entt::get < RechargeTime, HitRadius, Renderable > ).each(
-                [&](const auto AITag, auto &AIRechargeTime, const auto &AIHitRadius, const auto &AIRenderable) {
+        mRegistry.group<AI2>(entt::get < ReloadTime, HitRadius, Renderable > ).each(
+                [&](const auto AITag, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
                     (void) AITag;
 
-                    if (AIRechargeTime.canShoot()) {
-                        AIRechargeTime.reset();
+                    if (AIReloadTime.canShoot()) {
+                        AIReloadTime.reset();
 
                         auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
                         const auto bulletBounds = bulletRenderable.getLocalBounds();
