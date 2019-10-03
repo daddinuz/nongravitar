@@ -38,7 +38,7 @@ namespace gravitar::scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
-        PlanetAssault(SceneId gameOverSceneId, Assets &assets);
+        PlanetAssault(SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine);
 
         PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
         PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
@@ -46,7 +46,7 @@ namespace gravitar::scene {
         PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
         PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
-        void initialize(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept;
+        void initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
@@ -68,11 +68,9 @@ namespace gravitar::scene {
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
-        std::mt19937 mRandomEngine; // TODO think about sharing
-
-        sf::Text mReport;
         char mBuffer[128];
-
+        sf::Text mReport;
+        std::mt19937 &mRandomEngine;
         const SceneId mGameOverSceneId;
         SceneId mParentSceneId = nullSceneId;
         SceneId mNextSceneId = nullSceneId;

@@ -40,7 +40,7 @@ namespace gravitar::scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId, Assets &assets);
+        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -54,7 +54,7 @@ namespace gravitar::scene {
 
         void addPlayer(const sf::RenderWindow &window, Assets &assets) noexcept;
 
-        void addPlanet(SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept;
+        void addPlanet(SceneId sceneId, const sf::RenderWindow &window) noexcept;
 
     private:
         void operator()(const messages::SolarSystemEntered &solarSystemEntered) noexcept final;
@@ -67,8 +67,9 @@ namespace gravitar::scene {
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
-        sf::Text mReport;
         char mBuffer[128];
+        sf::Text mReport;
+        std::mt19937 &mRandomEngine;
         const SceneId mYouWonSceneId;
         const SceneId mGameOverSceneId;
         SceneId mNextSceneId = nullSceneId;

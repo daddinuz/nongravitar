@@ -41,9 +41,9 @@ using namespace gravitar::messages;
 using namespace gravitar::constants;
 using namespace gravitar::components;
 
-PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
-        mRandomEngine(std::random_device()()), // TODO maybe share
+PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine) :
         mBuffer{},
+        mRandomEngine{randomEngine},
         mGameOverSceneId{gameOverSceneId} {
     mReport.setCharacterSize(18);
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
@@ -67,7 +67,7 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
     mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
 }
 
-void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept {
+void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
     const auto[halfWindowWidth, halfWindowHeight] = sf::Vector2f(window.getSize()) / 2.0f;
 
     // TODO randomly generate bunkers
@@ -97,7 +97,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     fuelSupplyRenderable.setFillColor(sf::Color::Transparent);
     fuelSupplyRenderable.setPosition(256.0f, 256.0f);
 
-    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, helpers::f_distribution(500.0f, 1000.0f)(randomEngine));
+    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, helpers::f_distribution(500.0f, 1000.0f)(mRandomEngine));
     mRegistry.assign<HitRadius>(fuelSupplyId, std::max(fuelSupplyBounds.width / 2.0f, fuelSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(fuelSupplyId, std::move(fuelSupplyRenderable));
 
@@ -112,7 +112,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     healthSupplyRenderable.setFillColor(sf::Color::Transparent);
     healthSupplyRenderable.setPosition(512.0f, 512.0f);
 
-    mRegistry.assign<Supply<Health>>(healthSupplyId, helpers::i_distribution(1, 3)(randomEngine));
+    mRegistry.assign<Supply<Health>>(healthSupplyId, helpers::i_distribution(1, 3)(mRandomEngine));
     mRegistry.assign<HitRadius>(healthSupplyId, std::max(healthSupplyBounds.width / 2.0f, healthSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(healthSupplyId, std::move(healthSupplyRenderable));
 

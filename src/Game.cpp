@@ -37,7 +37,9 @@
 using namespace gravitar;
 using namespace gravitar::constants;
 
-Game &gravitar::Game::initialize() {
+Game::Game() : mRandomEngine(std::random_device()()) {}
+
+Game &Game::initialize() {
     mAssets.initialize();
     initializeWindow();
     initializeScenes();
@@ -67,26 +69,23 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto randomDevice = std::random_device();
-    auto randomEngine = std::mt19937(randomDevice());
-    auto distribution = helpers::i_distribution(4, 9);
-
+    // TODO think about deferred scene initialization (initialize method allocs out of ctor)
     auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
     auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
-    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets);
+    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets, mRandomEngine);
     auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
 
     solarSystem.addPlayer(mWindow, mAssets);
 
-    for (auto i = 0; i < distribution(randomEngine); i++) {
-        auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
+    for (auto planets = helpers::i_distribution(4, 9)(mRandomEngine), i = 0; i < planets; i++) {
+        auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets, mRandomEngine);
 
         // TODO maybe merge methods
         planetAssault.setParentSceneId(solarSystem.getSceneId());
-        planetAssault.initialize(mWindow, mAssets, randomEngine);
+        planetAssault.initialize(mWindow, mAssets);
         // -------------------------------------------------------
 
-        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);
+        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow);
         pubsub::subscribe<messages::PlanetEntered>(planetAssault);
     }
 

@@ -41,8 +41,9 @@ using namespace gravitar::messages;
 using namespace gravitar::constants;
 using namespace gravitar::components;
 
-SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, Assets &assets) :
+SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine) :
         mBuffer{},
+        mRandomEngine{randomEngine},
         mYouWonSceneId{youWonSceneId},
         mGameOverSceneId{gameOverSceneId} {
     mReport.setCharacterSize(18);
@@ -248,7 +249,7 @@ void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noex
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
-void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept {
+void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
     const auto planetId = mRegistry.create();
     auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
@@ -260,11 +261,11 @@ void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &windo
         collides = false;
 
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(helpers::f_distribution(24, 56)(randomEngine));
+        circleShape.setRadius(helpers::f_distribution(24, 56)(mRandomEngine));
         helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
         planetRenderable->setPosition(
-                helpers::f_distribution(0.0f, windowWidth)(randomEngine),
-                helpers::f_distribution(0.0f, windowHeight)(randomEngine)
+                helpers::f_distribution(0.0f, windowWidth)(mRandomEngine),
+                helpers::f_distribution(0.0f, windowHeight)(mRandomEngine)
         );
 
         auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
@@ -290,17 +291,17 @@ void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &windo
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
 
         circleShape.setFillColor(sf::Color(
-                helpers::u8_distribution(63, 255)(randomEngine),
-                helpers::u8_distribution(63, 255)(randomEngine),
-                helpers::u8_distribution(63, 255)(randomEngine),
-                helpers::u8_distribution(63, 199)(randomEngine)
+                helpers::u8_distribution(63, 255)(mRandomEngine),
+                helpers::u8_distribution(63, 255)(mRandomEngine),
+                helpers::u8_distribution(63, 255)(mRandomEngine),
+                helpers::u8_distribution(63, 199)(mRandomEngine)
         ));
         circleShape.setOutlineColor(sf::Color(
-                helpers::u8_distribution(31, 127)(randomEngine),
-                helpers::u8_distribution(31, 127)(randomEngine),
-                helpers::u8_distribution(31, 127)(randomEngine),
-                helpers::u8_distribution(63, 127)(randomEngine)
+                helpers::u8_distribution(31, 127)(mRandomEngine),
+                helpers::u8_distribution(31, 127)(mRandomEngine),
+                helpers::u8_distribution(31, 127)(mRandomEngine),
+                helpers::u8_distribution(63, 127)(mRandomEngine)
         ));
-        circleShape.setOutlineThickness(helpers::f_distribution(4, 8)(randomEngine));
+        circleShape.setOutlineThickness(helpers::f_distribution(4, 8)(mRandomEngine));
     }
 }

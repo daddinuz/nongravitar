@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <random>
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
 #include <Assets.hpp>
@@ -35,7 +36,7 @@
 namespace gravitar {
     class Game final {
     public:
-        Game() = default; // default-constructible
+        Game(); // default-constructible
 
         Game(const Game &) = delete; // no copy-constructible
         Game &operator=(const Game &) = delete; // no copy-assignable
@@ -63,6 +64,7 @@ namespace gravitar {
         Assets mAssets;
         SceneManager mSceneManager;
         sf::RenderWindow mWindow;
+        std::mt19937 mRandomEngine;
         sf::Clock mClock;
         SceneId mSceneId = nullSceneId;
     };
