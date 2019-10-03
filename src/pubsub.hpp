@@ -40,10 +40,10 @@ namespace gravitar::pubsub {
         friend void publish(Args &&... args);
 
         template<typename U>
-        friend void subscribe(Handler<U> &handler);
+        friend void subscribe(const Handler<U> &handler);
 
         template<typename U>
-        friend void unsubscribe(Handler<U> &handler);
+        friend void unsubscribe(const Handler<U> &handler);
 
         virtual ~Handler();
 
@@ -70,13 +70,13 @@ namespace gravitar::pubsub {
     }
 
     template<typename T>
-    void subscribe(Handler<T> &handler) {
-        Handler<T>::mHandlers.insert(&handler);
+    void subscribe(const Handler<T> &handler) {
+        Handler<T>::mHandlers.insert(const_cast<Handler<T> *>(&handler));
     }
 
     template<typename T>
-    void unsubscribe(Handler<T> &handler) {
-        Handler<T>::mHandlers.erase(&handler);
+    void unsubscribe(const Handler<T> &handler) {
+        Handler<T>::mHandlers.erase(const_cast<Handler<T> *>(&handler));
     }
 
     template<typename T>

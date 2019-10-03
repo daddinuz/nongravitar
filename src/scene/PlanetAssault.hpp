@@ -27,18 +27,18 @@
 
 #pragma once
 
-#include <random>
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 #include <pubsub.hpp>
+#include <helpers.hpp>
 #include <messages.hpp>
 
 namespace gravitar::scene {
-    class PlanetAssault final : public pubsub::Handler<messages::PlanetEntered>, public Scene {
+    class PlanetAssault final : public Scene, public pubsub::Handler<messages::PlanetEntered> {
     public:
         PlanetAssault() = delete; // no default-constructible
 
-        PlanetAssault(SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine);
+        PlanetAssault(SceneId solarSystemSceneId, SceneId gameOverSceneId);
 
         PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
         PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
@@ -46,18 +46,24 @@ namespace gravitar::scene {
         PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
         PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
-        void initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
+        /**
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        PlanetAssault &initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
-        void setParentSceneId(SceneId parentSceneId) noexcept;
-
-        [[nodiscard]] SceneId getParentSceneId() const noexcept;
-
     private:
-        void operator()(const messages::PlanetEntered &planetEntered) noexcept final;
+        void operator()(const messages::PlanetEntered &message) noexcept final;
+
+        void initializePubSub() const noexcept;
+        void initializeGroups() noexcept;
+        void initializeReport(Assets &assets) noexcept;
+        void initializeEntities(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         void inputSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
@@ -70,9 +76,9 @@ namespace gravitar::scene {
         entt::registry mRegistry;
         char mBuffer[128];
         sf::Text mReport;
-        std::mt19937 &mRandomEngine;
+        helpers::RandomEngine mRandomEngine;
         const SceneId mGameOverSceneId;
-        SceneId mParentSceneId = nullSceneId;
+        const SceneId mSolarSystemSceneId;
         SceneId mNextSceneId = nullSceneId;
     };
 }

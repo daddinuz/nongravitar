@@ -41,40 +41,77 @@ using namespace gravitar::messages;
 using namespace gravitar::constants;
 using namespace gravitar::components;
 
-SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine) :
+using RandomEngine = helpers::RandomEngine;
+using ByteDistribution = helpers::ByteDistribution;
+using FloatDistribution = helpers::FloatDistribution;
+
+SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId) :
         mBuffer{},
-        mRandomEngine{randomEngine},
         mYouWonSceneId{youWonSceneId},
-        mGameOverSceneId{gameOverSceneId} {
-    mReport.setCharacterSize(18);
-    mReport.setFillColor(sf::Color(105, 235, 245, 255));
-    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
+        mGameOverSceneId{gameOverSceneId} {}
+
+SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
+    initializePlayers(window, assets);
+    initializeReport(assets);
+    initializePubSub();
+    return *this;
 }
 
-void SolarSystem::operator()(const SolarSystemEntered &solarSystemEntered) noexcept {
-    mRegistry.view<Planet, SceneRef>().each([&](const auto tag, const auto &sceneRef) {
-        (void) tag;
+void SolarSystem::addPlanet(const SceneId planetSceneId, const sf::RenderWindow &window, RandomEngine &randomEngine) noexcept {
+    const auto[windowWidth, windowHeight] = window.getSize();
+    const auto planetId = mRegistry.create();
+    auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
+    mRegistry.assign<SceneRef>(planetId, planetSceneId);
+    mRegistry.assign<Planet>(planetId);
 
-        if (solarSystemEntered.sceneId == *sceneRef) {
-            const auto players = mRegistry.view<Player>();
+    auto collides = true;
+    for (auto i = 0; collides and i < 128; i++) {
+        collides = false;
 
-            mRegistry.destroy(players.begin(), players.end());
-            for (const auto sourcePlayerId : solarSystemEntered.sourceRegistry.view<Player>()) {
-                const auto playerId = mRegistry.create(sourcePlayerId, solarSystemEntered.sourceRegistry);
-                mRegistry.remove<EntityRef<Tractor>>(playerId);
+        auto &circleShape = planetRenderable.as<sf::CircleShape>();
+        circleShape.setRadius(FloatDistribution(24, 56)(randomEngine));
+        helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
+        planetRenderable->setPosition(
+                FloatDistribution(0.0f, windowWidth)(randomEngine),
+                FloatDistribution(0.0f, windowHeight)(randomEngine)
+        );
+
+        auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
+
+        // if planet collides with other entities then retry
+        const auto view = mRegistry.view<HitRadius, Renderable>();
+        for (const auto entityId : view) {
+            if (planetId != entityId) {
+                const auto &[entityHitRadius, entityRenderable] = view.get<HitRadius, Renderable>(entityId);
+
+                if (helpers::magnitude(entityRenderable->getPosition(), planetRenderable->getPosition()) <= *planetHitRadius + *entityHitRadius) {
+                    collides = true;
+                    break;
+                }
             }
         }
-    });
-}
+    }
 
-void SolarSystem::operator()(const PlanetDestroyed &planetDestroyed) noexcept {
-    mRegistry.view<Planet, SceneRef>().each([&](const auto id, const auto tag, const auto &sceneRef) {
-        (void) tag;
+    if (collides) {
+        std::cerr << trace("Unable to generate a random planet") << std::endl;
+        std::terminate();
+    } else {
+        auto &circleShape = planetRenderable.as<sf::CircleShape>();
 
-        if (planetDestroyed.sceneId == *sceneRef) {
-            mRegistry.destroy(id);
-        }
-    });
+        circleShape.setFillColor(sf::Color(
+                helpers::ByteDistribution(63, 255)(randomEngine),
+                helpers::ByteDistribution(63, 255)(randomEngine),
+                helpers::ByteDistribution(63, 255)(randomEngine),
+                helpers::ByteDistribution(63, 199)(randomEngine)
+        ));
+        circleShape.setOutlineColor(sf::Color(
+                helpers::ByteDistribution(31, 127)(randomEngine),
+                helpers::ByteDistribution(31, 127)(randomEngine),
+                helpers::ByteDistribution(31, 127)(randomEngine),
+                helpers::ByteDistribution(63, 127)(randomEngine)
+        ));
+        circleShape.setOutlineThickness(helpers::FloatDistribution(4, 8)(randomEngine));
+    }
 }
 
 SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
@@ -110,9 +147,63 @@ void SolarSystem::render(sf::RenderTarget &window) noexcept {
     });
 }
 
+void SolarSystem::operator()(const PlanetDestroyed &message) noexcept {
+    mRegistry.view<Planet, SceneRef>().each([&](const auto id, const auto tag, const auto &sceneRef) {
+        (void) tag;
+
+        if (message.sceneId == *sceneRef) {
+            mRegistry.destroy(id);
+        }
+    });
+}
+
+void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
+    mRegistry.view<Planet, SceneRef>().each([&](const auto tag, const auto &sceneRef) {
+        (void) tag;
+
+        if (message.sceneId == *sceneRef) {
+            const auto players = mRegistry.view<Player>();
+
+            mRegistry.destroy(players.begin(), players.end());
+            for (const auto sourcePlayerId : message.sourceRegistry.view<Player>()) {
+                const auto playerId = mRegistry.create(sourcePlayerId, message.sourceRegistry);
+                mRegistry.remove<EntityRef<Tractor>>(playerId);
+            }
+        }
+    });
+}
+
+void SolarSystem::initializePubSub() const noexcept {
+    pubsub::subscribe<messages::SolarSystemEntered>(*this);
+    pubsub::subscribe<messages::PlanetDestroyed>(*this);
+}
+
+void SolarSystem::initializeReport(Assets &assets) noexcept {
+    mReport.setCharacterSize(18);
+    mReport.setFillColor(sf::Color(105, 235, 245, 255));
+    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
+}
+
+void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept {
+    auto playerId = mRegistry.create();
+    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    const auto playerBounds = playerRenderable.getLocalBounds();
+
+    helpers::centerOrigin(playerRenderable, playerBounds);
+    playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+
+    mRegistry.assign<Player>(playerId);
+    mRegistry.assign<Health>(playerId, 3);
+    mRegistry.assign<Fuel>(playerId, 20000.0f);
+    mRegistry.assign<Velocity>(playerId);
+    mRegistry.assign<ReloadTime>(playerId, 0.64f);
+    mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
+    mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
+}
+
 void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    decltype(auto) keyPressed = &sf::Keyboard::isKeyPressed;
+    const auto keyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry.view<Player, Fuel, Velocity, Renderable>().each([&](const auto tag, auto &fuel, auto &velocity, auto &renderable) {
         (void) tag;
@@ -230,78 +321,4 @@ void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
         mReport.setString(mBuffer);
         mReport.setPosition(window.getSize().x / 2.0f, 18.0f);
     });
-}
-
-void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noexcept {
-    auto playerId = mRegistry.create();
-    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
-    const auto playerBounds = playerRenderable.getLocalBounds();
-
-    helpers::centerOrigin(playerRenderable, playerBounds);
-    playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-
-    mRegistry.assign<Player>(playerId);
-    mRegistry.assign<Health>(playerId, 3);
-    mRegistry.assign<Fuel>(playerId, 20000.0f);
-    mRegistry.assign<Velocity>(playerId);
-    mRegistry.assign<ReloadTime>(playerId, 0.64f);
-    mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
-    mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
-}
-
-void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window) noexcept {
-    const auto[windowWidth, windowHeight] = window.getSize();
-    const auto planetId = mRegistry.create();
-    auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
-    mRegistry.assign<SceneRef>(planetId, sceneId);
-    mRegistry.assign<Planet>(planetId);
-
-    auto collides = true;
-    for (auto i = 0; collides and i < 128; i++) {
-        collides = false;
-
-        auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(helpers::f_distribution(24, 56)(mRandomEngine));
-        helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
-        planetRenderable->setPosition(
-                helpers::f_distribution(0.0f, windowWidth)(mRandomEngine),
-                helpers::f_distribution(0.0f, windowHeight)(mRandomEngine)
-        );
-
-        auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
-
-        // if planet collides with other entities then retry
-        const auto view = mRegistry.view<HitRadius, Renderable>();
-        for (const auto entityId : view) {
-            if (planetId != entityId) {
-                const auto &[entityHitRadius, entityRenderable] = view.get<HitRadius, Renderable>(entityId);
-
-                if (helpers::magnitude(entityRenderable->getPosition(), planetRenderable->getPosition()) <= *planetHitRadius + *entityHitRadius) {
-                    collides = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (collides) {
-        std::cerr << trace("Unable to generate a random planet") << std::endl;
-        std::terminate();
-    } else {
-        auto &circleShape = planetRenderable.as<sf::CircleShape>();
-
-        circleShape.setFillColor(sf::Color(
-                helpers::u8_distribution(63, 255)(mRandomEngine),
-                helpers::u8_distribution(63, 255)(mRandomEngine),
-                helpers::u8_distribution(63, 255)(mRandomEngine),
-                helpers::u8_distribution(63, 199)(mRandomEngine)
-        ));
-        circleShape.setOutlineColor(sf::Color(
-                helpers::u8_distribution(31, 127)(mRandomEngine),
-                helpers::u8_distribution(31, 127)(mRandomEngine),
-                helpers::u8_distribution(31, 127)(mRandomEngine),
-                helpers::u8_distribution(63, 127)(mRandomEngine)
-        ));
-        circleShape.setOutlineThickness(helpers::f_distribution(4, 8)(mRandomEngine));
-    }
 }

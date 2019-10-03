@@ -41,14 +41,91 @@ using namespace gravitar::messages;
 using namespace gravitar::constants;
 using namespace gravitar::components;
 
-PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets, std::mt19937 &randomEngine) :
-        mBuffer{},
-        mRandomEngine{randomEngine},
-        mGameOverSceneId{gameOverSceneId} {
-    mReport.setCharacterSize(18);
-    mReport.setFillColor(sf::Color(105, 235, 245, 255));
-    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
+using RandomDevice = helpers::RandomDevice;
+using IntDistribution = helpers::IntDistribution;
+using FloatDistribution = helpers::FloatDistribution;
 
+PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId gameOverSceneId) :
+        mBuffer{},
+        mRandomEngine{RandomDevice()()},
+        mGameOverSceneId{gameOverSceneId},
+        mSolarSystemSceneId{solarSystemSceneId} {}
+
+PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
+    initializeGroups();
+    initializeReport(assets);
+    initializeEntities(window, assets);
+    initializePubSub();
+    return *this;
+}
+
+SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+    mNextSceneId = getSceneId();
+
+    inputSystem(window, assets, elapsed);
+    motionSystem(elapsed);
+    collisionSystem(window);
+    reloadSystem(elapsed);
+    AISystem(assets);
+    livenessSystem();
+    reportSystem(window);
+
+    return mNextSceneId;
+}
+
+void PlanetAssault::render(sf::RenderTarget &window) noexcept {
+    window.draw(mReport);
+
+    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
+        helpers::debug([&]() { // display hit-circle on debug builds only
+            if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
+                auto shape = sf::CircleShape(**hitRadius);
+                helpers::centerOrigin(shape, shape.getLocalBounds());
+                shape.setPosition(renderable->getPosition());
+                shape.setFillColor(sf::Color::Transparent);
+                shape.setOutlineColor(sf::Color::Red);
+                shape.setOutlineThickness(1);
+                window.draw(shape);
+            }
+        });
+
+        window.draw(renderable);
+    });
+}
+
+void PlanetAssault::operator()(const PlanetEntered &message) noexcept {
+    if (message.sceneId == getSceneId()) {
+        const auto players = mRegistry.view<Player>();
+        const auto tractors = mRegistry.view<Tractor>();
+
+        mRegistry.destroy(players.begin(), players.end());
+        mRegistry.destroy(tractors.begin(), tractors.end());
+
+        for (const auto sourcePlayerId : message.sourceRegistry.view<Player>()) {
+            auto tractorId = mRegistry.create();
+            auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
+
+            helpers::centerOrigin(tractorRenderable, tractorRenderable.getLocalBounds());
+            tractorRenderable.setFillColor(sf::Color::Transparent);
+            tractorRenderable.setOutlineThickness(1.0f);
+            tractorRenderable.setOutlineColor(sf::Color(100, 150, 250, 80));
+            mRegistry.assign<Hidden>(tractorId);
+            mRegistry.assign<Tractor>(tractorId);
+            mRegistry.assign<HitRadius>(tractorId, TRACTOR_RADIUS);
+            mRegistry.assign<Renderable>(tractorId, std::move(tractorRenderable));
+
+            const auto playerId = mRegistry.create(sourcePlayerId, message.sourceRegistry);
+            mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
+            mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
+        }
+    }
+}
+
+void PlanetAssault::initializePubSub() const noexcept {
+    pubsub::subscribe<messages::PlanetEntered>(*this);
+}
+
+void PlanetAssault::initializeGroups() noexcept {
     mRegistry.group<HitRadius, Renderable>();
     mRegistry.group<Velocity>(entt::get < Renderable > );
 
@@ -67,7 +144,13 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets, std:
     mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
 }
 
-void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
+void PlanetAssault::initializeReport(Assets &assets) noexcept {
+    mReport.setCharacterSize(18);
+    mReport.setFillColor(sf::Color(105, 235, 245, 255));
+    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
+}
+
+void PlanetAssault::initializeEntities(const sf::RenderWindow &window, Assets &assets) noexcept {
     const auto[halfWindowWidth, halfWindowHeight] = sf::Vector2f(window.getSize()) / 2.0f;
 
     // TODO randomly generate bunkers
@@ -97,7 +180,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) n
     fuelSupplyRenderable.setFillColor(sf::Color::Transparent);
     fuelSupplyRenderable.setPosition(256.0f, 256.0f);
 
-    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, helpers::f_distribution(500.0f, 1000.0f)(mRandomEngine));
+    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, FloatDistribution(500.0f, 1000.0f)(mRandomEngine));
     mRegistry.assign<HitRadius>(fuelSupplyId, std::max(fuelSupplyBounds.width / 2.0f, fuelSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(fuelSupplyId, std::move(fuelSupplyRenderable));
 
@@ -112,7 +195,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) n
     healthSupplyRenderable.setFillColor(sf::Color::Transparent);
     healthSupplyRenderable.setPosition(512.0f, 512.0f);
 
-    mRegistry.assign<Supply<Health>>(healthSupplyId, helpers::i_distribution(1, 3)(mRandomEngine));
+    mRegistry.assign<Supply<Health>>(healthSupplyId, IntDistribution(1, 3)(mRandomEngine));
     mRegistry.assign<HitRadius>(healthSupplyId, std::max(healthSupplyBounds.width / 2.0f, healthSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(healthSupplyId, std::move(healthSupplyRenderable));
 
@@ -157,76 +240,6 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) n
     mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
     //    break;
     // }
-}
-
-SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
-    mNextSceneId = getSceneId();
-
-    inputSystem(window, assets, elapsed);
-    motionSystem(elapsed);
-    collisionSystem(window);
-    reloadSystem(elapsed);
-    AISystem(assets);
-    livenessSystem();
-    reportSystem(window);
-
-    return mNextSceneId;
-}
-
-void PlanetAssault::render(sf::RenderTarget &window) noexcept {
-    window.draw(mReport);
-
-    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
-        helpers::debug([&]() { // display hit-circle on debug builds only
-            if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
-                auto shape = sf::CircleShape(**hitRadius);
-                helpers::centerOrigin(shape, shape.getLocalBounds());
-                shape.setPosition(renderable->getPosition());
-                shape.setFillColor(sf::Color::Transparent);
-                shape.setOutlineColor(sf::Color::Red);
-                shape.setOutlineThickness(1);
-                window.draw(shape);
-            }
-        });
-
-        window.draw(renderable);
-    });
-}
-
-void PlanetAssault::setParentSceneId(const SceneId parentSceneId) noexcept {
-    mParentSceneId = parentSceneId;
-}
-
-SceneId PlanetAssault::getParentSceneId() const noexcept {
-    return mParentSceneId;
-}
-
-void PlanetAssault::operator()(const PlanetEntered &planetEntered) noexcept {
-    if (planetEntered.sceneId == getSceneId()) {
-        const auto players = mRegistry.view<Player>();
-        const auto tractors = mRegistry.view<Tractor>();
-
-        mRegistry.destroy(players.begin(), players.end());
-        mRegistry.destroy(tractors.begin(), tractors.end());
-
-        for (const auto sourcePlayerId : planetEntered.sourceRegistry.view<Player>()) {
-            auto tractorId = mRegistry.create();
-            auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
-
-            helpers::centerOrigin(tractorRenderable, tractorRenderable.getLocalBounds());
-            tractorRenderable.setFillColor(sf::Color::Transparent);
-            tractorRenderable.setOutlineThickness(1.0f);
-            tractorRenderable.setOutlineColor(sf::Color(100, 150, 250, 80));
-            mRegistry.assign<Hidden>(tractorId);
-            mRegistry.assign<Tractor>(tractorId);
-            mRegistry.assign<HitRadius>(tractorId, TRACTOR_RADIUS);
-            mRegistry.assign<Renderable>(tractorId, std::move(tractorRenderable));
-
-            const auto playerId = mRegistry.create(sourcePlayerId, planetEntered.sourceRegistry);
-            mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
-            mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
-        }
-    }
 }
 
 void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
@@ -334,7 +347,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
         auto &playerRenderable = players.get<Renderable>(playerId);
 
         if (not viewport.contains(playerRenderable->getPosition())) {
-            mNextSceneId = getParentSceneId();
+            mNextSceneId = mSolarSystemSceneId;
             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f); // TODO handle positioning inside message handling
             pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
@@ -456,7 +469,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 
             auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
             const auto bulletBounds = bulletRenderable.getLocalBounds();
-            const auto bulletRotation = helpers::f_distribution(225.0f, 315.0f)(mRandomEngine);
+            const auto bulletRotation = FloatDistribution(225.0f, 315.0f)(mRandomEngine);
             const auto bulletId = mRegistry.create();
 
             helpers::centerOrigin(bulletRenderable, bulletBounds);
@@ -504,7 +517,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 
 void PlanetAssault::livenessSystem() noexcept {
     if (mRegistry.view<Bunker>().begin() == mRegistry.view<Bunker>().end()) { // no more bunkers left
-        mNextSceneId = mParentSceneId;
+        mNextSceneId = mSolarSystemSceneId;
         pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
         pubsub::publish<PlanetDestroyed>(getSceneId());
     }

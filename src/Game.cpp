@@ -35,9 +35,12 @@
 #include <Game.hpp>
 
 using namespace gravitar;
+using namespace gravitar::scene;
 using namespace gravitar::constants;
 
-Game::Game() : mRandomEngine(std::random_device()()) {}
+using RandomDevice = helpers::RandomDevice;
+using RandomEngine = helpers::RandomEngine;
+using IntDistribution = helpers::IntDistribution;
 
 Game &Game::initialize() {
     mAssets.initialize();
@@ -49,10 +52,10 @@ Game &Game::initialize() {
 int Game::run() {
     mClock.restart();
 
-    for (handleEvents(); nullSceneId != mSceneId; handleEvents()) {
-        mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssets, mClock.restart());
+    for (handleEvents(); nullSceneId != mCurrentSceneId; handleEvents()) {
+        mCurrentSceneId = mSceneManager.get(mCurrentSceneId).update(mWindow, mAssets, mClock.restart());
         mWindow.clear();
-        mSceneManager.get(mSceneId).render(mWindow);
+        mSceneManager.get(mCurrentSceneId).render(mWindow);
         mWindow.display();
     }
 
@@ -69,40 +72,35 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    // TODO think about deferred scene initialization (initialize method allocs out of ctor)
-    auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
-    auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
-    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets, mRandomEngine);
-    auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
+    auto randomDevice = RandomDevice();
+    auto randomEngine = RandomEngine(randomDevice());
+    const auto planets = IntDistribution(4, 9)(randomEngine);
 
-    solarSystem.addPlayer(mWindow, mAssets);
+    auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
+    auto &gameOver = mSceneManager.emplace<GameOver>(mAssets);
+    auto &solarSystem = mSceneManager
+            .emplace<SolarSystem>(youWon.getSceneId(), gameOver.getSceneId())
+            .initialize(mWindow, mAssets);
 
-    for (auto planets = helpers::i_distribution(4, 9)(mRandomEngine), i = 0; i < planets; i++) {
-        auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets, mRandomEngine);
+    for (auto i = 0; i < planets; i++) {
+        auto &planetAssault = mSceneManager
+                .emplace<PlanetAssault>(solarSystem.getSceneId(), gameOver.getSceneId())
+                .initialize(mWindow, mAssets);
 
-        // TODO maybe merge methods
-        planetAssault.setParentSceneId(solarSystem.getSceneId());
-        planetAssault.initialize(mWindow, mAssets);
-        // -------------------------------------------------------
-
-        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow);
-        pubsub::subscribe<messages::PlanetEntered>(planetAssault);
+        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);
     }
 
-    pubsub::subscribe<messages::SolarSystemEntered>(solarSystem);
-    pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
-
-    mSceneId = titleScreen.getSceneId();
+    mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();
 }
 
 void Game::handleEvents() {
     auto event = sf::Event{};
 
-    while (nullSceneId != mSceneId and mWindow.pollEvent(event)) {
+    while (nullSceneId != mCurrentSceneId and mWindow.pollEvent(event)) {
         if (sf::Event::KeyPressed == event.type) {
             switch (event.key.code) {
                 case sf::Keyboard::Escape:
-                    mSceneId = nullSceneId;
+                    mCurrentSceneId = nullSceneId;
                     break;
 
                 case sf::Keyboard::F6:
@@ -118,7 +116,7 @@ void Game::handleEvents() {
                     break;
 
                 default:
-                    mSceneId = mSceneManager.get(mSceneId).onEvent(event);
+                    mCurrentSceneId = mSceneManager.get(mCurrentSceneId).onEvent(event);
                     break;
             }
         }
