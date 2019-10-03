@@ -28,9 +28,14 @@
 #pragma once
 
 #include <cmath>
+#include <random>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar::helpers {
+    using i_distribution = std::uniform_int_distribution<int>;
+    using f_distribution = std::uniform_real_distribution<float>;
+    using u8_distribution = std::uniform_int_distribution<std::uint8_t>;
+
     template<typename F, typename ...Args>
     inline constexpr void debug([[maybe_unused]] F &&f, [[maybe_unused]] Args &&...args) {
 #ifndef NDEBUG

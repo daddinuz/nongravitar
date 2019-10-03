@@ -249,9 +249,6 @@ void SolarSystem::addPlayer(const sf::RenderWindow &window, Assets &assets) noex
 }
 
 void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &window, std::mt19937 &randomEngine) noexcept {
-    using u8_distribution = std::uniform_int_distribution<sf::Uint8>;
-    using f32_distribution = std::uniform_real_distribution<float>;
-
     const auto[windowWidth, windowHeight] = window.getSize();
     const auto planetId = mRegistry.create();
     auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
@@ -263,11 +260,11 @@ void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &windo
         collides = false;
 
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(f32_distribution(24, 56)(randomEngine));
+        circleShape.setRadius(helpers::f_distribution(24, 56)(randomEngine));
         helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
         planetRenderable->setPosition(
-                f32_distribution(0.0f, windowWidth)(randomEngine),
-                f32_distribution(0.0f, windowHeight)(randomEngine)
+                helpers::f_distribution(0.0f, windowWidth)(randomEngine),
+                helpers::f_distribution(0.0f, windowHeight)(randomEngine)
         );
 
         auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
@@ -293,17 +290,17 @@ void SolarSystem::addPlanet(const SceneId sceneId, const sf::RenderWindow &windo
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
 
         circleShape.setFillColor(sf::Color(
-                u8_distribution(63, 255)(randomEngine),
-                u8_distribution(63, 255)(randomEngine),
-                u8_distribution(63, 255)(randomEngine),
-                u8_distribution(63, 199)(randomEngine)
+                helpers::u8_distribution(63, 255)(randomEngine),
+                helpers::u8_distribution(63, 255)(randomEngine),
+                helpers::u8_distribution(63, 255)(randomEngine),
+                helpers::u8_distribution(63, 199)(randomEngine)
         ));
         circleShape.setOutlineColor(sf::Color(
-                u8_distribution(31, 127)(randomEngine),
-                u8_distribution(31, 127)(randomEngine),
-                u8_distribution(31, 127)(randomEngine),
-                u8_distribution(63, 127)(randomEngine)
+                helpers::u8_distribution(31, 127)(randomEngine),
+                helpers::u8_distribution(31, 127)(randomEngine),
+                helpers::u8_distribution(31, 127)(randomEngine),
+                helpers::u8_distribution(63, 127)(randomEngine)
         ));
-        circleShape.setOutlineThickness(f32_distribution(4, 8)(randomEngine));
+        circleShape.setOutlineThickness(helpers::f_distribution(4, 8)(randomEngine));
     }
 }

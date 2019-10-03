@@ -68,9 +68,6 @@ PlanetAssault::PlanetAssault(const SceneId gameOverSceneId, Assets &assets) :
 }
 
 void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, std::mt19937 &randomEngine) noexcept {
-    using i32_distribution = std::uniform_int_distribution<int>;
-    using f32_distribution = std::uniform_real_distribution<float>;
-
     const auto[halfWindowWidth, halfWindowHeight] = sf::Vector2f(window.getSize()) / 2.0f;
 
     // TODO randomly generate bunkers
@@ -100,7 +97,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     fuelSupplyRenderable.setFillColor(sf::Color::Transparent);
     fuelSupplyRenderable.setPosition(256.0f, 256.0f);
 
-    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, f32_distribution(500.0f, 1000.0f)(randomEngine));
+    mRegistry.assign<Supply<Fuel>>(fuelSupplyId, helpers::f_distribution(500.0f, 1000.0f)(randomEngine));
     mRegistry.assign<HitRadius>(fuelSupplyId, std::max(fuelSupplyBounds.width / 2.0f, fuelSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(fuelSupplyId, std::move(fuelSupplyRenderable));
 
@@ -115,7 +112,7 @@ void PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, s
     healthSupplyRenderable.setFillColor(sf::Color::Transparent);
     healthSupplyRenderable.setPosition(512.0f, 512.0f);
 
-    mRegistry.assign<Supply<Health>>(healthSupplyId, i32_distribution(1, 3)(randomEngine));
+    mRegistry.assign<Supply<Health>>(healthSupplyId, helpers::i_distribution(1, 3)(randomEngine));
     mRegistry.assign<HitRadius>(healthSupplyId, std::max(healthSupplyBounds.width / 2.0f, healthSupplyBounds.height / 2.0f));
     mRegistry.assign<Renderable>(healthSupplyId, std::move(healthSupplyRenderable));
 
@@ -451,8 +448,6 @@ void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
 }
 
 void PlanetAssault::AISystem(Assets &assets) noexcept {
-    using f32_distribution = std::uniform_real_distribution<float>;
-
     mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > ).each([&](const auto AITag, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
         (void) AITag;
 
@@ -461,7 +456,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 
             auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
             const auto bulletBounds = bulletRenderable.getLocalBounds();
-            const auto bulletRotation = f32_distribution(225.0f, 315.0f)(mRandomEngine);
+            const auto bulletRotation = helpers::f_distribution(225.0f, 315.0f)(mRandomEngine);
             const auto bulletId = mRegistry.create();
 
             helpers::centerOrigin(bulletRenderable, bulletBounds);

@@ -69,6 +69,7 @@ void Game::initializeWindow() {
 void Game::initializeScenes() {
     auto randomDevice = std::random_device();
     auto randomEngine = std::mt19937(randomDevice());
+    auto distribution = helpers::i_distribution(4, 9);
 
     auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
     auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
@@ -77,8 +78,7 @@ void Game::initializeScenes() {
 
     solarSystem.addPlayer(mWindow, mAssets);
 
-    // generate a random number of planets in range [4, 8]
-    for (auto i = 0; i < std::uniform_int_distribution(4, 8)(randomEngine); i++) {
+    for (auto i = 0; i < distribution(randomEngine); i++) {
         auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
 
         // TODO maybe merge methods
