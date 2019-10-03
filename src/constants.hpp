@@ -28,7 +28,7 @@
 #pragma once
 
 namespace gravitar::constants {
-    inline constexpr auto FPS = 80u;
+    inline constexpr auto FPS = 65u;
 
     inline constexpr auto PLAYER_SPEED = 220.0f;
     inline constexpr auto BULLET_SPEED = 1024.0f;
