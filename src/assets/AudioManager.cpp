@@ -35,7 +35,7 @@ constexpr auto SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
 
 void AudioManager::initialize() {
     std::array<const std::tuple<const char *, SoundId>, 1> sounds = {
-            std::make_tuple<const char *, SoundId>("lucashoot.ogg", SoundId::LucaShoot),
+            std::make_tuple<const char *, SoundId>("bullet-shot.ogg", SoundId::BulletShot),
     };
     std::array<const std::tuple<const char *, SoundTrackId>, 1> soundtracks = {
             std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),

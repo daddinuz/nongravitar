@@ -327,7 +327,7 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                     mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
                     mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
 
-                    assets.getAudioManager().play(SoundId::LucaShoot);
+                    assets.getAudioManager().play(SoundId::BulletShot);
                 }
             });
 }
@@ -481,7 +481,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
             mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
             mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
 
-            assets.getAudioManager().play(SoundId::LucaShoot);
+            assets.getAudioManager().play(SoundId::BulletShot);
         }
     });
 
@@ -509,7 +509,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
                         mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
                         mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
 
-                        assets.getAudioManager().play(SoundId::LucaShoot);
+                        assets.getAudioManager().play(SoundId::BulletShot);
                     }
                 });
     });

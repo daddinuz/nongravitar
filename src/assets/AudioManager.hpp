@@ -37,7 +37,7 @@ namespace gravitar::assets {
     };
 
     enum class SoundId {
-        LucaShoot,
+        BulletShot,
     };
 
     class AudioManager final {
