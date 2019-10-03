@@ -348,7 +348,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
 
         if (not viewport.contains(playerRenderable->getPosition())) {
             mNextSceneId = mSolarSystemSceneId;
-            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f); // TODO handle positioning inside message handling
+            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
             pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
         }

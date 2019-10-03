@@ -284,8 +284,9 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 
                         if (helpers::magnitude(playerRenderable->getPosition(), planetRenderable->getPosition()) <= *playerHitRadius + *planetHitRadius) {
                             mNextSceneId = *planetSceneRef;
+                            planetRenderable->setRotation(90.0f);
+                            playerRenderable->setPosition(window.getSize().x / 2.0f, 128.0f);
                             pubsub::publish<PlanetEntered>(*planetSceneRef, mRegistry);
-                            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
                             break; // we can enter only one planet at a time
                         }
                     }
