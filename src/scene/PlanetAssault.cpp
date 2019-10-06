@@ -280,6 +280,24 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     });
 }
 
+void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, const float rotation) noexcept {
+    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
+    const auto bulletBounds = bulletRenderable.getLocalBounds();
+    const auto bulletId = mRegistry.create();
+    static const auto bulletHitRadius = std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f);
+
+    helpers::centerOrigin(bulletRenderable, bulletBounds);
+    bulletRenderable.setRotation(rotation);
+    bulletRenderable.setPosition(position);
+
+    mRegistry.assign<Bullet>(bulletId);
+    mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(rotation, BULLET_SPEED));
+    mRegistry.assign<HitRadius>(bulletId, bulletHitRadius);
+    mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable));
+
+    assets.getAudioManager().play(SoundId::BulletShot);
+}
+
 void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
     decltype(auto) keyPressed = &sf::Keyboard::isKeyPressed;
@@ -351,21 +369,10 @@ void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, 
                 }
 
                 if (playerReloadTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                    const auto bulletRotation = playerRenderable->getRotation();
+                    const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + 1.0f);
                     playerReloadTime.reset();
-
-                    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
-                    const auto bulletBounds = bulletRenderable.getLocalBounds();
-                    const auto bulletId = mRegistry.create();
-
-                    helpers::centerOrigin(bulletRenderable, bulletBounds);
-                    bulletRenderable.setPosition(playerRenderable->getPosition() + helpers::makeVector2(playerRenderable->getRotation(), 2.0f + *playerHitRadius));
-
-                    mRegistry.assign<Bullet>(bulletId);
-                    mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(playerRenderable->getRotation(), BULLET_SPEED));
-                    mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
-                    mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
-
-                    assets.getAudioManager().play(SoundId::BulletShot);
+                    addBullet(assets, bulletPosition, bulletRotation); // NOTE for a future me: be aware that this invalidates some component references !!!
                 }
             });
 }
@@ -476,33 +483,20 @@ void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
 }
 
 void PlanetAssault::AISystem(Assets &assets) noexcept {
+    auto AI1Precision = FloatDistribution(-32.0f, 32.0f);
+
     mRegistry.view<Player, Renderable>().each([&](const auto playerTag, const auto playerRenderable) {
         (void) playerTag;
-
-        // TODO: maybe add a shoot method
 
         mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > ).each([&](const auto AITag, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
             (void) AITag;
 
             if (AIReloadTime.canShoot()) {
-                AIReloadTime.reset();
-
-                auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
-                const auto bulletBounds = bulletRenderable.getLocalBounds();
                 const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
-                                            FloatDistribution(-32.0f, 32.0f)(mRandomEngine);
-                const auto bulletId = mRegistry.create();
-
-                helpers::centerOrigin(bulletRenderable, bulletBounds);
-                bulletRenderable.setRotation(bulletRotation);
-                bulletRenderable.setPosition(AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, 2.0f + *AIHitRadius));
-
-                mRegistry.assign<Bullet>(bulletId);
-                mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(bulletRotation, BULLET_SPEED));
-                mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
-                mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
-
-                assets.getAudioManager().play(SoundId::BulletShot);
+                                            AI1Precision(mRandomEngine);
+                const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                AIReloadTime.reset();
+                addBullet(assets, bulletPosition, bulletRotation);
             }
         });
 
@@ -511,23 +505,10 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
                     (void) AITag;
 
                     if (AIReloadTime.canShoot()) {
-                        AIReloadTime.reset();
-
-                        auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
-                        const auto bulletBounds = bulletRenderable.getLocalBounds();
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition());
-                        const auto bulletId = mRegistry.create();
-
-                        helpers::centerOrigin(bulletRenderable, bulletBounds);
-                        bulletRenderable.setRotation(bulletRotation);
-                        bulletRenderable.setPosition(AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, 2.0f + *AIHitRadius));
-
-                        mRegistry.assign<Bullet>(bulletId);
-                        mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(bulletRotation, BULLET_SPEED));
-                        mRegistry.assign<HitRadius>(bulletId, std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f));
-                        mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable)); // this must be the last line in order to avoid dangling pointers
-
-                        assets.getAudioManager().play(SoundId::BulletShot);
+                        const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                        AIReloadTime.reset();
+                        addBullet(assets, bulletPosition, bulletRotation);
                     }
                 });
     });
