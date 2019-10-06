@@ -37,8 +37,10 @@ void AudioManager::initialize() {
     std::array<const std::tuple<const char *, SoundId>, 1> sounds = {
             std::make_tuple<const char *, SoundId>("bullet-shot.ogg", SoundId::BulletShot),
     };
-    std::array<const std::tuple<const char *, SoundTrackId>, 1> soundtracks = {
-            std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
+    std::array<const std::tuple<const char *, SoundTrackId>, 3> soundtracks = {
+            std::make_tuple<const char *, SoundTrackId>("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield),
+            std::make_tuple<const char *, SoundTrackId>("Drozerix-ComputerAdventures.flac", SoundTrackId::ComputerAdventures),
+            std::make_tuple<const char *, SoundTrackId>("Drozerix-ComputerF__k.flac", SoundTrackId::ComputerF__k),
     };
 
     for (const auto &i : sounds) {
@@ -50,7 +52,7 @@ void AudioManager::initialize() {
     }
 }
 
-void AudioManager::play(SoundId id) noexcept {
+void AudioManager::play(const SoundId id) noexcept {
     if (not mMuted) {
         mSounds.at(id).play();
     }
@@ -58,11 +60,10 @@ void AudioManager::play(SoundId id) noexcept {
 
 void AudioManager::play(const SoundTrackId id) noexcept {
     if (not mMuted) {
-        if (SoundTrackId::None != mPreviousSoundtrackId) {
-            mSoundtracks.at(mPreviousSoundtrackId).stop();
+        if (SoundTrackId::None != mCurrentSoundtrackId) {
+            mSoundtracks.at(mCurrentSoundtrackId).stop();
         }
 
-        mPreviousSoundtrackId = mCurrentSoundtrackId;
         mCurrentSoundtrackId = id;
 
         if (SoundTrackId::None != mCurrentSoundtrackId) {

@@ -45,14 +45,11 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
 }
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
-    (void) window;
-    (void) elapsed;
-
-    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::MainTheme != audioManager.getPlaying()) {
-        audioManager.play(SoundTrackId::MainTheme);
+    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    return getSceneId();
+    return Scene::update(window, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) noexcept {

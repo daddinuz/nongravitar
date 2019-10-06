@@ -43,6 +43,15 @@ SceneId YouWon::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
+SceneId YouWon::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
+    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::AmbientStarfield);
+    }
+
+    return Scene::update(window, assets, elapsed);
+
+}
+
 void YouWon::render(sf::RenderTarget &window) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
     mYouWonTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);

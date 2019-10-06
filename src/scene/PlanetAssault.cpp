@@ -62,6 +62,10 @@ PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets 
 SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     mNextSceneId = getSceneId();
 
+    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::ComputerAdventures != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::ComputerAdventures);
+    }
+
     inputSystem(window, assets, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);

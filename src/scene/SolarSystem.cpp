@@ -118,6 +118,10 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, cons
     (void) assets;
     mNextSceneId = getSceneId();
 
+    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::ComputerF__k != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::ComputerF__k);
+    }
+
     inputSystem(window, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);

@@ -33,7 +33,9 @@
 namespace gravitar::assets {
     enum class SoundTrackId {
         None,
-        MainTheme,
+        AmbientStarfield,
+        ComputerAdventures,
+        ComputerF__k,
     };
 
     enum class SoundId {
@@ -75,7 +77,6 @@ namespace gravitar::assets {
         std::map<SoundId, sf::SoundBuffer> mSoundBuffers;
         std::map<SoundId, sf::Sound> mSounds;
         SoundTrackId mCurrentSoundtrackId{SoundTrackId::None};
-        SoundTrackId mPreviousSoundtrackId{SoundTrackId::None};
         bool mMuted{false};
     };
 }
