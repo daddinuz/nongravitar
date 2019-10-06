@@ -389,34 +389,6 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
             pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
         }
-
-        // FIXME remove
-        // NOTE: no needed since supply is contained into terrain hit radius
-        /*
-        const auto &playerHitRadius = players.get<HitRadius>(playerId);
-
-        mRegistry
-                .group<Supply<Fuel>>(entt::get < HitRadius, Renderable > )
-                .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
-                    (void) supply;
-
-                    if (helpers::magnitude(playerRenderable->getPosition(), supplyRenderable->getPosition()) <= *playerHitRadius + *supplyHitRadius) {
-                        mRegistry.get<Health>(playerId).value -= 1;
-                        mRegistry.destroy(supplyId);
-                    }
-                });
-
-        mRegistry
-                .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
-                .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
-                    (void) supply;
-
-                    if (helpers::magnitude(playerRenderable->getPosition(), supplyRenderable->getPosition()) <= *playerHitRadius + *supplyHitRadius) {
-                        mRegistry.get<Health>(playerId).value -= 1;
-                        mRegistry.destroy(supplyId);
-                    }
-                });
-        */
     }
 
     auto bulletsToDestroy = std::set<entt::entity>();
