@@ -30,9 +30,13 @@
 namespace gravitar::constants {
     inline constexpr auto FPS = 65u;
 
+    inline constexpr auto PLAYER_HEALTH = 8;
+    inline constexpr auto PLAYER_FUEL = 20000.0f;
+    inline constexpr auto PLAYER_RELOAD_TIME = 0.64f;
     inline constexpr auto PLAYER_SPEED = 220.0f;
-    inline constexpr auto BULLET_SPEED = 1024.0f;
-    inline constexpr auto ROTATION_SPEED = 200.0f;
+    inline constexpr auto PLAYER_ROTATION_SPEED = 200.0f;
 
-    inline constexpr auto TRACTOR_RADIUS = 48.0f;
+    inline constexpr auto TRACTOR_RADIUS = 56.0f;
+
+    inline constexpr auto BULLET_SPEED = 1024.0f;
 }

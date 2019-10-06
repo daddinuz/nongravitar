@@ -193,10 +193,10 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
 
     mRegistry.assign<Player>(playerId);
-    mRegistry.assign<Health>(playerId, 3);
-    mRegistry.assign<Fuel>(playerId, 20000.0f);
+    mRegistry.assign<Health>(playerId, PLAYER_HEALTH);
+    mRegistry.assign<Fuel>(playerId, PLAYER_FUEL);
     mRegistry.assign<Velocity>(playerId);
-    mRegistry.assign<ReloadTime>(playerId, 0.64f);
+    mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
@@ -214,11 +214,11 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
 
         switch (input) {
             case 1:
-                renderable->rotate(-ROTATION_SPEED * elapsed.asSeconds());
+                renderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 break;
 
             case 2:
-                renderable->rotate(ROTATION_SPEED * elapsed.asSeconds());
+                renderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 break;
 
             case 4:
@@ -226,12 +226,12 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
                 break;
 
             case 5:
-                renderable->rotate(-ROTATION_SPEED * 0.92f * elapsed.asSeconds());
+                renderable->rotate(-PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
                 speed *= 1.32f;
                 break;
 
             case 6:
-                renderable->rotate(ROTATION_SPEED * 0.92f * elapsed.asSeconds());
+                renderable->rotate(PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
                 speed *= 1.32f;
                 break;
 
@@ -240,12 +240,12 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
                 break;
 
             case 9:
-                renderable->rotate(-ROTATION_SPEED * 1.08f * elapsed.asSeconds());
+                renderable->rotate(-PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
                 speed *= 0.68f;
                 break;
 
             case 10:
-                renderable->rotate(ROTATION_SPEED * 1.08f * elapsed.asSeconds());
+                renderable->rotate(PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
                 speed *= 0.68f;
                 break;
 
@@ -253,7 +253,7 @@ void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time ela
                 const auto mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 const auto mouseRotation = helpers::rotation(renderable->getPosition(), mousePosition);
                 const auto shortestRotation = helpers::shortestRotation(renderable->getRotation(), mouseRotation);
-                renderable->rotate(static_cast<float>(helpers::signum(shortestRotation)) * ROTATION_SPEED * elapsed.asSeconds());
+                renderable->rotate(static_cast<float>(helpers::signum(shortestRotation)) * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
             }
         }
 

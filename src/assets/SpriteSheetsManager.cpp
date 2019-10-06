@@ -34,8 +34,8 @@ void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
     std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 4> items = {
             std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
             std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bunker, TextureId::Bunker, {24, 48}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Terrain, TextureId::Terrain, {1, 56}),
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bunker, TextureId::Bunker, {56, 56}),
+            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Terrain, TextureId::Terrain, {56, 1}),
     };
 
     for (const auto &i : items) {

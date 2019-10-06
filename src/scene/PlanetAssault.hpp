@@ -63,7 +63,7 @@ namespace gravitar::scene {
         void initializePubSub() const noexcept;
         void initializeGroups() noexcept;
         void initializeReport(Assets &assets) noexcept;
-        void initializeEntities(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void initializeTerrain(const sf::RenderWindow &window, Assets &assets) noexcept;
 
         void inputSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
