@@ -59,6 +59,9 @@ SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, Assets &ass
 
 void SolarSystem::addPlanet(const SceneId planetSceneId, const sf::RenderWindow &window, RandomEngine &randomEngine) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
+    auto planetXDistribution = FloatDistribution(0.0f, windowWidth);
+    auto planetYDistribution = FloatDistribution(0.0f, windowHeight);
+    auto planetSizeDistribution = FloatDistribution(24, 56);
     const auto planetId = mRegistry.create();
     auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
     mRegistry.assign<SceneRef>(planetId, planetSceneId);
@@ -69,12 +72,9 @@ void SolarSystem::addPlanet(const SceneId planetSceneId, const sf::RenderWindow 
         collides = false;
 
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(FloatDistribution(24, 56)(randomEngine));
+        circleShape.setRadius(planetSizeDistribution(randomEngine));
         helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
-        planetRenderable->setPosition(
-                FloatDistribution(0.0f, windowWidth)(randomEngine),
-                FloatDistribution(0.0f, windowHeight)(randomEngine)
-        );
+        planetRenderable->setPosition(planetXDistribution(randomEngine), planetYDistribution(randomEngine));
 
         auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
 
@@ -197,7 +197,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Fuel>(playerId, PLAYER_FUEL);
     mRegistry.assign<Velocity>(playerId);
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
-    mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width / 2.0f, playerBounds.height / 2.0f));
+    mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 

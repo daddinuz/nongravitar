@@ -155,8 +155,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
     const auto _terrainFrame = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getBuffer().at(0);
-    const auto terrainHitRadius = std::max(_terrainFrame.width / 2.0f, _terrainFrame.height / 2.0f);
-    const auto terrainHitDiameter = terrainHitRadius * 2.0f;
+    const auto terrainHitDiameter = std::max(_terrainFrame.width, _terrainFrame.height);
+    const auto terrainHitRadius = terrainHitDiameter / 2.0f;
     auto rotationDistribution = FloatDistribution(-42.0f, 42.0f);
     auto terrainPosition = sf::Vector2f(
             0.0f,
@@ -182,17 +182,22 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
     } while (viewport.contains(terrainPosition));
 
-    auto distribution = IntDistribution(1, 16);
+    auto AI1ReloadDistribution = FloatDistribution(1.32f, 1.64f);
+    auto AI2ReloadDistribution = FloatDistribution(1.64f, 1.96f);
+    auto fuelSupplyDistribution = FloatDistribution(1000.0f, 2500.0f);
+    auto healthSupplyDistribution = IntDistribution(1, 2);
+    auto entityDistribution = IntDistribution(1, 16);
+
     mRegistry.view<Terrain, Renderable>().each([&](const auto terrainTag, const auto &terrainRenderable) {
         (void) terrainTag;
 
-        switch (distribution(mRandomEngine)) {
+        switch (entityDistribution(mRandomEngine)) {
             case 2:
             case 4: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(0);
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
-                const auto bunkerHitRadius = std::max(bunkerBounds.width / 2.0f, bunkerBounds.height / 2.0f);
+                const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
                 helpers::centerOrigin(bunkerRenderable, bunkerBounds);
 
@@ -203,7 +208,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 mRegistry.assign<AI1>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
                 mRegistry.assign<Health>(bunkerId, 1);
-                mRegistry.assign<ReloadTime>(bunkerId, FloatDistribution(1.32f, 1.64f)(mRandomEngine));
+                mRegistry.assign<ReloadTime>(bunkerId, AI1ReloadDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
                 mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
             }
@@ -213,7 +218,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
-                const auto bunkerHitRadius = std::max(bunkerBounds.width / 2.0f, bunkerBounds.height / 2.0f);
+                const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
                 helpers::centerOrigin(bunkerRenderable, bunkerBounds);
 
@@ -224,7 +229,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 mRegistry.assign<AI2>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
                 mRegistry.assign<Health>(bunkerId, 2);
-                mRegistry.assign<ReloadTime>(bunkerId, FloatDistribution(1.64f, 1.96f)(mRandomEngine));
+                mRegistry.assign<ReloadTime>(bunkerId, AI2ReloadDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
                 mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
             }
@@ -234,7 +239,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 auto supplyId = mRegistry.create();
                 auto supplyRenderable = sf::RectangleShape({28.0f, 28.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
-                const auto supplyHitRadius = std::max(supplyBounds.width / 2.0f, supplyBounds.height / 2.0f);
+                const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
                 supplyRenderable.setOutlineThickness(1.0f);
                 supplyRenderable.setOutlineColor(sf::Color::Yellow);
@@ -246,7 +251,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setPosition(terrainRenderable->getPosition());
                 supplyRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Supply<Fuel>>(supplyId, FloatDistribution(1000.0f, 2500.0f)(mRandomEngine));
+                mRegistry.assign<Supply<Fuel>>(supplyId, fuelSupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
             }
@@ -256,7 +261,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 auto supplyId = mRegistry.create();
                 auto supplyRenderable = sf::RectangleShape({28.0f, 28.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
-                const auto supplyHitRadius = std::max(supplyBounds.width / 2.0f, supplyBounds.height / 2.0f);
+                const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
                 supplyRenderable.setOutlineThickness(1.0f);
                 supplyRenderable.setOutlineColor(sf::Color::Blue);
@@ -268,7 +273,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setPosition(terrainRenderable->getPosition());
                 supplyRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Supply<Health>>(supplyId, IntDistribution(1, 2)(mRandomEngine));
+                mRegistry.assign<Supply<Health>>(supplyId, healthSupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
             }
@@ -284,7 +289,7 @@ void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, cons
     auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
     const auto bulletBounds = bulletRenderable.getLocalBounds();
     const auto bulletId = mRegistry.create();
-    static const auto bulletHitRadius = std::max(bulletBounds.width / 2.0f, bulletBounds.height / 2.0f);
+    static const auto bulletHitRadius = std::max(bulletBounds.width, bulletBounds.height) / 2.0f;
 
     helpers::centerOrigin(bulletRenderable, bulletBounds);
     bulletRenderable.setRotation(rotation);
@@ -484,6 +489,7 @@ void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
 
 void PlanetAssault::AISystem(Assets &assets) noexcept {
     auto AI1Precision = FloatDistribution(-32.0f, 32.0f);
+    auto AI2Precision = FloatDistribution(-8.0f, 8.0f);
 
     mRegistry.view<Player, Renderable>().each([&](const auto playerTag, const auto playerRenderable) {
         (void) playerTag;
@@ -505,7 +511,8 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
                     (void) AITag;
 
                     if (AIReloadTime.canShoot()) {
-                        const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition());
+                        const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
+                                                    AI2Precision(mRandomEngine);
                         const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
                         addBullet(assets, bulletPosition, bulletRotation);
