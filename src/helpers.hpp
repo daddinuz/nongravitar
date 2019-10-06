@@ -94,17 +94,6 @@ namespace gravitar::helpers {
     }
 
     template<typename T>
-    sf::Vector2<T> normalized(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
-        auto diff = point - origin;
-
-        if (const auto mag = magnitude<T>(origin, point); mag > 0) {
-            diff /= mag;
-        }
-
-        return diff;
-    }
-
-    template<typename T>
     sf::Vector2<T> makeVector2(float angle, const T magnitude) {
         angle = deg2rad(angle);
         return sf::Vector2<T>(std::cos(angle), std::sin(angle)) * magnitude;
