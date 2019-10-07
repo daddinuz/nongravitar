@@ -27,17 +27,21 @@
 
 #pragma once
 
+#include <random>
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 #include <pubsub.hpp>
+#include <helpers.hpp>
 #include <messages.hpp>
 
 namespace gravitar::scene {
-    class SolarSystem final : public pubsub::Listen<messages::PlanetDestroyed>, public Scene {
+    class SolarSystem final : public Scene,
+                              public pubsub::Handler<messages::PlanetDestroyed>,
+                              public pubsub::Handler<messages::SolarSystemEntered> {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId, Assets &assets);
+        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -45,24 +49,36 @@ namespace gravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        void onNotify(const messages::PlanetDestroyed &planetDestroyed) noexcept final;
+        /**
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        SolarSystem &initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
+
+        void addPlanet(SceneId planetSceneId, const sf::RenderWindow &window, helpers::RandomEngine &randomEngine) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
-        void addPlanet(SceneId sceneId) noexcept;
-
     private:
-        void inputSystem(const sf::RenderWindow &window, const assets::SpriteSheetsManager &spriteSheetsManager, sf::Time elapsed) noexcept;
+        void operator()(const messages::PlanetDestroyed &message) noexcept final;
+        void operator()(const messages::SolarSystemEntered &message) noexcept final;
+
+        void initializePubSub() const noexcept;
+        void initializeReport(Assets &assets) noexcept;
+        void initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept;
+
+        void inputSystem(const sf::RenderWindow &window, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void livenessSystem() noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
-        sf::Text mReport;
         char mBuffer[128];
+        sf::Text mReport;
         const SceneId mYouWonSceneId;
         const SceneId mGameOverSceneId;
         SceneId mNextSceneId = nullSceneId;

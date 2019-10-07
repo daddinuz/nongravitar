@@ -33,9 +33,9 @@
 #include <SceneManager.hpp>
 
 namespace gravitar {
-    class Game {
+    class Game final {
     public:
-        Game() = default; // default-constructible
+        Game() = default; // no default-constructible
 
         Game(const Game &) = delete; // no copy-constructible
         Game &operator=(const Game &) = delete; // no copy-assignable
@@ -60,10 +60,10 @@ namespace gravitar {
 
         void handleEvents();
 
-        Assets mAssets;
-        SceneManager mSceneManager;
         sf::RenderWindow mWindow;
+        SceneManager mSceneManager;
+        Assets mAssets;
         sf::Clock mClock;
-        SceneId mSceneId = nullSceneId;
+        SceneId mCurrentSceneId = nullSceneId;
     };
 }

@@ -27,11 +27,27 @@
 
 #pragma once
 
-#include <Deref.hpp>
+#include <entt/entt.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::messages {
-    struct PlanetDestroyed final : public Deref<SceneId> {
-        explicit PlanetDestroyed(const SceneId sceneId) : Deref(sceneId) {}
+    struct SolarSystemEntered final {
+        SolarSystemEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
+
+        entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
+        const SceneId sceneId;
+    };
+
+    struct PlanetEntered final {
+        PlanetEntered(SceneId planetSceneId, entt::registry &sourceRegistry);
+
+        entt::registry &sourceRegistry; // FIXME this should be const but EnTT requires a mutable &
+        const SceneId sceneId;
+    };
+
+    struct PlanetDestroyed final {
+        explicit PlanetDestroyed(SceneId planetSceneId);
+
+        const SceneId sceneId;
     };
 }

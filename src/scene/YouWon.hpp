@@ -44,6 +44,8 @@ namespace gravitar::scene {
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
+        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+
         void render(sf::RenderTarget &window) noexcept final;
 
     private:

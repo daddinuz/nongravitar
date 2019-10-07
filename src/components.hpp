@@ -28,72 +28,130 @@
 #pragma once
 
 #include <variant>
+#include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
-#include <Deref.hpp>
 #include <Scene.hpp>
 
 namespace gravitar::components {
-    struct Velocity final : public Deref<sf::Vector2f> {
-        template<typename ...Args>
-        explicit Velocity(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Velocity final {
+        sf::Vector2f value;
     };
 
-    struct Health final : public Deref<int> {
-        template<typename ...Args>
-        explicit Health(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Health final {
+        int value;
 
         [[nodiscard]] inline bool isDead() const noexcept {
-            return this->deref() <= 0;
+            return value <= 0;
         }
     };
 
-    struct Fuel final : public Deref<float> {
-        template<typename ...Args>
-        explicit Fuel(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+    struct Fuel final {
+        float value;
 
         [[nodiscard]] inline bool isOver() const noexcept {
-            return this->deref() <= 0;
+            return value <= 0.0f;
         }
     };
 
-    class RechargeTime final {
+    template<typename T>
+    class Supply final {
     public:
-        explicit RechargeTime(float secondsBeforeShoot);
+        template<typename ...Args>
+        explicit Supply(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
+
+        [[nodiscard]] inline T *operator->() noexcept {
+            return &mInstance;
+        }
+
+        [[nodiscard]] inline const T *operator->() const noexcept {
+            return &mInstance;
+        }
+
+    private:
+        T mInstance;
+    };
+
+    class SceneRef final {
+    public:
+        template<typename ...Args>
+        explicit SceneRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
+
+        [[nodiscard]] inline SceneId operator*() const noexcept {
+            return mInstance;
+        }
+
+    private:
+        SceneId mInstance;
+    };
+
+    template<typename>
+    class EntityRef final {
+    public:
+        template<typename ...Args>
+        explicit EntityRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
+
+        [[nodiscard]] inline entt::entity operator*() const noexcept {
+            return mInstance;
+        }
+
+    private:
+        entt::entity mInstance;
+    };
+
+    class ReloadTime final {
+    public:
+        explicit ReloadTime(float secondsBeforeShoot);
 
         void reset();
 
         void elapse(const sf::Time &time);
 
-        [[nodiscard]] bool canShoot() const noexcept;
+        [[nodiscard]] inline bool canShoot() const noexcept {
+            return mElapsed >= mSecondsBeforeShoot;
+        }
 
     private:
         float mElapsed;
         float mSecondsBeforeShoot;
     };
 
-    struct SceneSwitcher final : public Deref<SceneId> {
+    class HitRadius final {
+    public:
         template<typename ...Args>
-        explicit SceneSwitcher(Args &&... args) : Deref(std::forward<Args>(args)...) {}
+        explicit HitRadius(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
+
+        [[nodiscard]] inline float operator*() const noexcept {
+            return mInstance;
+        }
+
+    private:
+        float mInstance;
     };
 
     class Renderable final : public sf::Drawable {
     public:
-        explicit Renderable(sf::Sprite &&instance);
-        explicit Renderable(sf::CircleShape &&instance);
+        template<typename ...Args>
+        explicit Renderable(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        void rotate(float angle);
-        [[nodiscard]] float getRotation() const noexcept;
+        [[nodiscard]] sf::Transformable &operator*() noexcept;
+        [[nodiscard]] const sf::Transformable &operator*() const noexcept;
 
-        void move(const sf::Vector2f &offset);
-        void setPosition(const sf::Vector2f &position);
-        [[nodiscard]] sf::Vector2f getPosition() const noexcept;
+        [[nodiscard]] sf::Transformable *operator->() noexcept;
+        [[nodiscard]] const sf::Transformable *operator->() const noexcept;
 
-        [[nodiscard]] sf::Vector2f getOrigin() const noexcept;
-        [[nodiscard]] sf::FloatRect getHitBox() const noexcept;
+        template<typename T>
+        [[nodiscard]] inline T &as() noexcept {
+            return std::get<T>(mInstance);
+        }
+
+        template<typename T>
+        [[nodiscard]] inline const T &as() const noexcept {
+            return std::get<T>(mInstance);
+        }
 
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite, sf::CircleShape> mInstance;
+        std::variant<sf::Sprite, sf::CircleShape, sf::RectangleShape> mInstance;
     };
 }

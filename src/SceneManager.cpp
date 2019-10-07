@@ -25,10 +25,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <helpers.hpp>
 #include <SceneManager.hpp>
 
 using namespace gravitar;
 
 Scene &SceneManager::get(SceneId id) {
-    return *mScenes.at(static_cast<typename std::underlying_type<SceneId>::type>(id));
+    return *mScenes.at(helpers::enumValue(id));
 }

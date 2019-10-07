@@ -32,27 +32,24 @@ using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
-TitleScreen::TitleScreen(const SceneId nextSceneId, Assets &assets) :
+TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
         mGravitarTitle(assets.getTexturesManager().get(TextureId::GravitarTitle)),
         mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 24),
-        mNextSceneId{nextSceneId} {
+        mSolarSystemSceneId{solarSystemSceneId} {
     helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
 SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mNextSceneId : getSceneId();
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mSolarSystemSceneId : getSceneId();
 }
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
-    (void) window;
-    (void) elapsed;
-
-    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::MainTheme != audioManager.getPlaying()) {
-        audioManager.play(SoundTrackId::MainTheme);
+    if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
+        audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    return getSceneId();
+    return Scene::update(window, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) noexcept {

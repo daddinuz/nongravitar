@@ -26,36 +26,30 @@
  */
 
 #include <trace.hpp>
+#include <helpers.hpp>
 #include <assets/TexturesManager.hpp>
 
 using namespace gravitar::assets;
 
-constexpr auto TEXTURES_PATH = GRAVITAR_DIRECTORY "/assets/textures";
-
 void TexturesManager::initialize() {
-    std::array<const std::tuple<const char *, TextureId>, 3> items = {
-            std::make_tuple<const char *, TextureId>("gravitar-title.png", TextureId::GravitarTitle),
-            std::make_tuple<const char *, TextureId>("spaceship.png", TextureId::SpaceShip),
-            std::make_tuple<const char *, TextureId>("bullet.png", TextureId::Bullet),
-    };
-
-    for (const auto &i : items) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
+    load("gravitar-title.png", TextureId::GravitarTitle);
+    load("spaceship.png", TextureId::SpaceShip);
+    load("bullet.png", TextureId::Bullet);
+    load("bunker.png", TextureId::Bunker);
+    load("terrain.png", TextureId::Terrain);
 }
 
-const sf::Texture &TexturesManager::get(TextureId id) const noexcept {
-    return mTextures.at(id);
+const sf::Texture &TexturesManager::get(const TextureId id) const noexcept {
+    return mTextures.at(helpers::enumValue(id));
 }
 
-void TexturesManager::load(const char *filename, TextureId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", TEXTURES_PATH, filename);
+void TexturesManager::load(const char *const filename, const TextureId id) {
+    auto path = std::string(GRAVITAR_TEXTURES_PATH "/") + filename;
 
-    if (auto &texture = mTextures[id]; texture.loadFromFile(path)) {
+    if (auto &texture = mTextures[helpers::enumValue(id)]; texture.loadFromFile(path)) {
         texture.setSmooth(true);
     } else {
-        std::snprintf(path, std::size(path), "%sUnable to load texture: %s", __TRACE__, filename);
+        path.insert(0, __TRACE__ "Unable to load texture: ");
         throw std::runtime_error(path);
     }
 }

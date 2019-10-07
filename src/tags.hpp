@@ -30,7 +30,13 @@
 #include <entt/entt.hpp>
 
 namespace gravitar::tags {
-    using Bullet = entt::tag<"bullet"_hs>;
-    using Player = entt::tag<"player"_hs>;
-    using Planet = entt::tag<"planet"_hs>;
+    using AI1 = entt::tag<"AI1"_hs>;
+    using AI2 = entt::tag<"AI2"_hs>;
+    using Bullet = entt::tag<"Bullet"_hs>;
+    using Bunker = entt::tag<"Bunker"_hs>;
+    using Hidden = entt::tag<"Hidden"_hs>;
+    using Player = entt::tag<"Player"_hs>;
+    using Planet = entt::tag<"Planet"_hs>;
+    using Tractor = entt::tag<"Tractor"_hs>;
+    using Terrain = entt::tag<"Terrain"_hs>;
 }

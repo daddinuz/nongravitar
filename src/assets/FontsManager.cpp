@@ -26,32 +26,24 @@
  */
 
 #include <trace.hpp>
+#include <helpers.hpp>
 #include <assets/FontsManager.hpp>
 
 using namespace gravitar::assets;
 
-constexpr auto FONTS_PATH = GRAVITAR_DIRECTORY "/assets/fonts";
-
 void FontsManager::initialize() {
-    std::array<const std::tuple<const char *, FontId>, 1> items = {
-            std::make_tuple<const char *, FontId>("mechanical.otf", FontId::Mechanical),
-    };
-
-    for (const auto &i : items) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
+    load("mechanical.otf", FontId::Mechanical);
 }
 
 const sf::Font &FontsManager::get(const FontId id) const noexcept {
-    return mFonts.at(id);
+    return mFonts.at(helpers::enumValue(id));
 }
 
 void FontsManager::load(const char *const filename, const FontId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", FONTS_PATH, filename);
+    auto path = std::string(GRAVITAR_FONTS_PATH "/") + filename;
 
-    if (auto &soundtrack = mFonts[id]; !soundtrack.loadFromFile(path)) {
-        std::snprintf(path, std::size(path), "%sUnable to load font: %s", __TRACE__, filename);
+    if (auto &font = mFonts[helpers::enumValue(id)]; !font.loadFromFile(path)) {
+        path.insert(0, __TRACE__ "Unable to load font: ");
         throw std::runtime_error(path);
     }
 }

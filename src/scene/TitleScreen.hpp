@@ -34,7 +34,7 @@ namespace gravitar::scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId nextSceneId, Assets &assets);
+        TitleScreen(SceneId solarSystemSceneId, Assets &assets);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
@@ -51,6 +51,6 @@ namespace gravitar::scene {
     private:
         sf::Sprite mGravitarTitle;
         sf::Text mSpaceLabel;
-        const SceneId mNextSceneId;
+        const SceneId mSolarSystemSceneId;
     };
 }

@@ -26,38 +26,46 @@
  */
 
 #include <trace.hpp>
+#include <helpers.hpp>
 #include <assets/AudioManager.hpp>
 
 using namespace gravitar::assets;
 
-constexpr auto SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
-
 void AudioManager::initialize() {
-    std::array<const std::tuple<const char *, SoundTrackId>, 1> items = {
-            std::make_tuple<const char *, SoundTrackId>("main-theme.wav", SoundTrackId::MainTheme),
-    };
+    // sounds
+    load("bullet-shot.ogg", SoundId::BulletShot);
 
-    for (const auto &i : items) {
-        load(std::get<0>(i), std::get<1>(i));
+    // soundtracks
+    load("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield);
+    load("Drozerix-ComputerAdventures.flac", SoundTrackId::ComputerAdventures);
+    load("Drozerix-ComputerF__k.flac", SoundTrackId::ComputerF__k);
+}
+
+void AudioManager::play(const SoundId id) noexcept {
+    if (not mMuted) {
+        mSounds.at(helpers::enumValue(id)).play();
     }
 }
 
 void AudioManager::play(const SoundTrackId id) noexcept {
-    if (SoundTrackId::None != mPreviousSoundtrackId) {
-        mSoundtracks.at(mPreviousSoundtrackId).stop();
-    }
+    if (not mMuted) {
+        if (SoundTrackId::None != mCurrentSoundtrackId) {
+            mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId)).stop();
+        }
 
-    mPreviousSoundtrackId = mCurrentSoundtrackId;
-    mCurrentSoundtrackId = id;
+        mCurrentSoundtrackId = id;
 
-    if (SoundTrackId::None != mCurrentSoundtrackId) {
-        mSoundtracks.at(mCurrentSoundtrackId).play();
+        if (SoundTrackId::None != mCurrentSoundtrackId) {
+            mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId)).play();
+        }
     }
 }
 
 void AudioManager::toggle() noexcept {
+    mMuted ^= true;
+
     if (SoundTrackId::None != mCurrentSoundtrackId) {
-        auto &soundtrack = mSoundtracks.at(mCurrentSoundtrackId);
+        auto &soundtrack = mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId));
         switch (soundtrack.getStatus()) {
             case sf::Music::Playing:
                 soundtrack.pause();
@@ -74,14 +82,24 @@ SoundTrackId AudioManager::getPlaying() const noexcept {
     return mCurrentSoundtrackId;
 }
 
-void AudioManager::load(const char *const filename, const SoundTrackId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", SOUNDTRACKS_PATH, filename);
+void AudioManager::load(const char *const filename, const SoundId id) {
+    auto path = std::string(GRAVITAR_SOUNDS_PATH "/") + filename;
 
-    if (decltype(auto) soundtrack = mSoundtracks[id]; soundtrack.openFromFile(path)) {
+    if (auto &soundBuffer = mSoundBuffers[helpers::enumValue(id)]; soundBuffer.loadFromFile(path)) {
+        mSounds[helpers::enumValue(id)].setBuffer(soundBuffer);
+    } else {
+        path.insert(0, __TRACE__ "Unable to load sound: ");
+        throw std::runtime_error(path);
+    }
+}
+
+void AudioManager::load(const char *const filename, const SoundTrackId id) {
+    auto path = std::string(GRAVITAR_SOUNDTRACKS_PATH "/") + filename;
+
+    if (auto &soundtrack = mSoundtracks[helpers::enumValue(id)]; soundtrack.openFromFile(path)) {
         soundtrack.setLoop(true);
     } else {
-        std::snprintf(path, std::size(path), "%sUnable to load soundtrack: %s", __TRACE__, filename);
+        path.insert(0, __TRACE__ "Unable to load soundtrack: ");
         throw std::runtime_error(path);
     }
 }

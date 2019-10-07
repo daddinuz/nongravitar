@@ -33,7 +33,7 @@
 #include <assets/SpriteSheetsManager.hpp>
 
 namespace gravitar {
-    class Assets {
+    class Assets final {
     public:
         Assets() = default; // default-constructible
 

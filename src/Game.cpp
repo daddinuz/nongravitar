@@ -30,11 +30,19 @@
 #include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <scene/YouWon.hpp>
+#include <constants.hpp>
+#include <helpers.hpp>
 #include <Game.hpp>
 
 using namespace gravitar;
+using namespace gravitar::scene;
+using namespace gravitar::constants;
 
-Game &gravitar::Game::initialize() {
+using RandomDevice = helpers::RandomDevice;
+using RandomEngine = helpers::RandomEngine;
+using IntDistribution = helpers::IntDistribution;
+
+Game &Game::initialize() {
     mAssets.initialize();
     initializeWindow();
     initializeScenes();
@@ -44,10 +52,10 @@ Game &gravitar::Game::initialize() {
 int Game::run() {
     mClock.restart();
 
-    for (handleEvents(); nullSceneId != mSceneId; handleEvents()) {
-        mSceneId = mSceneManager.get(mSceneId).update(mWindow, mAssets, mClock.restart());
+    for (handleEvents(); nullSceneId != mCurrentSceneId; handleEvents()) {
+        mCurrentSceneId = mSceneManager.get(mCurrentSceneId).update(mWindow, mAssets, mClock.restart());
         mWindow.clear();
-        mSceneManager.get(mSceneId).render(mWindow);
+        mSceneManager.get(mCurrentSceneId).render(mWindow);
         mWindow.display();
     }
 
@@ -59,50 +67,56 @@ void Game::initializeWindow() {
     mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
     mWindow.setKeyRepeatEnabled(false);
-    mWindow.setFramerateLimit(60); // roughly 60 fps
+    mWindow.setFramerateLimit(FPS);
     mWindow.setActive(true);
 }
 
 void Game::initializeScenes() {
-    auto &youWon = mSceneManager.emplace<scene::YouWon>(mAssets);
-    auto &gameOver = mSceneManager.emplace<scene::GameOver>(mAssets);
-    auto &solarSystem = mSceneManager.emplace<scene::SolarSystem>(youWon.getSceneId(), gameOver.getSceneId(), mAssets);
-    auto &titleScreen = mSceneManager.emplace<scene::TitleScreen>(solarSystem.getSceneId(), mAssets);
+    auto randomDevice = RandomDevice();
+    auto randomEngine = RandomEngine(randomDevice());
+    const auto planets = IntDistribution(4, 9)(randomEngine);
 
-    auto &planetAssault = mSceneManager.emplace<scene::PlanetAssault>(gameOver.getSceneId(), mAssets);
-    planetAssault.setParentSceneId(solarSystem.getSceneId());
-    solarSystem.addPlanet(planetAssault.getSceneId());
+    auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
+    auto &gameOver = mSceneManager.emplace<GameOver>(mAssets);
+    auto &solarSystem = mSceneManager
+            .emplace<SolarSystem>(youWon.getSceneId(), gameOver.getSceneId())
+            .initialize(mWindow, mAssets);
 
-    pubsub::subscribe<messages::PlanetDestroyed>(solarSystem);
+    for (auto i = 0; i < planets; i++) {
+        auto &planetAssault = mSceneManager
+                .emplace<PlanetAssault>(solarSystem.getSceneId(), gameOver.getSceneId())
+                .initialize(mWindow, mAssets);
 
-    mSceneId = titleScreen.getSceneId();
+        solarSystem.addPlanet(planetAssault.getSceneId(), mWindow, randomEngine);
+    }
+
+    mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();
 }
 
 void Game::handleEvents() {
     auto event = sf::Event{};
 
-    while (nullSceneId != mSceneId and mWindow.pollEvent(event)) {
+    while (nullSceneId != mCurrentSceneId and mWindow.pollEvent(event)) {
         if (sf::Event::KeyPressed == event.type) {
             switch (event.key.code) {
                 case sf::Keyboard::Escape:
-                    mSceneId = nullSceneId;
+                    mCurrentSceneId = nullSceneId;
                     break;
 
                 case sf::Keyboard::F6:
                     mAssets.getAudioManager().toggle();
                     break;
-// TODO: remove me
-#ifndef NDEBUG
+
                 case sf::Keyboard::Delete:
-                    mWindow.create({800, 600}, "Gravitar", sf::Style::Close);
+                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Close); });
                     break;
 
                 case sf::Keyboard::F4:
-                    mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen); });
                     break;
-#endif
+
                 default:
-                    mSceneId = mSceneManager.get(mSceneId).onEvent(event);
+                    mCurrentSceneId = mSceneManager.get(mCurrentSceneId).onEvent(event);
                     break;
             }
         }
