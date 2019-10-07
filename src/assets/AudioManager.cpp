@@ -26,48 +26,37 @@
  */
 
 #include <trace.hpp>
+#include <helpers.hpp>
 #include <assets/AudioManager.hpp>
 
 using namespace gravitar::assets;
 
-constexpr auto SOUNDS_PATH = GRAVITAR_DIRECTORY "/assets/sounds";
-constexpr auto SOUNDTRACKS_PATH = GRAVITAR_DIRECTORY "/assets/soundtracks";
-
 void AudioManager::initialize() {
-    std::array<const std::tuple<const char *, SoundId>, 1> sounds = {
-            std::make_tuple<const char *, SoundId>("bullet-shot.ogg", SoundId::BulletShot),
-    };
-    std::array<const std::tuple<const char *, SoundTrackId>, 3> soundtracks = {
-            std::make_tuple<const char *, SoundTrackId>("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield),
-            std::make_tuple<const char *, SoundTrackId>("Drozerix-ComputerAdventures.flac", SoundTrackId::ComputerAdventures),
-            std::make_tuple<const char *, SoundTrackId>("Drozerix-ComputerF__k.flac", SoundTrackId::ComputerF__k),
-    };
+    // sounds
+    load("bullet-shot.ogg", SoundId::BulletShot);
 
-    for (const auto &i : sounds) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
-
-    for (const auto &i : soundtracks) {
-        load(std::get<0>(i), std::get<1>(i));
-    }
+    // soundtracks
+    load("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield);
+    load("Drozerix-ComputerAdventures.flac", SoundTrackId::ComputerAdventures);
+    load("Drozerix-ComputerF__k.flac", SoundTrackId::ComputerF__k);
 }
 
 void AudioManager::play(const SoundId id) noexcept {
     if (not mMuted) {
-        mSounds.at(id).play();
+        mSounds.at(helpers::enumValue(id)).play();
     }
 }
 
 void AudioManager::play(const SoundTrackId id) noexcept {
     if (not mMuted) {
         if (SoundTrackId::None != mCurrentSoundtrackId) {
-            mSoundtracks.at(mCurrentSoundtrackId).stop();
+            mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId)).stop();
         }
 
         mCurrentSoundtrackId = id;
 
         if (SoundTrackId::None != mCurrentSoundtrackId) {
-            mSoundtracks.at(mCurrentSoundtrackId).play();
+            mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId)).play();
         }
     }
 }
@@ -76,7 +65,7 @@ void AudioManager::toggle() noexcept {
     mMuted ^= true;
 
     if (SoundTrackId::None != mCurrentSoundtrackId) {
-        auto &soundtrack = mSoundtracks.at(mCurrentSoundtrackId);
+        auto &soundtrack = mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId));
         switch (soundtrack.getStatus()) {
             case sf::Music::Playing:
                 soundtrack.pause();
@@ -93,26 +82,24 @@ SoundTrackId AudioManager::getPlaying() const noexcept {
     return mCurrentSoundtrackId;
 }
 
-void AudioManager::load(const char *filename, SoundId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", SOUNDS_PATH, filename);
+void AudioManager::load(const char *const filename, const SoundId id) {
+    auto path = std::string(GRAVITAR_SOUNDS_PATH "/") + filename;
 
-    if (decltype(auto) sound = mSoundBuffers[id]; not sound.loadFromFile(path)) {
-        std::snprintf(path, std::size(path), "%sUnable to load sound: %s", __TRACE__, filename);
+    if (auto &soundBuffer = mSoundBuffers[helpers::enumValue(id)]; soundBuffer.loadFromFile(path)) {
+        mSounds[helpers::enumValue(id)].setBuffer(soundBuffer);
+    } else {
+        path.insert(0, __TRACE__ "Unable to load sound: ");
         throw std::runtime_error(path);
     }
-
-    mSounds.emplace(id, mSoundBuffers[id]);
 }
 
 void AudioManager::load(const char *const filename, const SoundTrackId id) {
-    char path[256];
-    std::snprintf(path, std::size(path), "%s/%s", SOUNDTRACKS_PATH, filename);
+    auto path = std::string(GRAVITAR_SOUNDTRACKS_PATH "/") + filename;
 
-    if (decltype(auto) soundtrack = mSoundtracks[id]; soundtrack.openFromFile(path)) {
+    if (auto &soundtrack = mSoundtracks[helpers::enumValue(id)]; soundtrack.openFromFile(path)) {
         soundtrack.setLoop(true);
     } else {
-        std::snprintf(path, std::size(path), "%sUnable to load soundtrack: %s", __TRACE__, filename);
+        path.insert(0, __TRACE__ "Unable to load soundtrack: ");
         throw std::runtime_error(path);
     }
 }

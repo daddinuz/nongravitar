@@ -27,12 +27,12 @@
 
 #pragma once
 
-#include <map>
+#include <array>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar::assets {
-    enum class TextureId {
-        GravitarTitle,
+    enum class TextureId : std::size_t {
+        GravitarTitle = 0,
         SpaceShip,
         Bullet,
         Bunker,
@@ -63,6 +63,6 @@ namespace gravitar::assets {
     private:
         void load(const char *filename, TextureId id);
 
-        std::map<TextureId, sf::Texture> mTextures;
+        std::array<sf::Texture, 5> mTextures;
     };
 }

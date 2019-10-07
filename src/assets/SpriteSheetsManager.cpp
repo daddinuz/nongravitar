@@ -31,16 +31,10 @@ using namespace gravitar;
 using namespace gravitar::assets;
 
 void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
-    std::array<const std::tuple<SpriteSheetId, TextureId, sf::Vector2u>, 4> items = {
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::SpaceShip, TextureId::SpaceShip, {32, 32}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bullet, TextureId::Bullet, {8, 8}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Bunker, TextureId::Bunker, {56, 56}),
-            std::make_tuple<SpriteSheetId, TextureId, sf::Vector2u>(SpriteSheetId::Terrain, TextureId::Terrain, {56, 1}),
-    };
-
-    for (const auto &i : items) {
-        mSpriteSheets.emplace(std::get<0>(i), SpriteSheet::from(textureManager.get(std::get<1>(i)), std::get<2>(i)));
-    }
+    mSpriteSheets.emplace(SpriteSheetId::SpaceShip, SpriteSheet::from(textureManager.get(TextureId::SpaceShip), {32, 32}));
+    mSpriteSheets.emplace(SpriteSheetId::Bullet, SpriteSheet::from(textureManager.get(TextureId::Bullet), {8, 8}));
+    mSpriteSheets.emplace(SpriteSheetId::Bunker, SpriteSheet::from(textureManager.get(TextureId::Bunker), {56, 56}));
+    mSpriteSheets.emplace(SpriteSheetId::Terrain, SpriteSheet::from(textureManager.get(TextureId::Terrain), {56, 1}));
 }
 
 const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {

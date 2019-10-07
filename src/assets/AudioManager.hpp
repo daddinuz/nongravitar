@@ -27,19 +27,19 @@
 
 #pragma once
 
-#include <map>
+#include <array>
 #include <SFML/Audio.hpp>
 
 namespace gravitar::assets {
-    enum class SoundTrackId {
-        None,
-        AmbientStarfield,
+    enum class SoundTrackId : std::size_t {
+        AmbientStarfield = 0,
         ComputerAdventures,
         ComputerF__k,
+        None = std::numeric_limits<std::size_t>::max(),
     };
 
-    enum class SoundId {
-        BulletShot,
+    enum class SoundId : std::size_t {
+        BulletShot = 0,
     };
 
     class AudioManager final {
@@ -73,9 +73,9 @@ namespace gravitar::assets {
         void load(const char *filename, SoundId id);
         void load(const char *filename, SoundTrackId id);
 
-        std::map<SoundTrackId, sf::Music> mSoundtracks;
-        std::map<SoundId, sf::SoundBuffer> mSoundBuffers;
-        std::map<SoundId, sf::Sound> mSounds;
+        std::array<sf::Music, 3> mSoundtracks;
+        std::array<sf::SoundBuffer, 1> mSoundBuffers;
+        std::array<sf::Sound, 1> mSounds;
         SoundTrackId mCurrentSoundtrackId{SoundTrackId::None};
         bool mMuted{false};
     };

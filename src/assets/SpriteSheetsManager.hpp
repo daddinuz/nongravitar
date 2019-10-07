@@ -32,8 +32,8 @@
 #include <assets/TexturesManager.hpp>
 
 namespace gravitar::assets {
-    enum class SpriteSheetId {
-        SpaceShip,
+    enum class SpriteSheetId : std::size_t {
+        SpaceShip = 0,
         Bullet,
         Bunker,
         Terrain,

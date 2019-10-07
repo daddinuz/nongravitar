@@ -79,6 +79,12 @@ namespace gravitar::helpers {
         self.setOrigin(bounds.left + bounds.width / T(2), bounds.top + bounds.height / T(2));
     }
 
+    template<typename T>
+    auto enumValue(T instance) {
+        static_assert(std::is_enum<T>::value);
+        return static_cast<typename std::underlying_type<T>::type>(instance);
+    }
+
     /// Range [0, 360].
     template<typename T>
     float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {

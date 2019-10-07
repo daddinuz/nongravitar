@@ -27,12 +27,12 @@
 
 #pragma once
 
-#include <map>
+#include <array>
 #include <SFML/Graphics.hpp>
 
 namespace gravitar::assets {
-    enum class FontId {
-        Mechanical
+    enum class FontId : std::size_t {
+        Mechanical = 0,
     };
 
     class FontsManager final {
@@ -59,6 +59,6 @@ namespace gravitar::assets {
     private:
         void load(const char *filename, FontId id);
 
-        std::map<FontId, sf::Font> mFonts;
+        std::array<sf::Font, 1> mFonts;
     };
 }
