@@ -188,7 +188,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
     auto AI1ReloadDistribution = FloatDistribution(1.32f, 1.64f);
     auto AI2ReloadDistribution = FloatDistribution(1.64f, 1.96f);
-    auto fuelSupplyDistribution = FloatDistribution(1000.0f, 2500.0f);
+    auto fuelSupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
     auto healthSupplyDistribution = IntDistribution(1, 2);
     auto entityDistribution = IntDistribution(1, 16);
 
