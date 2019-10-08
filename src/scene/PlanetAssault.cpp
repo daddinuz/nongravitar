@@ -71,7 +71,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
     collisionSystem(window);
     reloadSystem(elapsed);
     AISystem(assets);
-    livenessSystem();
+    livenessSystem(window);
     reportSystem(window);
 
     return mNextSceneId;
@@ -105,7 +105,7 @@ void PlanetAssault::operator()(const PlanetEntered &message) noexcept {
         mRegistry.destroy(players.begin(), players.end());
         mRegistry.destroy(tractors.begin(), tractors.end());
 
-        for (const auto sourcePlayerId : message.sourceRegistry.view<Player>()) {
+        for (const auto sourcePlayerId : message.registry.view<Player>()) {
             auto tractorId = mRegistry.create();
             auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
 
@@ -118,9 +118,13 @@ void PlanetAssault::operator()(const PlanetEntered &message) noexcept {
             mRegistry.assign<HitRadius>(tractorId, TRACTOR_RADIUS);
             mRegistry.assign<Renderable>(tractorId, std::move(tractorRenderable));
 
-            const auto playerId = mRegistry.create(sourcePlayerId, message.sourceRegistry);
+            const auto playerId = mRegistry.create(sourcePlayerId, message.registry);
             mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
             mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
+
+            auto &playerRenderable = mRegistry.get<Renderable>(playerId);
+            playerRenderable->setRotation(90.0f);
+            playerRenderable->setPosition(message.window.getSize().x / 2.0f, 128.0f);
         }
     }
 }
@@ -309,7 +313,7 @@ void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, cons
 
 void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    decltype(auto) keyPressed = &sf::Keyboard::isKeyPressed;
+    const auto keyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, Fuel, Velocity, ReloadTime, HitRadius, Renderable>()
@@ -403,8 +407,8 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
             const auto bullets = mRegistry.view<Bullet>();
             mNextSceneId = mSolarSystemSceneId;
             mRegistry.destroy(bullets.begin(), bullets.end());
+            pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId());
             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-            pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
         }
     }
@@ -527,10 +531,10 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     });
 }
 
-void PlanetAssault::livenessSystem() noexcept {
+void PlanetAssault::livenessSystem(const sf::RenderWindow &window) noexcept {
     if (mRegistry.view<Bunker>().begin() == mRegistry.view<Bunker>().end()) { // no more bunkers left
         mNextSceneId = mSolarSystemSceneId;
-        pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
+        pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId());
         pubsub::publish<PlanetDestroyed>(getSceneId());
     }
 

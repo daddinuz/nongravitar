@@ -29,10 +29,10 @@
 
 using namespace gravitar::messages;
 
-PlanetEntered::PlanetEntered(const SceneId planetSceneId, entt::registry &sourceRegistry)
-        : sourceRegistry(sourceRegistry), sceneId(planetSceneId) {}
+SolarSystemEntered::SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
+        : window(window), registry(registry), sceneId(sceneId) {}
 
-SolarSystemEntered::SolarSystemEntered(const SceneId planetSceneId, entt::registry &sourceRegistry)
-        : sourceRegistry(sourceRegistry), sceneId(planetSceneId) {}
+PlanetEntered::PlanetEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
+        : window(window), registry(registry), sceneId(sceneId) {}
 
-PlanetDestroyed::PlanetDestroyed(const SceneId planetSceneId) : sceneId(planetSceneId) {}
+PlanetDestroyed::PlanetDestroyed(const SceneId sceneId) : sceneId(sceneId) {}

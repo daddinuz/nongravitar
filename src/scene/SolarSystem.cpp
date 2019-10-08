@@ -169,8 +169,9 @@ void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
             const auto players = mRegistry.view<Player>();
 
             mRegistry.destroy(players.begin(), players.end());
-            for (const auto sourcePlayerId : message.sourceRegistry.view<Player>()) {
-                const auto playerId = mRegistry.create(sourcePlayerId, message.sourceRegistry);
+            for (const auto sourcePlayerId : message.registry.view<Player>()) {
+                const auto playerId = mRegistry.create(sourcePlayerId, message.registry);
+                mRegistry.get<Renderable>(playerId)->setPosition(sf::Vector2f(message.window.getSize()) / 2.0f);
                 mRegistry.remove<EntityRef<Tractor>>(playerId);
             }
         }
@@ -274,31 +275,28 @@ void SolarSystem::motionSystem(const sf::Time elapsed) noexcept {
 
 void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
+    const auto players = mRegistry.view<Player, HitRadius, Renderable>();
 
-    mRegistry
-            .view<Player, HitRadius, Renderable>()
-            .each([&](const auto playerId, const auto playerTag, const auto &playerHitRadius, auto &playerRenderable) {
-                (void) playerTag;
+    for (const auto playerId : players) {
+        const auto &[playerHitRadius, playerRenderable] = players.get<HitRadius, Renderable>(playerId);
 
-                if (viewport.contains(playerRenderable->getPosition())) {
-                    const auto planets = mRegistry.view<Planet, Renderable, HitRadius, SceneRef>();
+        if (viewport.contains(playerRenderable->getPosition())) {
+            const auto planets = mRegistry.view<Planet, Renderable, HitRadius, SceneRef>();
 
-                    for (const auto planetId : planets) {
-                        const auto &[planetRenderable, planetHitRadius, planetSceneRef] = planets.get<Renderable, HitRadius, SceneRef>(planetId);
+            for (const auto planetId : planets) {
+                const auto &[planetHitRadius, planetRenderable, planetSceneRef] = planets.get<HitRadius, Renderable, SceneRef>(planetId);
 
-                        if (helpers::magnitude(playerRenderable->getPosition(), planetRenderable->getPosition()) <= *playerHitRadius + *planetHitRadius) {
-                            mNextSceneId = *planetSceneRef;
-                            planetRenderable->setRotation(90.0f);
-                            playerRenderable->setPosition(window.getSize().x / 2.0f, 128.0f);
-                            pubsub::publish<PlanetEntered>(*planetSceneRef, mRegistry);
-                            break; // we can enter only one planet at a time
-                        }
-                    }
-                } else {
-                    mRegistry.get<Health>(playerId).value -= 1;
-                    playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+                if (helpers::magnitude(playerRenderable->getPosition(), planetRenderable->getPosition()) <= *playerHitRadius + *planetHitRadius) {
+                    mNextSceneId = *planetSceneRef;
+                    pubsub::publish<PlanetEntered>(window, mRegistry, *planetSceneRef);
+                    return; // we can enter only one planet at a time
                 }
-            });
+            }
+        } else {
+            mRegistry.get<Health>(playerId).value -= 1;
+            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+        }
+    }
 }
 
 void SolarSystem::livenessSystem() noexcept {
