@@ -190,8 +190,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
     } while (viewport.contains(terrainPosition));
 
-    auto AI1ReloadDistribution = FloatDistribution(1.32f, 1.64f);
-    auto AI2ReloadDistribution = FloatDistribution(1.64f, 1.96f);
+    auto AI1ReloadDistribution = FloatDistribution(1.64f, 2.28f);
+    auto AI2ReloadDistribution = FloatDistribution(1.96f, 2.28f);
     auto fuelSupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
     auto healthSupplyDistribution = IntDistribution(1, 2);
     auto entityDistribution = IntDistribution(1, 16);
@@ -200,8 +200,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         (void) terrainTag;
 
         switch (entityDistribution(mRandomEngine)) {
-            case 2:
-            case 4: {
+            case 2: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(0);
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
@@ -222,6 +221,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
+            case 4:
             case 6: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
@@ -364,8 +364,8 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
 
 void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
-
     const auto players = mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
+
     for (const auto playerId : players) {
         auto &playerRenderable = players.get<Renderable>(playerId);
 
