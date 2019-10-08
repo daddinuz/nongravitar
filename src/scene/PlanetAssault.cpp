@@ -400,7 +400,9 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
         auto &playerRenderable = players.get<Renderable>(playerId);
 
         if (not viewport.contains(playerRenderable->getPosition())) {
+            const auto bullets = mRegistry.view<Bullet>();
             mNextSceneId = mSolarSystemSceneId;
+            mRegistry.destroy(bullets.begin(), bullets.end());
             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
             pubsub::publish<SolarSystemEntered>(getSceneId(), mRegistry);
             return;
