@@ -67,7 +67,7 @@ namespace gravitar::scene {
 
         void addBullet(Assets &assets, const sf::Vector2f &position, float rotation) noexcept;
 
-        void inputSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
+        void inputSystem(Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void reloadSystem(sf::Time elapsed) noexcept;

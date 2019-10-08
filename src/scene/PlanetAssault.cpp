@@ -66,7 +66,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
         audioManager.play(SoundTrackId::ComputerAdventures);
     }
 
-    inputSystem(window, assets, elapsed);
+    inputSystem(assets, elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
     reloadSystem(elapsed);
@@ -311,69 +311,35 @@ void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, cons
     assets.getAudioManager().play(SoundId::BulletShot);
 }
 
-void PlanetAssault::inputSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    const auto keyPressed = &sf::Keyboard::isKeyPressed;
+    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, Fuel, Velocity, ReloadTime, HitRadius, Renderable>()
             .each([&](const auto playerId, const auto playerTag, auto &playerFuel, auto &playerVelocity,
                       auto &playerReloadTime, const auto &playerHitRadius, auto &playerRenderable) {
                 (void) playerTag;
+                const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
+                auto playerSpeed = PLAYER_SPEED;
 
-                auto speed = PLAYER_SPEED;
-                const auto input = (keyPressed(Key::A) ? 1 : 0) + (keyPressed(Key::D) ? 2 : 0) +
-                                   (keyPressed(Key::W) ? 4 : 0) + (keyPressed(Key::S) ? 8 : 0);
-
-                switch (input) {
-                    case 1:
-                        playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                        break;
-
-                    case 2:
-                        playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                        break;
-
-                    case 4:
-                        speed *= 1.56f;
-                        break;
-
-                    case 5:
-                        playerRenderable->rotate(-PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
-                        speed *= 1.32f;
-                        break;
-
-                    case 6:
-                        playerRenderable->rotate(PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
-                        speed *= 1.32f;
-                        break;
-
-                    case 8:
-                        speed *= 0.98f;
-                        break;
-
-                    case 9:
-                        playerRenderable->rotate(-PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
-                        speed *= 0.68f;
-                        break;
-
-                    case 10:
-                        playerRenderable->rotate(PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
-                        speed *= 0.68f;
-                        break;
-
-                    default: {
-                        const auto mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-                        const auto mouseRotation = helpers::rotation(playerRenderable->getPosition(), mousePosition);
-                        const auto shortestRotation = helpers::shortestRotation(playerRenderable->getRotation(), mouseRotation);
-                        playerRenderable->rotate(static_cast<float>(helpers::signum(shortestRotation)) * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                    }
+                if (isKeyPressed(Key::W)) {
+                    playerSpeed *= 1.32f;
+                } else if (isKeyPressed(Key::S)) {
+                    playerSpeed *= 0.88f;
                 }
 
-                playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
-                playerFuel.value -= speed * elapsed.asSeconds();
+                if (isKeyPressed(Key::A)) {
+                    playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
+                }
 
-                const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
+                if (isKeyPressed(Key::D)) {
+                    playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
+                }
+
+                playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
+                playerFuel.value -= playerSpeed * elapsed.asSeconds();
+
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
                     mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
                     mRegistry.reset<Hidden>(tractorId);

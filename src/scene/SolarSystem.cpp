@@ -122,7 +122,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, cons
         audioManager.play(SoundTrackId::ComputerF__k);
     }
 
-    inputSystem(window, elapsed);
+    inputSystem(elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem();
@@ -206,65 +206,33 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
-void SolarSystem::inputSystem(const sf::RenderWindow &window, const sf::Time elapsed) noexcept {
+void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    const auto keyPressed = &sf::Keyboard::isKeyPressed;
+    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
-    mRegistry.view<Player, Fuel, Velocity, Renderable>().each([&](const auto tag, auto &fuel, auto &velocity, auto &renderable) {
-        (void) tag;
+    mRegistry
+            .view<Player, Fuel, Velocity, Renderable>()
+            .each([&](const auto playerTag, auto &playerFuel, auto &playerVelocity, auto &playerRenderable) {
+                (void) playerTag;
+                auto speed = PLAYER_SPEED;
 
-        auto speed = PLAYER_SPEED;
-        const auto input = (keyPressed(Key::A) ? 1 : 0) + (keyPressed(Key::D) ? 2 : 0) +
-                           (keyPressed(Key::W) ? 4 : 0) + (keyPressed(Key::S) ? 8 : 0);
+                if (isKeyPressed(Key::W)) {
+                    speed *= 1.32f;
+                } else if (isKeyPressed(Key::S)) {
+                    speed *= 0.88f;
+                }
 
-        switch (input) {
-            case 1:
-                renderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                break;
+                if (isKeyPressed(Key::A)) {
+                    playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
+                }
 
-            case 2:
-                renderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                break;
+                if (isKeyPressed(Key::D)) {
+                    playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
+                }
 
-            case 4:
-                speed *= 1.56f;
-                break;
-
-            case 5:
-                renderable->rotate(-PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
-                speed *= 1.32f;
-                break;
-
-            case 6:
-                renderable->rotate(PLAYER_ROTATION_SPEED * 0.92f * elapsed.asSeconds());
-                speed *= 1.32f;
-                break;
-
-            case 8:
-                speed *= 0.98f;
-                break;
-
-            case 9:
-                renderable->rotate(-PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
-                speed *= 0.68f;
-                break;
-
-            case 10:
-                renderable->rotate(PLAYER_ROTATION_SPEED * 1.08f * elapsed.asSeconds());
-                speed *= 0.68f;
-                break;
-
-            default: {
-                const auto mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-                const auto mouseRotation = helpers::rotation(renderable->getPosition(), mousePosition);
-                const auto shortestRotation = helpers::shortestRotation(renderable->getRotation(), mouseRotation);
-                renderable->rotate(static_cast<float>(helpers::signum(shortestRotation)) * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-            }
-        }
-
-        velocity.value = helpers::makeVector2(renderable->getRotation(), speed);
-        fuel.value -= speed * elapsed.asSeconds();
-    });
+                playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
+                playerFuel.value -= speed * elapsed.asSeconds();
+            });
 }
 
 void SolarSystem::motionSystem(const sf::Time elapsed) noexcept {
