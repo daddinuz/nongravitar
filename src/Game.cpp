@@ -41,6 +41,7 @@ using namespace gravitar::constants;
 using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
 using IntDistribution = helpers::IntDistribution;
+using ByteDistribution = helpers::ByteDistribution;
 
 Game &Game::initialize() {
     mAssets.initialize();
@@ -85,10 +86,10 @@ void Game::initializeScenes() {
 
     for (auto i = 0; i < planets; i++) {
         const auto planetColor = sf::Color(
-                helpers::ByteDistribution(127, 255)(randomEngine),
-                helpers::ByteDistribution(63, 255)(randomEngine),
-                helpers::ByteDistribution(0, 127)(randomEngine),
-                helpers::ByteDistribution(127, 200)(randomEngine)
+                ByteDistribution(127, 255)(randomEngine),
+                ByteDistribution(63, 255)(randomEngine),
+                ByteDistribution(0, 127)(randomEngine),
+                ByteDistribution(127, 200)(randomEngine)
         );
 
         auto &planetAssault = mSceneManager
