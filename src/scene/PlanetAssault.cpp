@@ -71,7 +71,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
     collisionSystem(window);
     reloadSystem(elapsed);
     AISystem(assets);
-    livenessSystem(window);
+    livenessSystem();
     reportSystem(window);
 
     return mNextSceneId;
@@ -497,13 +497,7 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     });
 }
 
-void PlanetAssault::livenessSystem(const sf::RenderWindow &window) noexcept {
-    if (mRegistry.view<Bunker>().begin() == mRegistry.view<Bunker>().end()) { // no more bunkers left
-        mNextSceneId = mSolarSystemSceneId;
-        pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId());
-        pubsub::publish<PlanetDestroyed>(getSceneId());
-    }
-
+void PlanetAssault::livenessSystem() noexcept {
     mRegistry.view<Player, Health, Fuel>().each([&](const auto id, const auto tag, const auto &health, const auto &fuel) {
         (void) tag;
 

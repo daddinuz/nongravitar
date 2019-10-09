@@ -36,7 +36,6 @@
 
 namespace gravitar::scene {
     class SolarSystem final : public Scene,
-                              public pubsub::Handler<messages::PlanetDestroyed>,
                               public pubsub::Handler<messages::SolarSystemEntered> {
     public:
         SolarSystem() = delete; // no default-constructible
@@ -63,7 +62,6 @@ namespace gravitar::scene {
         void render(sf::RenderTarget &window) noexcept final;
 
     private:
-        void operator()(const messages::PlanetDestroyed &message) noexcept final;
         void operator()(const messages::SolarSystemEntered &message) noexcept final;
 
         void initializePubSub() const noexcept;

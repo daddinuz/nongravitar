@@ -72,7 +72,7 @@ namespace gravitar::scene {
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void reloadSystem(sf::Time elapsed) noexcept;
         void AISystem(Assets &assets) noexcept;
-        void livenessSystem(const sf::RenderWindow &window) noexcept;
+        void livenessSystem() noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;

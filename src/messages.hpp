@@ -46,10 +46,4 @@ namespace gravitar::messages {
         entt::registry &registry; // FIXME this should be const but EnTT requires a mutable &
         const SceneId sceneId; // destination planet SceneId
     };
-
-    struct PlanetDestroyed final {
-        explicit PlanetDestroyed(SceneId sceneId);
-
-        const SceneId sceneId; // planet SceneId
-    };
 }

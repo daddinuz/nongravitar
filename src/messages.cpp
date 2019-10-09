@@ -34,5 +34,3 @@ SolarSystemEntered::SolarSystemEntered(const sf::RenderWindow &window, entt::reg
 
 PlanetEntered::PlanetEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
         : window(window), registry(registry), sceneId(sceneId) {}
-
-PlanetDestroyed::PlanetDestroyed(const SceneId sceneId) : sceneId(sceneId) {}

@@ -151,21 +151,11 @@ void SolarSystem::render(sf::RenderTarget &window) noexcept {
     });
 }
 
-void SolarSystem::operator()(const PlanetDestroyed &message) noexcept {
-    mRegistry.view<Planet, SceneRef>().each([&](const auto id, const auto tag, const auto &sceneRef) {
-        (void) tag;
-
-        if (message.sceneId == *sceneRef) {
-            mRegistry.destroy(id);
-        }
-    });
-}
-
 void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
-    mRegistry.view<Planet, SceneRef>().each([&](const auto tag, const auto &sceneRef) {
-        (void) tag;
+    const auto planets = mRegistry.view<Planet, SceneRef>();
 
-        if (message.sceneId == *sceneRef) {
+    for (const auto planetId : planets) {
+        if (message.sceneId == *planets.get<SceneRef>(planetId)) {
             const auto players = mRegistry.view<Player>();
 
             mRegistry.destroy(players.begin(), players.end());
@@ -174,13 +164,18 @@ void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
                 mRegistry.get<Renderable>(playerId)->setPosition(sf::Vector2f(message.window.getSize()) / 2.0f);
                 mRegistry.remove<EntityRef<Tractor>>(playerId);
             }
+
+            if (const auto bunkers = message.registry.view<Bunker>(); bunkers.begin() == bunkers.end()) {
+                mRegistry.destroy(planetId);
+            }
+
+            return; // we can exit the function because we found our planet and we know that each planet has a unique id.
         }
-    });
+    }
 }
 
 void SolarSystem::initializePubSub() const noexcept {
     pubsub::subscribe<messages::SolarSystemEntered>(*this);
-    pubsub::subscribe<messages::PlanetDestroyed>(*this);
 }
 
 void SolarSystem::initializeReport(Assets &assets) noexcept {
