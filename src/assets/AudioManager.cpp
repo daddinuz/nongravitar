@@ -33,7 +33,9 @@ using namespace gravitar::assets;
 
 void AudioManager::initialize() {
     // sounds
-    load("bullet-shot.ogg", SoundId::BulletShot);
+    load("hit.ogg", SoundId::Hit);
+    load("shot.ogg", SoundId::Shot);
+    load("tractor.ogg", SoundId::Tractor);
 
     // soundtracks
     load("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield);

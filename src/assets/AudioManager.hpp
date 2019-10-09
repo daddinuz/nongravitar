@@ -39,7 +39,9 @@ namespace gravitar::assets {
     };
 
     enum class SoundId : std::size_t {
-        BulletShot = 0,
+        Hit = 0,
+        Shot,
+        Tractor,
     };
 
     class AudioManager final {
@@ -74,8 +76,8 @@ namespace gravitar::assets {
         void load(const char *filename, SoundTrackId id);
 
         std::array<sf::Music, 3> mSoundtracks;
-        std::array<sf::SoundBuffer, 1> mSoundBuffers;
-        std::array<sf::Sound, 1> mSounds;
+        std::array<sf::SoundBuffer, 3> mSoundBuffers;
+        std::array<sf::Sound, 3> mSounds;
         SoundTrackId mCurrentSoundtrackId{SoundTrackId::None};
         bool mMuted{false};
     };

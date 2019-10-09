@@ -68,7 +68,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
 
     inputSystem(assets, elapsed);
     motionSystem(elapsed);
-    collisionSystem(window);
+    collisionSystem(window, assets);
     reloadSystem(elapsed);
     AISystem(assets);
     livenessSystem();
@@ -311,7 +311,7 @@ void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, cons
     mRegistry.assign<HitRadius>(bulletId, bulletHitRadius);
     mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable));
 
-    assets.getAudioManager().play(SoundId::BulletShot);
+    assets.getAudioManager().play(SoundId::Shot);
 }
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
@@ -365,7 +365,7 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
     });
 }
 
-void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
+void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
     const auto players = mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
 
@@ -394,6 +394,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                     }
 
                     if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
+                        assets.getAudioManager().play(SoundId::Hit);
                         mRegistry.get<Health>(entityId).value -= 1;
                     }
                 }
@@ -444,6 +445,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                         .group<Supply<Fuel>>(entt::get < HitRadius, Renderable > )
                         .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                assets.getAudioManager().play(SoundId::Tractor);
                                 mRegistry.get<Fuel>(playerId).value += supply->value;
                                 mRegistry.destroy(supplyId);
                             }
@@ -453,6 +455,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window) noexcept {
                         .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
                         .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                assets.getAudioManager().play(SoundId::Tractor);
                                 mRegistry.get<Health>(playerId).value += supply->value;
                                 mRegistry.destroy(supplyId);
                             }
