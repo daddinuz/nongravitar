@@ -55,7 +55,7 @@ namespace gravitar::scene {
          */
         SolarSystem &initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
 
-        void addPlanet(SceneId planetSceneId, const sf::RenderWindow &window, helpers::RandomEngine &randomEngine) noexcept;
+        void addPlanet(const sf::RenderWindow &window, helpers::RandomEngine &randomEngine, sf::Color planetColor, SceneId planetSceneId) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 

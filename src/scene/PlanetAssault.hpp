@@ -51,7 +51,7 @@ namespace gravitar::scene {
          *  This method should be called exactly once in the life-cycle of this object, any usage of this object
          *  without proper initialization will result in a error.
          */
-        PlanetAssault &initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
+        PlanetAssault &initialize(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
@@ -63,7 +63,7 @@ namespace gravitar::scene {
         void initializePubSub() const noexcept;
         void initializeGroups() noexcept;
         void initializeReport(Assets &assets) noexcept;
-        void initializeTerrain(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
 
         void addBullet(Assets &assets, const sf::Vector2f &position, float rotation) noexcept;
 

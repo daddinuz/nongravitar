@@ -57,13 +57,13 @@ SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, Assets &ass
     return *this;
 }
 
-void SolarSystem::addPlanet(const SceneId planetSceneId, const sf::RenderWindow &window, RandomEngine &randomEngine) noexcept {
+void SolarSystem::addPlanet(const sf::RenderWindow &window, helpers::RandomEngine &randomEngine, sf::Color planetColor, SceneId planetSceneId) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
     auto planetXDistribution = FloatDistribution(0.0f, windowWidth);
     auto planetYDistribution = FloatDistribution(0.0f, windowHeight);
     auto planetSizeDistribution = FloatDistribution(24, 56);
     const auto planetId = mRegistry.create();
-    auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape());
+    auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape(0.0f, 256));
     mRegistry.assign<SceneRef>(planetId, planetSceneId);
     mRegistry.assign<Planet>(planetId);
 
@@ -97,20 +97,9 @@ void SolarSystem::addPlanet(const SceneId planetSceneId, const sf::RenderWindow 
         std::terminate();
     } else {
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
-
-        circleShape.setFillColor(sf::Color(
-                helpers::ByteDistribution(63, 255)(randomEngine),
-                helpers::ByteDistribution(63, 255)(randomEngine),
-                helpers::ByteDistribution(63, 255)(randomEngine),
-                helpers::ByteDistribution(63, 199)(randomEngine)
-        ));
-        circleShape.setOutlineColor(sf::Color(
-                helpers::ByteDistribution(31, 127)(randomEngine),
-                helpers::ByteDistribution(31, 127)(randomEngine),
-                helpers::ByteDistribution(31, 127)(randomEngine),
-                helpers::ByteDistribution(63, 127)(randomEngine)
-        ));
-        circleShape.setOutlineThickness(helpers::FloatDistribution(4, 8)(randomEngine));
+        circleShape.setFillColor(planetColor);
+        circleShape.setOutlineColor(sf::Color(120, 180, 220, 32));
+        circleShape.setOutlineThickness(8);
     }
 }
 

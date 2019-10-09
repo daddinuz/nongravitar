@@ -51,10 +51,10 @@ PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId gam
         mGameOverSceneId{gameOverSceneId},
         mSolarSystemSceneId{solarSystemSceneId} {}
 
-PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
+PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept {
     initializeGroups();
     initializeReport(assets);
-    initializeTerrain(window, assets);
+    initializeTerrain(window, assets, terrainColor);
     initializePubSub();
     return *this;
 }
@@ -158,7 +158,7 @@ void PlanetAssault::initializeReport(Assets &assets) noexcept {
     mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 }
 
-void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &assets) noexcept {
+void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept {
     const auto halfWindowHeight = window.getSize().y / 2.0f;
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
@@ -171,6 +171,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             FloatDistribution(halfWindowHeight * 1.5f + terrainHitDiameter, halfWindowHeight * 2.0f - terrainHitDiameter)(mRandomEngine)
     );
 
+    terrainColor.a = 255;
+
     do {
         auto terrainId = mRegistry.create();
         auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).instanceSprite(0);
@@ -181,6 +183,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         helpers::centerOrigin(terrainRenderable, terrainBounds);
 
         terrainPosition += terrainOffset;
+        terrainRenderable.setColor(terrainColor);
         terrainRenderable.setPosition(terrainPosition);
         terrainRenderable.setRotation(terrainRotation);
         terrainPosition += terrainOffset;
