@@ -36,7 +36,7 @@ namespace gravitar::constants {
     inline constexpr auto PLAYER_SPEED = 220.0f;
     inline constexpr auto PLAYER_ROTATION_SPEED = 220.0f;
 
-    inline constexpr auto TRACTOR_RADIUS = 56.0f;
+    inline constexpr auto TRACTOR_RADIUS = 64.0f;
 
     inline constexpr auto BULLET_SPEED = 1024.0f;
 }

@@ -197,13 +197,14 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto AI2ReloadDistribution = FloatDistribution(1.96f, 2.28f);
     auto fuelSupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
     auto healthSupplyDistribution = IntDistribution(1, 2);
-    auto entityDistribution = IntDistribution(1, 16);
+    auto entityDistribution = IntDistribution(1, 18);
 
     mRegistry.view<Terrain, Renderable>().each([&](const auto terrainTag, const auto &terrainRenderable) {
         (void) terrainTag;
 
         switch (entityDistribution(mRandomEngine)) {
-            case 2: {
+            case 2:
+            case 16: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(0);
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
@@ -224,8 +225,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
-            case 4:
-            case 6: {
+            case 8: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
@@ -246,9 +246,9 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
-            case 8: {
+            case 4: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({28.0f, 28.0f});
+                auto supplyRenderable = sf::RectangleShape({24.0f, 24.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
@@ -270,7 +270,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 12: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({28.0f, 28.0f});
+                auto supplyRenderable = sf::RectangleShape({24.0f, 24.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
