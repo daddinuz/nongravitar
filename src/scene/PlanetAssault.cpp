@@ -165,7 +165,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     const auto _terrainFrame = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getBuffer().at(0);
     const auto terrainHitDiameter = std::max(_terrainFrame.width, _terrainFrame.height);
     const auto terrainHitRadius = terrainHitDiameter / 2.0f;
-    auto rotationDistribution = FloatDistribution(-42.0f, 42.0f);
+    auto rotationDistribution = FloatDistribution(-38.0f, 38.0f);
     auto terrainPosition = sf::Vector2f(
             0.0f,
             FloatDistribution(halfWindowHeight * 1.5f + terrainHitDiameter, halfWindowHeight * 2.0f - terrainHitDiameter)(mRandomEngine)
