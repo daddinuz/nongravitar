@@ -165,7 +165,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     const auto _terrainFrame = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getBuffer().at(0);
     const auto terrainHitDiameter = std::max(_terrainFrame.width, _terrainFrame.height);
     const auto terrainHitRadius = terrainHitDiameter / 2.0f;
-    auto rotationDistribution = FloatDistribution(-38.0f, 38.0f);
+    auto rotationDistribution = FloatDistribution(-32.0f, 32.0f);
     auto terrainPosition = sf::Vector2f(
             0.0f,
             FloatDistribution(halfWindowHeight * 1.5f + terrainHitDiameter, halfWindowHeight * 2.0f - terrainHitDiameter)(mRandomEngine)
@@ -205,6 +205,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     const auto terrain = mRegistry.view<Terrain, Renderable>();
     for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, 2)) {
         const auto &terrainRenderable = terrain.get<Renderable>(*terrainCursor);
+        const auto position = terrainRenderable->getPosition() +
+                              helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius);
 
         switch (entityDistribution(mRandomEngine)) {
             case 2:
@@ -215,11 +217,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
                 helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-
                 bunkerRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                bunkerRenderable.setPosition(terrainRenderable->getPosition());
-                bunkerRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius));
-                bunkerRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
+                bunkerRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
 
                 mRegistry.assign<AI1>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
@@ -237,10 +236,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
                 helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-
                 bunkerRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                bunkerRenderable.setPosition(terrainRenderable->getPosition());
-                bunkerRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
+                bunkerRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
 
                 mRegistry.assign<AI2>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
@@ -253,7 +250,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 4: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({24.0f, 24.0f});
+                auto supplyRenderable = sf::RectangleShape({22.0f, 22.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
@@ -262,10 +259,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setFillColor(sf::Color::Transparent);
 
                 helpers::centerOrigin(supplyRenderable, supplyBounds);
-
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                supplyRenderable.setPosition(terrainRenderable->getPosition());
-                supplyRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
+                supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
                 mRegistry.assign<Supply<Fuel>>(supplyId, fuelSupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
@@ -275,7 +270,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 12: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({24.0f, 24.0f});
+                auto supplyRenderable = sf::RectangleShape({22.0f, 22.0f});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
@@ -284,10 +279,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setFillColor(sf::Color::Transparent);
 
                 helpers::centerOrigin(supplyRenderable, supplyBounds);
-
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                supplyRenderable.setPosition(terrainRenderable->getPosition());
-                supplyRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
+                supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
                 mRegistry.assign<Supply<Health>>(supplyId, healthSupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
@@ -297,6 +290,14 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             default:
                 break;
+        }
+    }
+
+    const auto bunkers = mRegistry.view<Bunker, Renderable>();
+    for (const auto bunkerId : bunkers) {
+        const auto &renderable = bunkers.get<Renderable>(bunkerId);
+        if (not viewport.contains(renderable->getPosition())) {
+            mRegistry.destroy(bunkerId);
         }
     }
 }
