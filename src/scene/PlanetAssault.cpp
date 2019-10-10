@@ -174,23 +174,26 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     terrainColor.a = 255;
 
     do {
-        auto terrainId = mRegistry.create();
-        auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).instanceSprite(0);
-        const auto terrainBounds = terrainRenderable.getLocalBounds();
         const auto terrainRotation = rotationDistribution(mRandomEngine);
-        const auto terrainOffset = helpers::makeVector2(terrainRotation, terrainHitRadius);
 
-        helpers::centerOrigin(terrainRenderable, terrainBounds);
+        for (auto i = 0; i < 2; i++) {
+            auto terrainId = mRegistry.create();
+            auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).instanceSprite(0);
+            const auto terrainBounds = terrainRenderable.getLocalBounds();
+            const auto terrainOffset = helpers::makeVector2(terrainRotation, terrainHitRadius);
 
-        terrainPosition += terrainOffset;
-        terrainRenderable.setColor(terrainColor);
-        terrainRenderable.setPosition(terrainPosition);
-        terrainRenderable.setRotation(terrainRotation);
-        terrainPosition += terrainOffset;
+            helpers::centerOrigin(terrainRenderable, terrainBounds);
 
-        mRegistry.assign<Terrain>(terrainId);
-        mRegistry.assign<HitRadius>(terrainId, terrainHitRadius);
-        mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
+            terrainPosition += terrainOffset;
+            terrainRenderable.setColor(terrainColor);
+            terrainRenderable.setPosition(terrainPosition);
+            terrainRenderable.setRotation(terrainRotation);
+            terrainPosition += terrainOffset;
+
+            mRegistry.assign<Terrain>(terrainId);
+            mRegistry.assign<HitRadius>(terrainId, terrainHitRadius);
+            mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
+        }
     } while (viewport.contains(terrainPosition));
 
     auto AI1ReloadDistribution = FloatDistribution(1.64f, 2.28f);
@@ -199,8 +202,9 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto healthSupplyDistribution = IntDistribution(1, 2);
     auto entityDistribution = IntDistribution(1, 18);
 
-    mRegistry.view<Terrain, Renderable>().each([&](const auto terrainTag, const auto &terrainRenderable) {
-        (void) terrainTag;
+    const auto terrain = mRegistry.view<Terrain, Renderable>();
+    for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, 2)) {
+        const auto &terrainRenderable = terrain.get<Renderable>(*terrainCursor);
 
         switch (entityDistribution(mRandomEngine)) {
             case 2:
@@ -293,7 +297,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             default:
                 break;
         }
-    });
+    }
 }
 
 void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, const float rotation) noexcept {
