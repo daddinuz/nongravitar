@@ -30,8 +30,8 @@
 namespace gravitar::constants {
     inline constexpr auto FPS = 65u;
 
-    inline constexpr auto PLAYER_HEALTH = 8;
-    inline constexpr auto PLAYER_FUEL = 25000.0f;
+    inline constexpr auto PLAYER_HEALTH = 6;
+    inline constexpr auto PLAYER_FUEL = 20000.0f;
     inline constexpr auto PLAYER_RELOAD_TIME = 0.38f;
     inline constexpr auto PLAYER_SPEED = 220.0f;
     inline constexpr auto PLAYER_ROTATION_SPEED = 220.0f;
