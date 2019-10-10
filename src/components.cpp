@@ -55,18 +55,18 @@ void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
 }
 
-sf::Transformable &Renderable::operator*() noexcept {
+sf::Transformable &Renderable::operator*() {
     return std::visit([](auto &instance) -> sf::Transformable & { return instance; }, mInstance);
 }
 
-const sf::Transformable &Renderable::operator*() const noexcept {
+const sf::Transformable &Renderable::operator*() const {
     return std::visit([](const auto &instance) -> const sf::Transformable & { return instance; }, mInstance);
 }
 
-sf::Transformable *Renderable::operator->() noexcept {
+sf::Transformable *Renderable::operator->() {
     return std::visit([](auto &instance) -> sf::Transformable * { return &instance; }, mInstance);
 }
 
-const sf::Transformable *Renderable::operator->() const noexcept {
+const sf::Transformable *Renderable::operator->() const {
     return std::visit([](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
 }
