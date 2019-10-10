@@ -218,6 +218,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
                 bunkerRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 bunkerRenderable.setPosition(terrainRenderable->getPosition());
+                bunkerRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius));
                 bunkerRenderable.move(helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
 
                 mRegistry.assign<AI1>(bunkerId);
@@ -370,6 +371,7 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
 }
 
 void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept {
+    auto entitiesToDestroy = std::set<entt::entity>();
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
     const auto players = mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
 
@@ -386,7 +388,6 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
         }
     }
 
-    auto bulletsToDestroy = std::set<entt::entity>();
     mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > ).each([&](const auto bulletId, const auto bulletTag, const auto &bulletHitRadius, const auto &bulletRenderable) {
         (void) bulletTag;
 
@@ -394,7 +395,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
             mRegistry.group<HitRadius, Renderable>().each([&](const auto entityId, const auto &entityHitRadius, const auto &entityRenderable) {
                 if (entityId != bulletId and helpers::magnitude(entityRenderable->getPosition(), bulletRenderable->getPosition()) <= *entityHitRadius + *bulletHitRadius) {
                     if (not mRegistry.has<Tractor>(entityId)) {
-                        bulletsToDestroy.insert(bulletId);
+                        entitiesToDestroy.insert(bulletId);
                     }
 
                     if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
@@ -404,10 +405,9 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                 }
             });
         } else {
-            bulletsToDestroy.insert(bulletId);
+            entitiesToDestroy.insert(bulletId);
         }
     });
-    mRegistry.destroy(bulletsToDestroy.begin(), bulletsToDestroy.end());
 
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > ).each([&](const auto terrainTag, const auto &terrainHitRadius, const auto &terrainRenderable) {
         (void) terrainTag;
@@ -451,7 +451,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                                 assets.getAudioManager().play(SoundId::Tractor);
                                 mRegistry.get<Fuel>(playerId).value += supply->value;
-                                mRegistry.destroy(supplyId);
+                                entitiesToDestroy.insert(supplyId);
                             }
                         });
 
@@ -461,10 +461,12 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                                 assets.getAudioManager().play(SoundId::Tractor);
                                 mRegistry.get<Health>(playerId).value += supply->value;
-                                mRegistry.destroy(supplyId);
+                                entitiesToDestroy.insert(supplyId);
                             }
                         });
             });
+
+    mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
 
 void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
