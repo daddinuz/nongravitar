@@ -252,6 +252,8 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 }
 
 void SolarSystem::livenessSystem() noexcept {
+    auto entitiesToDestroy = std::vector<entt::entity>();
+
     if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
         mNextSceneId = mYouWonSceneId;
     }
@@ -260,10 +262,12 @@ void SolarSystem::livenessSystem() noexcept {
         (void) tag;
 
         if (health.isDead() or fuel.isOver()) {
-            mRegistry.destroy(id);
+            entitiesToDestroy.push_back(id);
             mNextSceneId = mGameOverSceneId;
         }
     });
+
+    mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {

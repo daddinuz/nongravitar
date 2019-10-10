@@ -104,7 +104,7 @@ namespace gravitar::components {
 
         void reset();
 
-        void elapse(const sf::Time &time);
+        void elapse(sf::Time time);
 
         [[nodiscard]] inline bool canShoot() const noexcept {
             return mElapsed >= mSecondsBeforeShoot;
@@ -133,11 +133,11 @@ namespace gravitar::components {
         template<typename ...Args>
         explicit Renderable(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        [[nodiscard]] sf::Transformable &operator*() noexcept;
-        [[nodiscard]] const sf::Transformable &operator*() const noexcept;
+        [[nodiscard]] sf::Transformable &operator*();
+        [[nodiscard]] const sf::Transformable &operator*() const;
 
-        [[nodiscard]] sf::Transformable *operator->() noexcept;
-        [[nodiscard]] const sf::Transformable *operator->() const noexcept;
+        [[nodiscard]] sf::Transformable *operator->();
+        [[nodiscard]] const sf::Transformable *operator->() const;
 
         template<typename T>
         [[nodiscard]] inline T &as() noexcept {
