@@ -37,6 +37,7 @@ void TexturesManager::initialize() {
     load("bullet.png", TextureId::Bullet);
     load("bunker.png", TextureId::Bunker);
     load("terrain.png", TextureId::Terrain);
+    load("supply.png", TextureId::Supply);
 }
 
 const sf::Texture &TexturesManager::get(const TextureId id) const noexcept {

@@ -35,7 +35,6 @@ namespace gravitar::helpers {
     using RandomDevice = std::random_device;
     using RandomEngine = std::default_random_engine;
     using IntDistribution = std::uniform_int_distribution<int>;
-    using ByteDistribution = std::uniform_int_distribution<std::uint8_t>;
     using FloatDistribution = std::uniform_real_distribution<float>;
 
     template<typename F, typename ...Args>
@@ -45,34 +44,9 @@ namespace gravitar::helpers {
 #endif
     }
 
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const sf::Vector2<T> &obj) {
-        return os << "Vector2<" << typeid(T).name() << ">(" << obj.x << ", " << obj.y << ')';
-    }
-
-    template<typename T>
-    std::ostream &operator<<(std::ostream &os, const sf::Rect<T> &obj) {
-        return os << "Rect<" << typeid(T).name() << ">(" << obj.top << ", " << obj.left << ", " << obj.width << ", " << obj.height << ')';
-    }
-
     float deg2rad(float deg);
 
     float rad2deg(float rad);
-
-    template<typename T>
-    inline constexpr int signum(T n, std::false_type) {
-        return T(0) < n;
-    }
-
-    template<typename T>
-    inline constexpr int signum(T n, std::true_type) {
-        return (T(0) < n) - (n < T(0));
-    }
-
-    template<typename T>
-    inline constexpr int signum(T n) {
-        return signum(n, std::is_signed<T>());
-    }
 
     template<typename T>
     void centerOrigin(sf::Transformable &self, const sf::Rect<T> &bounds) {
@@ -90,9 +64,6 @@ namespace gravitar::helpers {
     float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
         return std::fmod(rad2deg(std::atan2(point.y - origin.y, point.x - origin.x)) + 360.0f, 361.0f);
     }
-
-    /// Range [-180, 180].
-    float shortestRotation(float currentBearing, float targetBearing);
 
     template<typename T>
     float magnitude(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {

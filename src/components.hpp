@@ -45,7 +45,7 @@ namespace gravitar::components {
         }
     };
 
-    struct Fuel final {
+    struct Energy final {
         float value;
 
         [[nodiscard]] inline bool isOver() const noexcept {

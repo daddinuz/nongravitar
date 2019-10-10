@@ -36,6 +36,7 @@ void AudioManager::initialize() {
     load("hit.ogg", SoundId::Hit);
     load("shot.ogg", SoundId::Shot);
     load("tractor.ogg", SoundId::Tractor);
+    load("explosion.ogg", SoundId::Explosion);
 
     // soundtracks
     load("Drozerix-AmbientStarfield.flac", SoundTrackId::AmbientStarfield);

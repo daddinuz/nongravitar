@@ -37,6 +37,7 @@ namespace gravitar::assets {
         Bullet,
         Bunker,
         Terrain,
+        Supply,
     };
 
     class TexturesManager final {
@@ -63,6 +64,6 @@ namespace gravitar::assets {
     private:
         void load(const char *filename, TextureId id);
 
-        std::array<sf::Texture, 5> mTextures;
+        std::array<sf::Texture, 6> mTextures;
     };
 }

@@ -71,7 +71,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, co
     collisionSystem(window, assets);
     reloadSystem(elapsed);
     AISystem(assets);
-    livenessSystem();
+    livenessSystem(assets);
     reportSystem(window);
 
     return mNextSceneId;
@@ -146,7 +146,7 @@ void PlanetAssault::initializeGroups() noexcept {
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > );
 
     mRegistry.group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > );
-    mRegistry.group<Supply<Fuel>>(entt::get < HitRadius, Renderable > );
+    mRegistry.group<Supply<Energy>>(entt::get < HitRadius, Renderable > );
     mRegistry.group<Supply<Health>>(entt::get < HitRadius, Renderable > );
 
     mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
@@ -198,7 +198,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
     auto AI1ReloadDistribution = FloatDistribution(1.64f, 2.28f);
     auto AI2ReloadDistribution = FloatDistribution(1.96f, 2.28f);
-    auto fuelSupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
+    auto energySupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
     auto healthSupplyDistribution = IntDistribution(1, 2);
     auto entityDistribution = IntDistribution(1, 18);
 
@@ -250,19 +250,15 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 4: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({22.0f, 22.0f});
+                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).instanceSprite(1);
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
-
-                supplyRenderable.setOutlineThickness(1.0f);
-                supplyRenderable.setOutlineColor(sf::Color::Yellow);
-                supplyRenderable.setFillColor(sf::Color::Transparent);
 
                 helpers::centerOrigin(supplyRenderable, supplyBounds);
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Supply<Fuel>>(supplyId, fuelSupplyDistribution(mRandomEngine));
+                mRegistry.assign<Supply<Energy>>(supplyId, energySupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
             }
@@ -270,13 +266,9 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 12: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = sf::RectangleShape({22.0f, 22.0f});
+                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).instanceSprite(0);
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
-
-                supplyRenderable.setOutlineThickness(1.0f);
-                supplyRenderable.setOutlineColor(sf::Color::Blue);
-                supplyRenderable.setFillColor(sf::Color::Transparent);
 
                 helpers::centerOrigin(supplyRenderable, supplyBounds);
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
@@ -325,8 +317,8 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Fuel, Velocity, ReloadTime, HitRadius, Renderable>()
-            .each([&](const auto playerId, const auto playerTag, auto &playerFuel, auto &playerVelocity,
+            .view<Player, Energy, Velocity, ReloadTime, HitRadius, Renderable>()
+            .each([&](const auto playerId, const auto playerTag, auto &playerEnergy, auto &playerVelocity,
                       auto &playerReloadTime, const auto &playerHitRadius, auto &playerRenderable) {
                 (void) playerTag;
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
@@ -347,7 +339,7 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                 }
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
-                playerFuel.value -= playerSpeed * elapsed.asSeconds();
+                playerEnergy.value -= playerSpeed * elapsed.asSeconds();
 
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
                     mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
@@ -420,6 +412,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
                     if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
                         playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+                        assets.getAudioManager().play(SoundId::Explosion);
                         mRegistry.get<Health>(playerId).value -= 1;
                     }
                 });
@@ -435,6 +428,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
                     if (helpers::magnitude(bunkerRenderable->getPosition(), playerRenderable->getPosition()) <= *bunkerHitRadius + *playerHitRadius) {
                         playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+                        assets.getAudioManager().play(SoundId::Explosion);
                         mRegistry.get<Health>(playerId).value -= 1;
                     }
                 });
@@ -447,11 +441,11 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                 const auto playerId = *playerRef;
 
                 mRegistry
-                        .group<Supply<Fuel>>(entt::get < HitRadius, Renderable > )
+                        .group<Supply<Energy>>(entt::get < HitRadius, Renderable > )
                         .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                                 assets.getAudioManager().play(SoundId::Tractor);
-                                mRegistry.get<Fuel>(playerId).value += supply->value;
+                                mRegistry.get<Energy>(playerId).value += supply->value;
                                 entitiesToDestroy.insert(supplyId);
                             }
                         });
@@ -510,13 +504,14 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     });
 }
 
-void PlanetAssault::livenessSystem() noexcept {
+void PlanetAssault::livenessSystem(Assets &assets) noexcept {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto id, const auto tag, const auto &health, const auto &fuel) {
+    mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto tag, const auto &health, const auto &energy) {
         (void) tag;
 
-        if (health.isDead() or fuel.isOver()) {
+        if (health.isDead() or energy.isOver()) {
+            assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
             mNextSceneId = mGameOverSceneId;
         }
@@ -526,6 +521,7 @@ void PlanetAssault::livenessSystem() noexcept {
         (void) tag;
 
         if (health.isDead()) {
+            assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
         }
     });
@@ -534,10 +530,10 @@ void PlanetAssault::livenessSystem() noexcept {
 }
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto tag, const auto &health, const auto &fuel) {
+    mRegistry.view<Player, Health, Energy>().each([&](const auto tag, const auto &health, const auto &energy) {
         (void) tag;
 
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %d fuel: %.0f", health.value, fuel.value);
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %d energy: %.0f", health.value, energy.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);

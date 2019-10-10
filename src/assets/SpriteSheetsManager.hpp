@@ -37,6 +37,7 @@ namespace gravitar::assets {
         Bullet,
         Bunker,
         Terrain,
+        Supply,
     };
 
     class SpriteSheetsManager final {

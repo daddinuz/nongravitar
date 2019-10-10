@@ -41,7 +41,6 @@ using namespace gravitar::constants;
 using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
 using IntDistribution = helpers::IntDistribution;
-using ByteDistribution = helpers::ByteDistribution;
 
 Game &Game::initialize() {
     mAssets.initialize();
@@ -76,6 +75,7 @@ void Game::initializeWindow() {
 void Game::initializeScenes() {
     auto randomDevice = RandomDevice();
     auto randomEngine = RandomEngine(randomDevice());
+    auto planetsColors = IntDistribution(0, PLANET_COLORS.size() - 1);
     const auto planets = IntDistribution(4, 8)(randomEngine);
 
     auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
@@ -85,13 +85,7 @@ void Game::initializeScenes() {
             .initialize(mWindow, mAssets);
 
     for (auto i = 0; i < planets; i++) {
-        const auto planetColor = sf::Color(
-                ByteDistribution(127, 255)(randomEngine),
-                ByteDistribution(63, 255)(randomEngine),
-                ByteDistribution(0, 127)(randomEngine),
-                ByteDistribution(127, 200)(randomEngine)
-        );
-
+        const auto planetColor = sf::Color(PLANET_COLORS.at(planetsColors(randomEngine)));
         auto &planetAssault = mSceneManager
                 .emplace<PlanetAssault>(solarSystem.getSceneId(), gameOver.getSceneId())
                 .initialize(mWindow, mAssets, planetColor);

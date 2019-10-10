@@ -42,7 +42,6 @@ using namespace gravitar::constants;
 using namespace gravitar::components;
 
 using RandomEngine = helpers::RandomEngine;
-using ByteDistribution = helpers::ByteDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
 SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId) :
@@ -114,7 +113,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, cons
     inputSystem(elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
-    livenessSystem();
+    livenessSystem(assets);
     reportSystem(window);
 
     return mNextSceneId;
@@ -183,7 +182,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
 
     mRegistry.assign<Player>(playerId);
     mRegistry.assign<Health>(playerId, PLAYER_HEALTH);
-    mRegistry.assign<Fuel>(playerId, PLAYER_FUEL);
+    mRegistry.assign<Energy>(playerId, PLAYER_ENERGY);
     mRegistry.assign<Velocity>(playerId);
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
@@ -195,8 +194,8 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Fuel, Velocity, Renderable>()
-            .each([&](const auto playerTag, auto &playerFuel, auto &playerVelocity, auto &playerRenderable) {
+            .view<Player, Energy, Velocity, Renderable>()
+            .each([&](const auto playerTag, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
                 (void) playerTag;
                 auto speed = PLAYER_SPEED;
 
@@ -215,7 +214,7 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
                 }
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
-                playerFuel.value -= speed * elapsed.asSeconds();
+                playerEnergy.value -= speed * elapsed.asSeconds();
             });
 }
 
@@ -251,17 +250,18 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     }
 }
 
-void SolarSystem::livenessSystem() noexcept {
+void SolarSystem::livenessSystem(Assets &assets) noexcept {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
     if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
         mNextSceneId = mYouWonSceneId;
     }
 
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto id, const auto tag, const auto &health, const auto &fuel) {
+    mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto tag, const auto &health, const auto &energy) {
         (void) tag;
 
-        if (health.isDead() or fuel.isOver()) {
+        if (health.isDead() or energy.isOver()) {
+            assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
             mNextSceneId = mGameOverSceneId;
         }
@@ -271,10 +271,10 @@ void SolarSystem::livenessSystem() noexcept {
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Fuel>().each([&](const auto tag, const auto &health, const auto &fuel) {
+    mRegistry.view<Player, Health, Energy>().each([&](const auto tag, const auto &health, const auto &energy) {
         (void) tag;
 
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %d fuel: %.0f", health.value, fuel.value);
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %d energy: %.0f", health.value, energy.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);

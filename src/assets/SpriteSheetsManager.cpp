@@ -35,6 +35,7 @@ void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
     mSpriteSheets.emplace(SpriteSheetId::Bullet, SpriteSheet::from(textureManager.get(TextureId::Bullet), {8, 8}));
     mSpriteSheets.emplace(SpriteSheetId::Bunker, SpriteSheet::from(textureManager.get(TextureId::Bunker), {56, 56}));
     mSpriteSheets.emplace(SpriteSheetId::Terrain, SpriteSheet::from(textureManager.get(TextureId::Terrain), {28, 1}));
+    mSpriteSheets.emplace(SpriteSheetId::Supply, SpriteSheet::from(textureManager.get(TextureId::Supply), {22, 22}));
 }
 
 const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
