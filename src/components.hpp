@@ -104,7 +104,7 @@ namespace gravitar::components {
 
         void reset();
 
-        void elapse(const sf::Time &time);
+        void elapse(sf::Time time);
 
         [[nodiscard]] inline bool canShoot() const noexcept {
             return mElapsed >= mSecondsBeforeShoot;

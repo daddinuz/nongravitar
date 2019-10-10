@@ -40,7 +40,7 @@ void ReloadTime::reset() {
     mElapsed = 0;
 }
 
-void ReloadTime::elapse(const sf::Time &time) {
+void ReloadTime::elapse(sf::Time time) {
     if (not canShoot()) {
         mElapsed += time.asSeconds();
     }
@@ -56,17 +56,17 @@ void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 }
 
 sf::Transformable &Renderable::operator*() noexcept {
-    return std::visit([&](auto &instance) -> sf::Transformable & { return instance; }, mInstance);
+    return std::visit([](auto &instance) -> sf::Transformable & { return instance; }, mInstance);
 }
 
 const sf::Transformable &Renderable::operator*() const noexcept {
-    return std::visit([&](const auto &instance) -> const sf::Transformable & { return instance; }, mInstance);
+    return std::visit([](const auto &instance) -> const sf::Transformable & { return instance; }, mInstance);
 }
 
 sf::Transformable *Renderable::operator->() noexcept {
-    return std::visit([&](auto &instance) -> sf::Transformable * { return &instance; }, mInstance);
+    return std::visit([](auto &instance) -> sf::Transformable * { return &instance; }, mInstance);
 }
 
 const sf::Transformable *Renderable::operator->() const noexcept {
-    return std::visit([&](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
+    return std::visit([](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
 }

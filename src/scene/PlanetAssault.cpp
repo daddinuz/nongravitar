@@ -510,11 +510,13 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 }
 
 void PlanetAssault::livenessSystem() noexcept {
+    auto entitiesToDestroy = std::vector<entt::entity>();
+
     mRegistry.view<Player, Health, Fuel>().each([&](const auto id, const auto tag, const auto &health, const auto &fuel) {
         (void) tag;
 
         if (health.isDead() or fuel.isOver()) {
-            mRegistry.destroy(id);
+            entitiesToDestroy.push_back(id);
             mNextSceneId = mGameOverSceneId;
         }
     });
@@ -523,9 +525,11 @@ void PlanetAssault::livenessSystem() noexcept {
         (void) tag;
 
         if (health.isDead()) {
-            mRegistry.destroy(id);
+            entitiesToDestroy.push_back(id);
         }
     });
+
+    mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
