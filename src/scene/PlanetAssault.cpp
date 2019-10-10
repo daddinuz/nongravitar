@@ -198,8 +198,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
     auto AI1ReloadDistribution = FloatDistribution(1.64f, 2.28f);
     auto AI2ReloadDistribution = FloatDistribution(1.96f, 2.28f);
-    auto energySupplyDistribution = FloatDistribution(2000.0f, 5000.0f);
-    auto healthSupplyDistribution = IntDistribution(1, 2);
+    auto energySupplyDistribution = FloatDistribution(2000.0f, 4000.0f);
     auto entityDistribution = IntDistribution(1, 18);
 
     const auto terrain = mRegistry.view<Terrain, Renderable>();
@@ -229,6 +228,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
+            case 6:
             case 8: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
@@ -274,7 +274,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Supply<Health>>(supplyId, healthSupplyDistribution(mRandomEngine));
+                mRegistry.assign<Supply<Health>>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
             }
