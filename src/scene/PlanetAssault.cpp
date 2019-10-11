@@ -158,7 +158,7 @@ void PlanetAssault::initializeReport(Assets &assets) noexcept {
     mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
 }
 
-void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept {
+void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &assets, const sf::Color terrainColor) noexcept {
     const auto halfWindowHeight = window.getSize().y / 2.0f;
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
@@ -170,8 +170,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             0.0f,
             FloatDistribution(halfWindowHeight * 1.5f + terrainHitDiameter, halfWindowHeight * 2.0f - terrainHitDiameter)(mRandomEngine)
     );
-
-    terrainColor.a = 255;
 
     do {
         const auto terrainRotation = rotationDistribution(mRandomEngine);
