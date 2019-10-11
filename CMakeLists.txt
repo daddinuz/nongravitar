@@ -35,4 +35,3 @@ target_compile_definitions(gravitar PRIVATE GRAVITAR_FONTS_PATH="${CMAKE_CURRENT
 target_compile_definitions(gravitar PRIVATE GRAVITAR_SOUNDS_PATH="${CMAKE_CURRENT_LIST_DIR}/assets/sounds")
 target_compile_definitions(gravitar PRIVATE GRAVITAR_SOUNDTRACKS_PATH="${CMAKE_CURRENT_LIST_DIR}/assets/soundtracks")
 target_compile_definitions(gravitar PRIVATE GRAVITAR_TEXTURES_PATH="${CMAKE_CURRENT_LIST_DIR}/assets/textures")
-
