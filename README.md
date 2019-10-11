@@ -44,11 +44,18 @@ You can finally run the game:
 
 ## How to play
 
-The game will prompt the player (a Cyan spaceship) in a solar system with 8 different planets.
-The player is free to navigate the universe, enter or leave the planets as he likes, but in order 
-to win he must defeat all the enemies (bunkers) that lives on the planets.
+The game will prompt you (a Space Explorer) in a solar system with 8 different planets which 
+are full of resources like energy or spare parts useful to repair you spaceship and continue your journey.
 
-When the player leaves a planet with no bunkers left, the planet will explode and will no longer be accessible.
+You are free to navigate the planets as you like and to collect resources using your 
+spaceship's ray tractor, but be careful, the planets may be crowded by ostile bunkers 
+that are going to shoot you at first sight, in order to protect the resources present on the planet.
+
+In order to win, you must visit the whole solar system and defeat all the enemies that lives on the planets;
+when you leave a planet with no bunkers left, the planet will explode and will no longer be accessible.
+
+During your journey pay attention to your vehicle, if it gets too damaged or if you finish the energy your 
+journey will end, and you'll be lost in space!
 
 **SpaceShip Controls:**
 
@@ -58,8 +65,7 @@ When the player leaves a planet with no bunkers left, the planet will explode an
   - **[D]**: clockwise rotate.
   - **[S]**: move slower in the current direction.
 + Mouse:
-  - **[LeftClick]**: fire guns.
+  - **[LeftClick]**: shoot.
   - **[RightClick]**: activate tractor ray.
 
-**Note:** pressing **[ESC]** will exit the game on any time without asking confirmation.
-
+**Note:** pressing **[ESC]** will exit the game at any time without asking confirmation.
