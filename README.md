@@ -7,10 +7,10 @@ Computer Science programming course project at University of Bologna 2018/2019.
 To be able to build this project a full-featured compiler that supports at least **C++17** must be provided;  
 moreover the following requirements must be satisfied:
 
- - [**CMake**](https://cmake.org) version 3.10 or later.
- - [**SFML**](https://www.sfml-dev.org/index.php) version 2.4 or later.
+ - [CMake](https://cmake.org) version 3.10 or later.
+ - [SFML](https://www.sfml-dev.org/index.php) version 2.4 or later.
 
-Furthermore this project is heavly based on [**EnTT**](https://github.com/skypjack/entt) which is already provided under the `/deps` folder.
+Furthermore this project is heavly based on [EnTT](https://github.com/skypjack/entt) which is already provided under the `/deps` folder.
 
 **NOTE:** This project has been developed on a machine running **Ubuntu 18.04** so I've no clue if it's going to work on 
 any other OS or even other Linux flavours, anyway I reasonably expect this to work on other **apt-based** distros.
@@ -69,3 +69,33 @@ journey will end, and you'll be lost in space!
   - **[RightClick]**: activate tractor ray.
 
 **Note:** pressing **[ESC]** will exit the game at any time without asking confirmation.
+
+## Design decisions
+
+#### Scene handling
+
+I've implemented a rudimentary scene system using the [state pattern](https://en.wikipedia.org/wiki/State_pattern) for handling the various scenes interactions.
+
+The game is composed by the following scenes:
+
+- TitleScreen
+- SolarSystem
+- PlanetAssault
+- GameOver
+- YouWon
+
+Each scene is autonomous and indipendent from the others, so I managed to split 
+the complexity of each scene into smaller pieces that are easier to maintain and expand.
+
+#### Memory management
+
+Regarding memory management, I decided to take the simplest approach possible: allocate all the heavy and long-lived resources like textures, fonts or soundtracks at the program startup and deallocate all of them on exit.
+
+In this way I got "whole-program lifetime" of the assets thus avoiding loading phases during the game and a throwaway 
+usage of the assets which is a waste of time and memory, so by the point of view of the game, assets can be seen as a [singleton](https://en.wikipedia.org/wiki/Singleton_pattern) ensuring proper initialization and deallocation.
+
+#### About the game logic
+
+Concerning the core logic of the game I used a [data driven](https://en.wikipedia.org/wiki/Data-driven_programming) 
+approach using [ECS (Entity Component System)](https://en.wikipedia.org/wiki/Entity_component_system) provided by the 
+[EnTT](https://github.com/skypjack/entt) library thus avoiding a complex hierarchy of inheritance of game objects.
