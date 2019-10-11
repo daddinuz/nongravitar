@@ -226,7 +226,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
-            case 6:
             case 8: {
                 auto bunkerId = mRegistry.create();
                 auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
@@ -262,6 +261,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             }
                 break;
 
+            case 6:
             case 12: {
                 auto supplyId = mRegistry.create();
                 auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).instanceSprite(0);
