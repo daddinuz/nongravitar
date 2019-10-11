@@ -244,8 +244,21 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
                 }
             }
         } else {
-            mRegistry.get<Health>(playerId).value -= 1;
-            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+            auto[playerX, playerY] = playerRenderable->getPosition();
+
+            if (playerX <= 0) {
+                playerX = viewport.width - *playerHitRadius;
+            } else if (playerX >= viewport.width) {
+                playerX = 0 + *playerHitRadius;
+            }
+
+            if (playerY <= 0) {
+                playerY = viewport.height - *playerHitRadius;
+            } else if (playerY >= viewport.height) {
+                playerY = 0 + *playerHitRadius;
+            }
+
+            playerRenderable->setPosition(playerX, playerY);
         }
     }
 }
