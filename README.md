@@ -1,6 +1,7 @@
 # Gravitar
 
-Computer Science programming course project at University of Bologna 2018/2019.
+Computer Science programming course project at University of Bologna 2018/2019.  
+The project consists of implementing a game inspired by the Atari gravitar released in the 1982.
 
 ## Requirements
 
@@ -102,7 +103,7 @@ approach using [ECS (Entity Component System)](https://en.wikipedia.org/wiki/Ent
 
 ## LICENSE
 
-MIT license.
+MIT license.  
 I don't own any rights on the original Atari game, this project is intended for educational purposes only.
 
 ## CREDITS
