@@ -99,3 +99,14 @@ usage of the assets which is a waste of time and memory, so by the point of view
 Concerning the core logic of the game I used a [data driven](https://en.wikipedia.org/wiki/Data-driven_programming) 
 approach using [ECS (Entity Component System)](https://en.wikipedia.org/wiki/Entity_component_system) provided by the 
 [EnTT](https://github.com/skypjack/entt) library thus avoiding a complex hierarchy of inheritance of game objects.
+
+## LICENSE
+
+MIT license.
+I don't own any rights on the original Atari game, this project is intended for educational purposes only.
+
+## CREDITS
+
+Many thanks to:
+- [Michele Caini](https://github.com/skypjack) for the [EnTT](https://github.com/skypjack/entt) framework. 
+- [Drozerix](https://modarchive.org/index.php?request=view_profile&query=84702) for his amazing soundtracks.
