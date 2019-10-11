@@ -24,7 +24,7 @@ sudo apt install cmake
 sudo apt install libsfml-dev
 ```
 
-## Building instructions
+## Building
 
 In order to build the project run on the root folder of the project:
 
@@ -36,3 +36,29 @@ make
 ```
 
 now you should see the **gravitar** bin under `/cmake-build-release` folder.
+You can finally run the game:
+
+```bash
+./gravitar
+```
+
+## How to play
+
+The game will prompt the player (a Cyan spaceship) in a solar system with 8 different planets.
+The player is free to navigate the universe, enter or leave the planets as he likes, but in order 
+to win he must defeat all the enemies (bunkers) that lives on the planets.
+
+When the player leaves a planet with no bunkers left, the planet will explode and will no longer be accessible.
+
+*SpaceShip Controls:*
+* Keyboard:
+ - *[A]*: anti-clockwise rotate.
+ - *[W]*: move faster in the current direction.
+ - *[D]*: clockwise rotate.
+ - *[S]*: move slower in the current direction.
+* Mouse:
+ - *[LeftClick]*: fire guns.
+ - *[RightClick]*: activate tractor ray.
+
+*Note:* pressing *[ESC]* will exit the game on any time without asking confirmation.
+
