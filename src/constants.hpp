@@ -32,7 +32,7 @@
 namespace nongravitar::constants {
     inline constexpr auto FPS = 65u;
 
-    inline constexpr auto PLAYER_HEALTH = 6;
+    inline constexpr auto PLAYER_HEALTH = 8;
     inline constexpr auto PLAYER_ENERGY = 20000.0f;
     inline constexpr auto PLAYER_RELOAD_TIME = 0.38f;
     inline constexpr auto PLAYER_SPEED = 220.0f;
