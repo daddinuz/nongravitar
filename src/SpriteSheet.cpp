@@ -28,7 +28,7 @@
 #include <trace.hpp>
 #include <SpriteSheet.hpp>
 
-using namespace gravitar;
+using namespace nongravitar;
 
 SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept
         : mBuffer(std::move(buffer)), mTexture(texture) {}

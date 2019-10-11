@@ -32,7 +32,7 @@
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
 
-namespace gravitar::components {
+namespace nongravitar::components {
     struct Velocity final {
         sf::Vector2f value;
     };

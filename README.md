@@ -1,20 +1,20 @@
-# Gravitar
+# NonGravitar
 
 Computer Science programming course project at University of Bologna 2018/2019.  
-The project consists of implementing a game inspired by the Atari gravitar released in the 1982.
+The project consists of implementing a game inspired by the Atari Gravitar released in the 1982.
 
 ## Requirements
 
 To be able to build this project a full-featured compiler that supports at least **C++17** must be provided;  
 moreover the following requirements must be satisfied:
 
- - [CMake](https://cmake.org) version 3.10 or later.
- - [SFML](https://www.sfml-dev.org/index.php) version 2.4 or later.
+- [CMake](https://cmake.org) version 3.10 or later.
+- [SFML](https://www.sfml-dev.org/index.php) version 2.4 or later.
 
-Furthermore this project is heavly based on [EnTT](https://github.com/skypjack/entt) which is already provided under the `/deps` folder.
+Furthermore this project is heavily based on [EnTT](https://github.com/skypjack/entt) which is already provided under the `/deps` folder.
 
 **NOTE:** This project has been developed on a machine running **Ubuntu 18.04** so I've no clue if it's going to work on 
-any other OS or even other Linux flavours, anyway I reasonably expect this to work on other **apt-based** distros.
+any other OS or even other Linux flavours, anyway I reasonably expect this to work on other **apt-based** distributions.
 
 Below a snippet to install the requirements on Ubuntu 18.04:
 
@@ -36,11 +36,11 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
-now you should see the **gravitar** bin under `/cmake-build-release` folder.
+now you should see the **nongravitar** bin under `/cmake-build-release` folder.
 You can finally run the game:
 
 ```bash
-./gravitar
+./nongravitar
 ```
 
 ## How to play
@@ -49,7 +49,7 @@ The game will prompt you (a Space Explorer) in a solar system with 8 different p
 are full of resources like energy or spare parts useful to repair you spaceship and continue your journey.
 
 You are free to navigate the planets as you like and to collect resources using your 
-spaceship's ray tractor, but be careful, the planets may be crowded by ostile bunkers 
+spaceship's ray tractor, but be careful, the planets may be crowded by hostile bunkers 
 that are going to shoot you at first sight, in order to protect the resources present on the planet.
 
 In order to win, you must visit the whole solar system and defeat all the enemies that lives on the planets;
@@ -75,7 +75,8 @@ journey will end, and you'll be lost in space!
 
 #### Scene handling
 
-I've implemented a rudimentary scene system using the [state pattern](https://en.wikipedia.org/wiki/State_pattern) for handling the various scenes interactions.
+I've implemented a rudimentary scene system using the [state pattern](https://en.wikipedia.org/wiki/State_pattern) for 
+handling the various scenes interactions.
 
 The game is composed by the following scenes:
 
@@ -85,15 +86,17 @@ The game is composed by the following scenes:
 - GameOver
 - YouWon
 
-Each scene is autonomous and indipendent from the others, so I managed to split 
+Each scene is autonomous and independent from the others, so I managed to split 
 the complexity of each scene into smaller pieces that are easier to maintain and expand.
 
 #### Memory management
 
-Regarding memory management, I decided to take the simplest approach possible: allocate all the heavy and long-lived resources like textures, fonts or soundtracks at the program startup and deallocate all of them on exit.
+Regarding memory management, I decided to take the simplest approach possible: allocate all the heavy and long-lived 
+resources like textures, fonts or soundtracks at the program startup and deallocate all of them on exit.
 
 In this way I got "whole-program lifetime" of the assets thus avoiding loading phases during the game and a throwaway 
-usage of the assets which is a waste of time and memory, so by the point of view of the game, assets can be seen as a [singleton](https://en.wikipedia.org/wiki/Singleton_pattern) ensuring proper initialization and deallocation.
+usage of the assets which is a waste of time and memory, so by the point of view of the game, assets can be seen 
+as a [singleton](https://en.wikipedia.org/wiki/Singleton_pattern) ensuring proper initialization and de-allocation.
 
 #### About the game logic
 

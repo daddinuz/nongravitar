@@ -32,7 +32,7 @@
 #include <Assets.hpp>
 #include <SceneManager.hpp>
 
-namespace gravitar {
+namespace nongravitar {
     class Game final {
     public:
         Game() = default; // no default-constructible

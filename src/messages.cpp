@@ -27,7 +27,7 @@
 
 #include <messages.hpp>
 
-using namespace gravitar::messages;
+using namespace nongravitar::messages;
 
 SolarSystemEntered::SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
         : window(window), registry(registry), sceneId(sceneId) {}

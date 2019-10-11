@@ -28,9 +28,9 @@
 #include <helpers.hpp>
 #include <scene/YouWon.hpp>
 
-using namespace gravitar;
-using namespace gravitar::scene;
-using namespace gravitar::assets;
+using namespace nongravitar;
+using namespace nongravitar::scene;
+using namespace nongravitar::assets;
 
 YouWon::YouWon(Assets &assets) :
         mYouWonTitle("You Won", assets.getFontsManager().get(FontId::Mechanical), 64),

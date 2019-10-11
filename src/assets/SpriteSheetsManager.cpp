@@ -27,8 +27,8 @@
 
 #include <assets/SpriteSheetsManager.hpp>
 
-using namespace gravitar;
-using namespace gravitar::assets;
+using namespace nongravitar;
+using namespace nongravitar::assets;
 
 void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
     mSpriteSheets.emplace(SpriteSheetId::SpaceShip, SpriteSheet::from(textureManager.get(TextureId::SpaceShip), {32, 32}));

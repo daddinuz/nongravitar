@@ -29,7 +29,7 @@
 
 #include <Scene.hpp>
 
-namespace gravitar::scene {
+namespace nongravitar::scene {
     class YouWon final : public Scene {
     public:
         YouWon() = delete; // no default-constructible

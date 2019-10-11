@@ -27,8 +27,8 @@
 
 #include <Assets.hpp>
 
-using namespace gravitar;
-using namespace gravitar::assets;
+using namespace nongravitar;
+using namespace nongravitar::assets;
 
 void Assets::initialize() {
     mFontsManager.initialize();

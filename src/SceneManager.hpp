@@ -31,7 +31,7 @@
 #include <vector>
 #include <Scene.hpp>
 
-namespace gravitar {
+namespace nongravitar {
     class SceneManager final {
     public:
         SceneManager() = default; // default-constructible

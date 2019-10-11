@@ -29,7 +29,7 @@
 #include <helpers.hpp>
 #include <assets/AudioManager.hpp>
 
-using namespace gravitar::assets;
+using namespace nongravitar::assets;
 
 void AudioManager::initialize() {
     // sounds
@@ -86,7 +86,7 @@ SoundTrackId AudioManager::getPlaying() const noexcept {
 }
 
 void AudioManager::load(const char *const filename, const SoundId id) {
-    auto path = std::string(GRAVITAR_SOUNDS_PATH "/") + filename;
+    auto path = std::string(NONGRAVITAR_SOUNDS_PATH "/") + filename;
 
     if (auto &soundBuffer = mSoundBuffers[helpers::enumValue(id)]; soundBuffer.loadFromFile(path)) {
         mSounds[helpers::enumValue(id)].setBuffer(soundBuffer);
@@ -97,7 +97,7 @@ void AudioManager::load(const char *const filename, const SoundId id) {
 }
 
 void AudioManager::load(const char *const filename, const SoundTrackId id) {
-    auto path = std::string(GRAVITAR_SOUNDTRACKS_PATH "/") + filename;
+    auto path = std::string(NONGRAVITAR_SOUNDTRACKS_PATH "/") + filename;
 
     if (auto &soundtrack = mSoundtracks[helpers::enumValue(id)]; soundtrack.openFromFile(path)) {
         soundtrack.setLoop(true);

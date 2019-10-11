@@ -33,13 +33,13 @@
 #include <components.hpp>
 #include <scene/SolarSystem.hpp>
 
-using namespace gravitar;
-using namespace gravitar::tags;
-using namespace gravitar::scene;
-using namespace gravitar::assets;
-using namespace gravitar::messages;
-using namespace gravitar::constants;
-using namespace gravitar::components;
+using namespace nongravitar;
+using namespace nongravitar::tags;
+using namespace nongravitar::scene;
+using namespace nongravitar::assets;
+using namespace nongravitar::messages;
+using namespace nongravitar::constants;
+using namespace nongravitar::components;
 
 using RandomEngine = helpers::RandomEngine;
 using FloatDistribution = helpers::FloatDistribution;

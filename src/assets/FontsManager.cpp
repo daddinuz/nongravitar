@@ -29,7 +29,7 @@
 #include <helpers.hpp>
 #include <assets/FontsManager.hpp>
 
-using namespace gravitar::assets;
+using namespace nongravitar::assets;
 
 void FontsManager::initialize() {
     load("mechanical.otf", FontId::Mechanical);
@@ -40,7 +40,7 @@ const sf::Font &FontsManager::get(const FontId id) const noexcept {
 }
 
 void FontsManager::load(const char *const filename, const FontId id) {
-    auto path = std::string(GRAVITAR_FONTS_PATH "/") + filename;
+    auto path = std::string(NONGRAVITAR_FONTS_PATH "/") + filename;
 
     if (auto &font = mFonts[helpers::enumValue(id)]; !font.loadFromFile(path)) {
         path.insert(0, __TRACE__ "Unable to load font: ");

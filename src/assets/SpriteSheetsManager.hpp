@@ -31,7 +31,7 @@
 #include <SpriteSheet.hpp>
 #include <assets/TexturesManager.hpp>
 
-namespace gravitar::assets {
+namespace nongravitar::assets {
     enum class SpriteSheetId : std::size_t {
         SpaceShip = 0,
         Bullet,

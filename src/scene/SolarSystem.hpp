@@ -34,7 +34,7 @@
 #include <helpers.hpp>
 #include <messages.hpp>
 
-namespace gravitar::scene {
+namespace nongravitar::scene {
     class SolarSystem final : public Scene,
                               public pubsub::Handler<messages::SolarSystemEntered> {
     public:

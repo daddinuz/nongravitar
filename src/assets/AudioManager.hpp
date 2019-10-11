@@ -30,7 +30,7 @@
 #include <array>
 #include <SFML/Audio.hpp>
 
-namespace gravitar::assets {
+namespace nongravitar::assets {
     enum class SoundTrackId : std::size_t {
         AmbientStarfield = 0,
         ComputerAdventures,

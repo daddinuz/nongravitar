@@ -34,9 +34,9 @@
 #include <helpers.hpp>
 #include <Game.hpp>
 
-using namespace gravitar;
-using namespace gravitar::scene;
-using namespace gravitar::constants;
+using namespace nongravitar;
+using namespace nongravitar::scene;
+using namespace nongravitar::constants;
 
 using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
@@ -64,7 +64,7 @@ int Game::run() {
 }
 
 void Game::initializeWindow() {
-    mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen);
+    mWindow.create({800, 600}, "NonGravitar", sf::Style::Fullscreen);
     mWindow.setVerticalSyncEnabled(true);
     mWindow.setMouseCursorVisible(false);
     mWindow.setKeyRepeatEnabled(false);
@@ -111,11 +111,11 @@ void Game::handleEvents() {
                     break;
 
                 case sf::Keyboard::Delete:
-                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Close); });
+                    helpers::debug([&]() { mWindow.create({800, 600}, "NonGravitar", sf::Style::Close); });
                     break;
 
                 case sf::Keyboard::F4:
-                    helpers::debug([&]() { mWindow.create({800, 600}, "Gravitar", sf::Style::Fullscreen); });
+                    helpers::debug([&]() { mWindow.create({800, 600}, "NonGravitar", sf::Style::Fullscreen); });
                     break;
 
                 default:

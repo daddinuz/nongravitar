@@ -27,7 +27,7 @@
 
 #include <components.hpp>
 
-using namespace gravitar::components;
+using namespace nongravitar::components;
 
 /*
  * ReloadTime

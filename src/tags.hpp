@@ -29,7 +29,7 @@
 
 #include <entt/entt.hpp>
 
-namespace gravitar::tags {
+namespace nongravitar::tags {
     using AI1 = entt::tag<"AI1"_hs>;
     using AI2 = entt::tag<"AI2"_hs>;
     using Bullet = entt::tag<"Bullet"_hs>;

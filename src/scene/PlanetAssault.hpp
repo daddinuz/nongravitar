@@ -33,7 +33,7 @@
 #include <helpers.hpp>
 #include <messages.hpp>
 
-namespace gravitar::scene {
+namespace nongravitar::scene {
     class PlanetAssault final : public Scene, public pubsub::Handler<messages::PlanetEntered> {
     public:
         PlanetAssault() = delete; // no default-constructible

@@ -30,7 +30,7 @@
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 
-namespace gravitar::messages {
+namespace nongravitar::messages {
     struct SolarSystemEntered final {
         SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, SceneId sceneId);
 

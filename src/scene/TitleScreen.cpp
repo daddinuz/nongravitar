@@ -28,18 +28,18 @@
 #include <helpers.hpp>
 #include <scene/TitleScreen.hpp>
 
-using namespace gravitar;
-using namespace gravitar::scene;
-using namespace gravitar::assets;
+using namespace nongravitar;
+using namespace nongravitar::scene;
+using namespace nongravitar::assets;
 
 constexpr auto characterSize = 32.0f;
 
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
-        mGravitarTitle(assets.getTexturesManager().get(TextureId::GravitarTitle)),
+        mTitle(assets.getTexturesManager().get(TextureId::Title)),
         mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), characterSize),
         mSolarSystemSceneId{solarSystemSceneId} {
-    mGravitarTitle.setScale(0.64f, 0.64f);
-    helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
+    mTitle.setScale(0.64f, 0.64f);
+    helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
@@ -54,13 +54,13 @@ SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 2.5f);
+    mTitle.setPosition(windowWidth / 2.0f, windowHeight / 2.5f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, (windowHeight - characterSize) / 1.1f);
 
     return Scene::update(window, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) noexcept {
-    window.draw(mGravitarTitle);
+    window.draw(mTitle);
     window.draw(mSpaceLabel);
 }

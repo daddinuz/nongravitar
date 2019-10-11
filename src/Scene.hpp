@@ -32,7 +32,7 @@
 #include <SFML/Graphics.hpp>
 #include <Assets.hpp>
 
-namespace gravitar {
+namespace nongravitar {
     enum class SceneId : std::size_t {};
     constexpr auto nullSceneId = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()};
 

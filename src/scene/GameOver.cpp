@@ -28,9 +28,9 @@
 #include <helpers.hpp>
 #include <scene/GameOver.hpp>
 
-using namespace gravitar;
-using namespace gravitar::scene;
-using namespace gravitar::assets;
+using namespace nongravitar;
+using namespace nongravitar::scene;
+using namespace nongravitar::assets;
 
 GameOver::GameOver(Assets &assets) :
         mGameOverTitle("Game Over", assets.getFontsManager().get(FontId::Mechanical), 64),

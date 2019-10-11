@@ -29,7 +29,7 @@
 
 #include <Scene.hpp>
 
-namespace gravitar::scene {
+namespace nongravitar::scene {
     class TitleScreen final : public Scene {
     public:
         TitleScreen() = delete;
@@ -49,7 +49,7 @@ namespace gravitar::scene {
         void render(sf::RenderTarget &window) noexcept final;
 
     private:
-        sf::Sprite mGravitarTitle;
+        sf::Sprite mTitle;
         sf::Text mSpaceLabel;
         const SceneId mSolarSystemSceneId;
     };

@@ -29,7 +29,7 @@
 
 #include <SFML/Graphics.hpp>
 
-namespace gravitar::constants {
+namespace nongravitar::constants {
     inline constexpr auto FPS = 65u;
 
     inline constexpr auto PLAYER_HEALTH = 6;

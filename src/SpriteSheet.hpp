@@ -30,7 +30,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-namespace gravitar {
+namespace nongravitar {
     class SpriteSheet final {
     public:
         using Frame = sf::IntRect;

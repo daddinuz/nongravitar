@@ -28,7 +28,7 @@
 #include <helpers.hpp>
 #include <SceneManager.hpp>
 
-using namespace gravitar;
+using namespace nongravitar;
 
 Scene &SceneManager::get(SceneId id) {
     return *mScenes.at(helpers::enumValue(id));

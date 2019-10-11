@@ -29,7 +29,7 @@
 
 #include <unordered_set>
 
-namespace gravitar::pubsub {
+namespace nongravitar::pubsub {
     template<typename T>
     class Handler {
     public:

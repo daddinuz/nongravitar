@@ -27,7 +27,7 @@
 
 #include <Scene.hpp>
 
-using namespace gravitar;
+using namespace nongravitar;
 
 SceneId Scene::onEvent(const sf::Event &event) noexcept {
     (void) event;

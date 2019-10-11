@@ -29,10 +29,10 @@
 #include <helpers.hpp>
 #include <assets/TexturesManager.hpp>
 
-using namespace gravitar::assets;
+using namespace nongravitar::assets;
 
 void TexturesManager::initialize() {
-    load("gravitar-title.png", TextureId::GravitarTitle);
+    load("title.png", TextureId::Title);
     load("spaceship.png", TextureId::SpaceShip);
     load("bullet.png", TextureId::Bullet);
     load("bunker.png", TextureId::Bunker);
@@ -45,7 +45,7 @@ const sf::Texture &TexturesManager::get(const TextureId id) const noexcept {
 }
 
 void TexturesManager::load(const char *const filename, const TextureId id) {
-    auto path = std::string(GRAVITAR_TEXTURES_PATH "/") + filename;
+    auto path = std::string(NONGRAVITAR_TEXTURES_PATH "/") + filename;
 
     if (auto &texture = mTextures[helpers::enumValue(id)]; texture.loadFromFile(path)) {
         texture.setSmooth(true);

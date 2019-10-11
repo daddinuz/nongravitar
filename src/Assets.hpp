@@ -32,7 +32,7 @@
 #include <assets/TexturesManager.hpp>
 #include <assets/SpriteSheetsManager.hpp>
 
-namespace gravitar {
+namespace nongravitar {
     class Assets final {
     public:
         Assets() = default; // default-constructible

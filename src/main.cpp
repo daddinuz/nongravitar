@@ -27,7 +27,7 @@
 
 #include <Game.hpp>
 
-using namespace gravitar;
+using namespace nongravitar;
 
 int main() {
     auto game = Game();

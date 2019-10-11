@@ -30,9 +30,9 @@
 #include <array>
 #include <SFML/Graphics.hpp>
 
-namespace gravitar::assets {
+namespace nongravitar::assets {
     enum class TextureId : std::size_t {
-        GravitarTitle = 0,
+        Title = 0,
         SpaceShip,
         Bullet,
         Bunker,

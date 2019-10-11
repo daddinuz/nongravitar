@@ -27,7 +27,7 @@
 
 #include <helpers.hpp>
 
-using namespace gravitar;
+using namespace nongravitar;
 
 float helpers::deg2rad(const float deg) {
     return deg * static_cast<float>(M_PI) / 180.0f;

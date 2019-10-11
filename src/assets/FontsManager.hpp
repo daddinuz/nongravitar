@@ -30,7 +30,7 @@
 #include <array>
 #include <SFML/Graphics.hpp>
 
-namespace gravitar::assets {
+namespace nongravitar::assets {
     enum class FontId : std::size_t {
         Mechanical = 0,
     };

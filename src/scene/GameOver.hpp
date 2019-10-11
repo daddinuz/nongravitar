@@ -29,7 +29,7 @@
 
 #include <Scene.hpp>
 
-namespace gravitar::scene {
+namespace nongravitar::scene {
     class GameOver final : public Scene {
     public:
         GameOver() = delete; // no default-constructible
