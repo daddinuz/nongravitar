@@ -32,9 +32,11 @@ using namespace gravitar;
 using namespace gravitar::scene;
 using namespace gravitar::assets;
 
+constexpr auto characterSize = 32.0f;
+
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
         mGravitarTitle(assets.getTexturesManager().get(TextureId::GravitarTitle)),
-        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 24),
+        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), characterSize),
         mSolarSystemSceneId{solarSystemSceneId} {
     helpers::centerOrigin(mGravitarTitle, mGravitarTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
@@ -45,18 +47,19 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
 }
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
+    const auto[windowWidth, windowHeight] = window.getSize();
+
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
+
+    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 2.5f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, (windowHeight - characterSize) / 1.1f);
 
     return Scene::update(window, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) noexcept {
-    const auto[windowWidth, windowHeight] = window.getSize();
-    mGravitarTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
-
     window.draw(mGravitarTitle);
     window.draw(mSpaceLabel);
 }

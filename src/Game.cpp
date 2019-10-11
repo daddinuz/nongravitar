@@ -75,7 +75,7 @@ void Game::initializeWindow() {
 void Game::initializeScenes() {
     auto randomDevice = RandomDevice();
     auto randomEngine = RandomEngine(randomDevice());
-    auto planetsColors = IntDistribution(0, PLANET_COLORS.size() - 1);
+    auto planetsColorsSelector = IntDistribution(0, PLANET_COLORS.size() - 1);
 
     auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
     auto &gameOver = mSceneManager.emplace<GameOver>(mAssets);
@@ -84,7 +84,8 @@ void Game::initializeScenes() {
             .initialize(mWindow, mAssets);
 
     for (auto i = 0u; i < PLANETS; i++) {
-        const auto planetColor = sf::Color(PLANET_COLORS.at(planetsColors(randomEngine)));
+        const auto rgb = PLANET_COLORS[planetsColorsSelector(randomEngine)];
+        const auto planetColor = sf::Color(rgb[0], rgb[1], rgb[2]);
         auto &planetAssault = mSceneManager
                 .emplace<PlanetAssault>(solarSystem.getSceneId(), gameOver.getSceneId())
                 .initialize(mWindow, mAssets, planetColor);

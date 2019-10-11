@@ -43,22 +43,12 @@ namespace gravitar::constants {
     inline constexpr auto BULLET_SPEED = 1024.0f;
 
     inline constexpr auto PLANETS = 8u;
-    inline constexpr std::array<sf::Uint32, 16> PLANET_COLORS = {
-            0xF0F8FF,
-            0xE6E6FA,
-            0x87CEFA,
-            0x5F9EA0,
-            0x6A5ACD,
-            0x7FFFD4,
-            0xAFEEEE,
-            0x40E0D0,
-            0x00CED1,
-            0x800000,
-            0xB22222,
-            0xFFB6C1,
-            0xFF1493,
-            0xFFDAB9,
-            0xF0E68C,
-            0xADFF2F,
+    inline constexpr std::array<std::array<sf::Uint8, 3>, 16> PLANET_COLORS{
+            {
+                    {248, 131, 121}, {218, 44, 67}, {227, 66, 52}, {86, 130, 3},
+                    {255, 145, 164}, {0, 166, 147}, {62, 180, 137}, {0, 204, 153},
+                    {0, 250, 154}, {170, 240, 209}, {13, 152, 186}, {150, 222, 209},
+                    {135, 206, 235}, {158, 185, 212}, {0, 191, 255}, {128, 255, 212}
+            }
     };
 }
