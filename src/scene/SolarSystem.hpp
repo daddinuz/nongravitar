@@ -27,12 +27,12 @@
 
 #pragma once
 
-#include <random>
 #include <entt/entt.hpp>
 #include <Scene.hpp>
 #include <pubsub.hpp>
 #include <helpers.hpp>
 #include <messages.hpp>
+#include <SceneManager.hpp>
 
 namespace nongravitar::scene {
     class SolarSystem final : public Scene,
@@ -53,9 +53,7 @@ namespace nongravitar::scene {
          *  This method should be called exactly once in the life-cycle of this object, any usage of this object
          *  without proper initialization will result in a error.
          */
-        SolarSystem &initialize(const sf::RenderWindow &window, Assets &assets) noexcept;
-
-        void addPlanet(const sf::RenderWindow &window, helpers::RandomEngine &randomEngine, sf::Color planetColor, SceneId planetSceneId) noexcept;
+        SolarSystem &initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
 
         SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
 
@@ -67,6 +65,9 @@ namespace nongravitar::scene {
         void initializePubSub() const noexcept;
         void initializeReport(Assets &assets) noexcept;
         void initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void resetPlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
+
+        void addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) noexcept;
 
         void inputSystem(sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
@@ -77,6 +78,7 @@ namespace nongravitar::scene {
         entt::registry mRegistry;
         char mBuffer[128];
         sf::Text mReport;
+        helpers::RandomEngine mRandomEngine;
         const SceneId mYouWonSceneId;
         const SceneId mGameOverSceneId;
         SceneId mNextSceneId = nullSceneId;

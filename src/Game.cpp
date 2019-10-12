@@ -27,7 +27,6 @@
 
 #include <scene/TitleScreen.hpp>
 #include <scene/SolarSystem.hpp>
-#include <scene/PlanetAssault.hpp>
 #include <scene/GameOver.hpp>
 #include <scene/YouWon.hpp>
 #include <constants.hpp>
@@ -37,10 +36,6 @@
 using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::constants;
-
-using RandomDevice = helpers::RandomDevice;
-using RandomEngine = helpers::RandomEngine;
-using IntDistribution = helpers::IntDistribution;
 
 Game &Game::initialize() {
     mAssets.initialize();
@@ -73,25 +68,11 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto randomDevice = RandomDevice();
-    auto randomEngine = RandomEngine(randomDevice());
-    auto planetsColorsSelector = IntDistribution(0, PLANET_COLORS.size() - 1);
-
     auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
     auto &gameOver = mSceneManager.emplace<GameOver>(mAssets);
     auto &solarSystem = mSceneManager
             .emplace<SolarSystem>(youWon.getSceneId(), gameOver.getSceneId())
-            .initialize(mWindow, mAssets);
-
-    for (auto i = 0u; i < PLANETS; i++) {
-        const auto rgb = PLANET_COLORS[planetsColorsSelector(randomEngine)];
-        const auto planetColor = sf::Color(rgb[0], rgb[1], rgb[2]);
-        auto &planetAssault = mSceneManager
-                .emplace<PlanetAssault>(solarSystem.getSceneId(), gameOver.getSceneId())
-                .initialize(mWindow, mAssets, planetColor);
-
-        solarSystem.addPlanet(mWindow, randomEngine, planetColor, planetAssault.getSceneId());
-    }
+            .initialize(mWindow, mSceneManager, mAssets);
 
     mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();
 }

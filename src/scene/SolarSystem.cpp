@@ -31,6 +31,7 @@
 #include <helpers.hpp>
 #include <constants.hpp>
 #include <components.hpp>
+#include <scene/PlanetAssault.hpp>
 #include <scene/SolarSystem.hpp>
 
 using namespace nongravitar;
@@ -41,22 +42,26 @@ using namespace nongravitar::messages;
 using namespace nongravitar::constants;
 using namespace nongravitar::components;
 
+using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
+using IntDistribution = helpers::IntDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
 SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId) :
         mBuffer{},
+        mRandomEngine{RandomDevice()()},
         mYouWonSceneId{youWonSceneId},
         mGameOverSceneId{gameOverSceneId} {}
 
-SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, Assets &assets) noexcept {
-    initializePlayers(window, assets);
-    initializeReport(assets);
+SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
     initializePubSub();
+    initializeReport(assets);
+    initializePlayers(window, assets);
+    resetPlanets(window, sceneManager, assets);
     return *this;
 }
 
-void SolarSystem::addPlanet(const sf::RenderWindow &window, helpers::RandomEngine &randomEngine, sf::Color planetColor, SceneId planetSceneId) noexcept {
+void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
     auto planetXDistribution = FloatDistribution(0.0f, windowWidth);
     auto planetYDistribution = FloatDistribution(0.0f, windowHeight);
@@ -71,9 +76,9 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, helpers::RandomEngin
         collides = false;
 
         auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(planetSizeDistribution(randomEngine));
+        circleShape.setRadius(planetSizeDistribution(mRandomEngine));
         helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
-        planetRenderable->setPosition(planetXDistribution(randomEngine), planetYDistribution(randomEngine));
+        planetRenderable->setPosition(planetXDistribution(mRandomEngine), planetYDistribution(mRandomEngine));
 
         auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
 
@@ -187,6 +192,20 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
+}
+
+void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
+    auto planetsColorsSelector = IntDistribution(0, PLANET_COLORS.size() - 1);
+
+    for (auto i = 0u; i < PLANETS; i++) {
+        const auto rgb = PLANET_COLORS[planetsColorsSelector(mRandomEngine)];
+        const auto planetColor = sf::Color(rgb[0], rgb[1], rgb[2]);
+        auto &planetAssault = sceneManager
+                .emplace<PlanetAssault>(getSceneId(), mGameOverSceneId)
+                .initialize(window, assets, planetColor);
+
+        addPlanet(window, planetColor, planetAssault.getSceneId());
+    }
 }
 
 void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
