@@ -45,6 +45,7 @@ using namespace nongravitar::components;
 using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
 using IntDistribution = helpers::IntDistribution;
+using UintDistribution = helpers::UintDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
 SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
@@ -157,6 +158,8 @@ void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
             }
 
             if (const auto bunkers = message.registry.view<Bunker>(); bunkers.begin() == bunkers.end()) {
+                const auto bonus = UintDistribution(800, 1200)(mRandomEngine);
+                mRegistry.view<Player, Score>().each([&](const auto, auto &score) { score.value += bonus; });
                 mRegistry.destroy(planetId);
             }
 
@@ -184,6 +187,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
 
     mRegistry.assign<Player>(playerId);
+    mRegistry.assign<Score>(playerId);
     mRegistry.assign<Health>(playerId, PLAYER_HEALTH);
     mRegistry.assign<Energy>(playerId, PLAYER_ENERGY);
     mRegistry.assign<Velocity>(playerId);
@@ -282,24 +286,30 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
 void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
-    if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
-        resetPlanets(window, sceneManager, assets);
-    }
-
-    mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto, const auto &health, const auto &energy) {
+    const auto players = mRegistry.view<Player, Health, Energy>();
+    for (const auto id : players) {
+        const auto &[health, energy] = players.get<Health, Energy>(id);
         if (health.isDead() or energy.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
             mNextSceneId = mLeaderBoardSceneId;
+            pubsub::publish<GameOver>(mRegistry.get<Score>(id).value);
+            return;
         }
-    });
+    }
+
+    if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
+        const auto bonus = UintDistribution(2000, 2800)(mRandomEngine);
+        mRegistry.view<Player, Score>().each([&](const auto, auto &score) { score.value += bonus; });
+        resetPlanets(window, sceneManager, assets);
+    }
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Energy>().each([&](const auto, const auto &health, const auto &energy) {
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %d energy: %.0f", health.value, energy.value);
+    mRegistry.view<Player, Health, Energy, Score>().each([&](const auto, const auto &health, const auto &energy, const auto &score) {
+        std::snprintf(mBuffer, std::size(mBuffer), "health: %02d energy: %05.0f score: %05u", health.value, energy.value, score.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);

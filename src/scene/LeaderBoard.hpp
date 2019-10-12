@@ -28,19 +28,27 @@
 #pragma once
 
 #include <Scene.hpp>
+#include <pubsub.hpp>
+#include <messages.hpp>
 
 namespace nongravitar::scene {
-    class LeaderBoard final : public Scene {
+    class LeaderBoard final : public Scene,
+                              public pubsub::Handler<messages::GameOver> {
     public:
-        LeaderBoard() = delete; // no default-constructible
-
-        explicit LeaderBoard(Assets &assets);
+        LeaderBoard() = default; // default-constructible
 
         LeaderBoard(const LeaderBoard &) = delete; // no copy-constructible
         LeaderBoard &operator=(const LeaderBoard &) = delete; // no copy-assignable
 
         LeaderBoard(LeaderBoard &&) = delete; // no move-constructible
         LeaderBoard &operator=(LeaderBoard &&) = delete; // no move-assignable
+
+        /**
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        LeaderBoard &initialize(Assets &assets) noexcept;
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
@@ -49,6 +57,8 @@ namespace nongravitar::scene {
         void render(sf::RenderTarget &window) noexcept final;
 
     private:
+        void operator()(const messages::GameOver &message) noexcept final;
+
         sf::Text mGameOverTitle;
         sf::Text mSpaceLabel;
     };

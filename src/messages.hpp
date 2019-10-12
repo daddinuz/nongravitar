@@ -46,4 +46,10 @@ namespace nongravitar::messages {
         entt::registry &registry; // FIXME this should be const but EnTT requires a mutable &
         const SceneId sceneId; // destination planet SceneId
     };
+
+    struct GameOver final {
+        explicit GameOver(unsigned score);
+
+        const unsigned score;
+    };
 }

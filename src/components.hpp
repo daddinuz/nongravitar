@@ -53,6 +53,10 @@ namespace nongravitar::components {
         }
     };
 
+    struct Score final {
+        unsigned value;
+    };
+
     template<typename T>
     class Supply final {
     public:
