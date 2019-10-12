@@ -52,7 +52,7 @@ You are free to navigate the planets as you like and to collect resources using 
 spaceship's ray tractor, but be careful, the planets may be crowded by hostile bunkers 
 that are going to shoot you at first sight, in order to protect the resources present on the planet.
 
-In order to win, you must visit the whole solar system and defeat all the enemies that lives on the planets;
+In order to navigate to the next solar system, you must defeat all the enemies that lives on the planets;
 when you leave a planet with no bunkers left, the planet will explode and will no longer be accessible.
 
 During your journey pay attention to your vehicle, if it gets too damaged or if you finish the energy your 
