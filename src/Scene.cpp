@@ -29,16 +29,11 @@
 
 using namespace nongravitar;
 
-SceneId Scene::onEvent(const sf::Event &event) noexcept {
-    (void) event;
+SceneId Scene::onEvent(const sf::Event &) noexcept {
     return getSceneId();
 }
 
-SceneId Scene::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
-    (void) window;
-    (void) sceneManager;
-    (void) assets;
-    (void) elapsed;
+SceneId Scene::update(const sf::RenderWindow &, SceneManager &, Assets &, sf::Time) noexcept {
     return getSceneId();
 }
 

@@ -107,7 +107,6 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColo
 }
 
 SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
-    (void) assets;
     mNextSceneId = getSceneId();
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::ComputerF__k != audioManager.getPlaying()) {
@@ -213,8 +212,7 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
 
     mRegistry
             .view<Player, Energy, Velocity, Renderable>()
-            .each([&](const auto playerTag, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
-                (void) playerTag;
+            .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
                 auto speed = PLAYER_SPEED;
 
                 if (isKeyPressed(Key::W)) {
@@ -288,9 +286,7 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
         resetPlanets(window, sceneManager, assets);
     }
 
-    mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto tag, const auto &health, const auto &energy) {
-        (void) tag;
-
+    mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto, const auto &health, const auto &energy) {
         if (health.isDead() or energy.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
@@ -302,9 +298,7 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
-    mRegistry.view<Player, Health, Energy>().each([&](const auto tag, const auto &health, const auto &energy) {
-        (void) tag;
-
+    mRegistry.view<Player, Health, Energy>().each([&](const auto, const auto &health, const auto &energy) {
         std::snprintf(mBuffer, std::size(mBuffer), "health: %d energy: %.0f", health.value, energy.value);
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 

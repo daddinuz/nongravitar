@@ -50,8 +50,7 @@ void ReloadTime::elapse(sf::Time time) {
  * Renderable
  */
 
-void Renderable::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-    (void) states;
+void Renderable::draw(sf::RenderTarget &target, sf::RenderStates) const {
     std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
 }
 
