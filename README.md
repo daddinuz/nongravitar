@@ -83,8 +83,7 @@ The game is composed by the following scenes:
 - TitleScreen
 - SolarSystem
 - PlanetAssault
-- GameOver
-- YouWon
+- LeaderBoard
 
 Each scene is autonomous and independent from the others, so I managed to split 
 the complexity of each scene into smaller pieces that are easier to maintain and expand.
