@@ -33,6 +33,8 @@
 #include <Assets.hpp>
 
 namespace nongravitar {
+    class SceneManager;
+
     enum class SceneId : std::size_t {};
     constexpr auto nullSceneId = SceneId{std::numeric_limits<std::underlying_type<SceneId>::type>::max()};
 
@@ -50,7 +52,7 @@ namespace nongravitar {
          * Update the logic of the scene returning a new scene if needed.
          * This method is called exactly once per iteration.
          */
-        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
+        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept;
 
         /**
          * Render the scene.

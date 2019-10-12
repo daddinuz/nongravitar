@@ -47,7 +47,7 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mSolarSystemSceneId : getSceneId();
 }
 
-SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
+SceneId TitleScreen::update(const sf::RenderWindow &window, [[maybe_unused]] SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
@@ -57,7 +57,7 @@ SceneId TitleScreen::update(const sf::RenderWindow &window, Assets &assets, sf::
     mTitle.setPosition(windowWidth / 2.0f, windowHeight / 2.5f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, (windowHeight - characterSize) / 1.1f);
 
-    return Scene::update(window, assets, elapsed);
+    return Scene::update(window, sceneManager, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) noexcept {

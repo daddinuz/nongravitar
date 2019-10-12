@@ -40,7 +40,7 @@ namespace nongravitar::scene {
     public:
         SolarSystem() = delete; // no default-constructible
 
-        SolarSystem(SceneId youWonSceneId, SceneId gameOverSceneId);
+        explicit SolarSystem(SceneId leaderBoardSceneId);
 
         SolarSystem(const SolarSystem &) = delete; // no copy-constructible
         SolarSystem &operator=(const SolarSystem &) = delete; // no copy-assignable
@@ -55,7 +55,7 @@ namespace nongravitar::scene {
          */
         SolarSystem &initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
 
-        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
@@ -72,15 +72,14 @@ namespace nongravitar::scene {
         void inputSystem(sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
-        void livenessSystem(Assets &assets) noexcept;
+        void livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
         char mBuffer[128];
         sf::Text mReport;
         helpers::RandomEngine mRandomEngine;
-        const SceneId mYouWonSceneId;
-        const SceneId mGameOverSceneId;
+        const SceneId mLeaderBoardSceneId;
         SceneId mNextSceneId = nullSceneId;
     };
 }

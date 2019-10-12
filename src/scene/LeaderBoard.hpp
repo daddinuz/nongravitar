@@ -30,21 +30,21 @@
 #include <Scene.hpp>
 
 namespace nongravitar::scene {
-    class GameOver final : public Scene {
+    class LeaderBoard final : public Scene {
     public:
-        GameOver() = delete; // no default-constructible
+        LeaderBoard() = delete; // no default-constructible
 
-        explicit GameOver(Assets &assets);
+        explicit LeaderBoard(Assets &assets);
 
-        GameOver(const GameOver &) = delete; // no copy-constructible
-        GameOver &operator=(const GameOver &) = delete; // no copy-assignable
+        LeaderBoard(const LeaderBoard &) = delete; // no copy-constructible
+        LeaderBoard &operator=(const LeaderBoard &) = delete; // no copy-assignable
 
-        GameOver(GameOver &&) = delete; // no move-constructible
-        GameOver &operator=(GameOver &&) = delete; // no move-assignable
+        LeaderBoard(LeaderBoard &&) = delete; // no move-constructible
+        LeaderBoard &operator=(LeaderBoard &&) = delete; // no move-assignable
 
         SceneId onEvent(const sf::Event &event) noexcept final;
 
-        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 

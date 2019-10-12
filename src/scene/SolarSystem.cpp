@@ -47,11 +47,10 @@ using RandomEngine = helpers::RandomEngine;
 using IntDistribution = helpers::IntDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
-SolarSystem::SolarSystem(const SceneId youWonSceneId, const SceneId gameOverSceneId) :
+SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
         mBuffer{},
         mRandomEngine{RandomDevice()()},
-        mYouWonSceneId{youWonSceneId},
-        mGameOverSceneId{gameOverSceneId} {}
+        mLeaderBoardSceneId{leaderBoardSceneId} {}
 
 SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
     initializePubSub();
@@ -107,7 +106,7 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColo
     }
 }
 
-SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
     (void) assets;
     mNextSceneId = getSceneId();
 
@@ -118,7 +117,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, Assets &assets, cons
     inputSystem(elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
-    livenessSystem(assets);
+    livenessSystem(window, sceneManager, assets);
     reportSystem(window);
 
     return mNextSceneId;
@@ -201,7 +200,7 @@ void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sce
         const auto rgb = PLANET_COLORS[planetsColorsSelector(mRandomEngine)];
         const auto planetColor = sf::Color(rgb[0], rgb[1], rgb[2]);
         auto &planetAssault = sceneManager
-                .emplace<PlanetAssault>(getSceneId(), mGameOverSceneId)
+                .emplace<PlanetAssault>(getSceneId(), mLeaderBoardSceneId)
                 .initialize(window, assets, planetColor);
 
         addPlanet(window, planetColor, planetAssault.getSceneId());
@@ -282,11 +281,11 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     }
 }
 
-void SolarSystem::livenessSystem(Assets &assets) noexcept {
+void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
     if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
-        mNextSceneId = mYouWonSceneId;
+        resetPlanets(window, sceneManager, assets);
     }
 
     mRegistry.view<Player, Health, Energy>().each([&](const auto id, const auto tag, const auto &health, const auto &energy) {
@@ -295,7 +294,7 @@ void SolarSystem::livenessSystem(Assets &assets) noexcept {
         if (health.isDead() or energy.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
-            mNextSceneId = mGameOverSceneId;
+            mNextSceneId = mLeaderBoardSceneId;
         }
     });
 

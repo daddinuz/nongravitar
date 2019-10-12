@@ -45,10 +45,10 @@ using RandomDevice = helpers::RandomDevice;
 using IntDistribution = helpers::IntDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
-PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId gameOverSceneId) :
+PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId leaderBoardSceneId) :
         mBuffer{},
         mRandomEngine{RandomDevice()()},
-        mGameOverSceneId{gameOverSceneId},
+        mLeaderBoardSceneId{leaderBoardSceneId},
         mSolarSystemSceneId{solarSystemSceneId} {}
 
 PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept {
@@ -59,7 +59,7 @@ PlanetAssault &PlanetAssault::initialize(const sf::RenderWindow &window, Assets 
     return *this;
 }
 
-SceneId PlanetAssault::update(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
+SceneId PlanetAssault::update(const sf::RenderWindow &window, [[maybe_unused]] SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
     mNextSceneId = getSceneId();
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::ComputerAdventures != audioManager.getPlaying()) {
@@ -511,7 +511,7 @@ void PlanetAssault::livenessSystem(Assets &assets) noexcept {
         if (health.isDead() or energy.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
-            mNextSceneId = mGameOverSceneId;
+            mNextSceneId = mLeaderBoardSceneId;
         }
     });
 

@@ -27,8 +27,7 @@
 
 #include <scene/TitleScreen.hpp>
 #include <scene/SolarSystem.hpp>
-#include <scene/GameOver.hpp>
-#include <scene/YouWon.hpp>
+#include <scene/LeaderBoard.hpp>
 #include <constants.hpp>
 #include <helpers.hpp>
 #include <Game.hpp>
@@ -48,7 +47,7 @@ int Game::run() {
     mClock.restart();
 
     for (handleEvents(); nullSceneId != mCurrentSceneId; handleEvents()) {
-        mCurrentSceneId = mSceneManager.get(mCurrentSceneId).update(mWindow, mAssets, mClock.restart());
+        mCurrentSceneId = mSceneManager.get(mCurrentSceneId).update(mWindow, mSceneManager, mAssets, mClock.restart());
         mWindow.clear();
         mSceneManager.get(mCurrentSceneId).render(mWindow);
         mWindow.display();
@@ -68,10 +67,9 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto &youWon = mSceneManager.emplace<YouWon>(mAssets);
-    auto &gameOver = mSceneManager.emplace<GameOver>(mAssets);
+    auto &leaderBoard = mSceneManager.emplace<LeaderBoard>(mAssets);
     auto &solarSystem = mSceneManager
-            .emplace<SolarSystem>(youWon.getSceneId(), gameOver.getSceneId())
+            .emplace<SolarSystem>(leaderBoard.getSceneId())
             .initialize(mWindow, mSceneManager, mAssets);
 
     mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();

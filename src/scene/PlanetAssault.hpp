@@ -38,7 +38,7 @@ namespace nongravitar::scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
-        PlanetAssault(SceneId solarSystemSceneId, SceneId gameOverSceneId);
+        PlanetAssault(SceneId solarSystemSceneId, SceneId leaderBoardSceneId);
 
         PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
         PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
@@ -53,7 +53,7 @@ namespace nongravitar::scene {
          */
         PlanetAssault &initialize(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
 
-        SceneId update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;
 
@@ -79,7 +79,7 @@ namespace nongravitar::scene {
         char mBuffer[128];
         sf::Text mReport;
         helpers::RandomEngine mRandomEngine;
-        const SceneId mGameOverSceneId;
+        const SceneId mLeaderBoardSceneId;
         const SceneId mSolarSystemSceneId;
         SceneId mNextSceneId = nullSceneId;
     };

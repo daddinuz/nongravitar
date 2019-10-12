@@ -26,36 +26,36 @@
  */
 
 #include <helpers.hpp>
-#include <scene/YouWon.hpp>
+#include <scene/LeaderBoard.hpp>
 
 using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::assets;
 
-YouWon::YouWon(Assets &assets) :
-        mYouWonTitle("You Won", assets.getFontsManager().get(FontId::Mechanical), 64),
+LeaderBoard::LeaderBoard(Assets &assets) :
+        mGameOverTitle("Game Over", assets.getFontsManager().get(FontId::Mechanical), 64),
         mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 24) {
-    helpers::centerOrigin(mYouWonTitle, mYouWonTitle.getLocalBounds());
+    helpers::centerOrigin(mGameOverTitle, mGameOverTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
 
-SceneId YouWon::onEvent(const sf::Event &event) noexcept {
+SceneId LeaderBoard::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
-SceneId YouWon::update(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept {
+SceneId LeaderBoard::update(const sf::RenderWindow &window, [[maybe_unused]] SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    return Scene::update(window, assets, elapsed);
-
+    return Scene::update(window, sceneManager, assets, elapsed);
 }
 
-void YouWon::render(sf::RenderTarget &window) noexcept {
+void LeaderBoard::render(sf::RenderTarget &window) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
-    mYouWonTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
+    mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
     mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
-    window.draw(mYouWonTitle);
+
+    window.draw(mGameOverTitle);
     window.draw(mSpaceLabel);
 }
