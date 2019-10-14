@@ -42,6 +42,8 @@ namespace nongravitar::constants {
 
     inline constexpr auto BULLET_SPEED = 1024.0f;
 
+    inline constexpr auto SCORE_PER_HIT = 200u;
+
     inline constexpr auto PLANETS = 8u;
     inline constexpr std::array<std::array<sf::Uint8, 3>, 16> PLANET_COLORS{
             {

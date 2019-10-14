@@ -65,8 +65,6 @@ namespace nongravitar::scene {
         void initializeReport(Assets &assets) noexcept;
         void initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
 
-        void addBullet(Assets &assets, const sf::Vector2f &position, float rotation) noexcept;
-
         void inputSystem(Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept;

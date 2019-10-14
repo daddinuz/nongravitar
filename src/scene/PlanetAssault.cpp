@@ -45,6 +45,9 @@ using RandomDevice = helpers::RandomDevice;
 using IntDistribution = helpers::IntDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
+template<typename T>
+void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation, entt::entity id) noexcept;
+
 PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId leaderBoardSceneId) :
         mBuffer{},
         mRandomEngine{RandomDevice()()},
@@ -146,8 +149,8 @@ void PlanetAssault::initializeGroups() noexcept {
     mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > );
 
     mRegistry.group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > );
-    mRegistry.group<Supply<Energy>>(entt::get < Score, HitRadius, Renderable > );
-    mRegistry.group<Supply<Health>>(entt::get < Score, HitRadius, Renderable > );
+    mRegistry.group<Supply<Energy>>(entt::get < HitRadius, Renderable > );
+    mRegistry.group<Supply<Health>>(entt::get < HitRadius, Renderable > );
 
     mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
 }
@@ -255,7 +258,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Score>(supplyId, 400u);
                 mRegistry.assign<Supply<Energy>>(supplyId, energySupplyDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
@@ -273,7 +275,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Score>(supplyId, 200u);
                 mRegistry.assign<Supply<Health>>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
@@ -292,24 +293,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             mRegistry.destroy(bunkerId);
         }
     }
-}
-
-void PlanetAssault::addBullet(Assets &assets, const sf::Vector2f &position, const float rotation) noexcept {
-    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
-    const auto bulletBounds = bulletRenderable.getLocalBounds();
-    const auto bulletId = mRegistry.create();
-    static const auto bulletHitRadius = std::max(bulletBounds.width, bulletBounds.height) / 2.0f;
-
-    helpers::centerOrigin(bulletRenderable, bulletBounds);
-    bulletRenderable.setRotation(rotation);
-    bulletRenderable.setPosition(position);
-
-    mRegistry.assign<Bullet>(bulletId);
-    mRegistry.assign<Velocity>(bulletId, helpers::makeVector2(rotation, BULLET_SPEED));
-    mRegistry.assign<HitRadius>(bulletId, bulletHitRadius);
-    mRegistry.assign<Renderable>(bulletId, std::move(bulletRenderable));
-
-    assets.getAudioManager().play(SoundId::Shot);
 }
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
@@ -351,7 +334,8 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                     const auto bulletRotation = playerRenderable->getRotation();
                     const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + 1.0f);
                     playerReloadTime.reset();
-                    addBullet(assets, bulletPosition, bulletRotation); // NOTE for a future me: be aware that this invalidates some component references !!!
+                    // NOTE for a future me: be aware that this invalidates some component references !!!
+                    shoot<Player>(mRegistry, assets, bulletPosition, bulletRotation, playerId);
                 }
             });
 }
@@ -394,6 +378,10 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                                 assets.getAudioManager().play(SoundId::Hit);
                                 mRegistry.get<Health>(entityId).value -= 1;
                             }
+
+                            if (const auto playerId = mRegistry.try_get<EntityRef<Player>>(bulletId); playerId and mRegistry.has<Bunker>(entityId)) {
+                                mRegistry.get<Score>(**playerId).value += SCORE_PER_HIT;
+                            }
                         }
                     });
                 } else {
@@ -435,22 +423,20 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                 const auto playerId = *playerRef;
 
                 mRegistry
-                        .group<Supply<Energy>>(entt::get < Score, HitRadius, Renderable > )
-                        .each([&](const auto supplyId, const auto &supply, const auto &score, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                        .group<Supply<Energy>>(entt::get < HitRadius, Renderable > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                                 assets.getAudioManager().play(SoundId::Tractor);
-                                mRegistry.get<Score>(playerId).value += score.value;
                                 mRegistry.get<Energy>(playerId).value += supply->value;
                                 entitiesToDestroy.insert(supplyId);
                             }
                         });
 
                 mRegistry
-                        .group<Supply<Health>>(entt::get < Score, HitRadius, Renderable > )
-                        .each([&](const auto supplyId, const auto &supply, const auto &score, const auto &supplyHitRadius, const auto &supplyRenderable) {
+                        .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                                 assets.getAudioManager().play(SoundId::Tractor);
-                                mRegistry.get<Score>(playerId).value += score.value;
                                 mRegistry.get<Health>(playerId).value += supply->value;
                                 entitiesToDestroy.insert(supplyId);
                             }
@@ -473,25 +459,25 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     mRegistry.view<Player, Renderable>().each([&](const auto, const auto playerRenderable) {
         mRegistry
                 .group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > )
-                .each([&](const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
+                .each([&](const auto AIId, const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI1Precision(mRandomEngine);
                         const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
-                        addBullet(assets, bulletPosition, bulletRotation);
+                        shoot<AI1>(mRegistry, assets, bulletPosition, bulletRotation, AIId);
                     }
                 });
 
         mRegistry
                 .group<AI2>(entt::get < ReloadTime, HitRadius, Renderable > )
-                .each([&](const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
+                .each([&](const auto AIId, const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI2Precision(mRandomEngine);
                         const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
-                        addBullet(assets, bulletPosition, bulletRotation);
+                        shoot<AI2>(mRegistry, assets, bulletPosition, bulletRotation, AIId);
                     }
                 });
     });
@@ -530,4 +516,24 @@ void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
         mReport.setString(mBuffer);
         mReport.setPosition(window.getSize().x / 2.0f, 18.0f);
     });
+}
+
+template<typename T>
+void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, const float rotation, const entt::entity id) noexcept {
+    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
+    const auto bulletBounds = bulletRenderable.getLocalBounds();
+    const auto bulletId = registry.create();
+    static const auto bulletHitRadius = std::max(bulletBounds.width, bulletBounds.height) / 2.0f;
+
+    helpers::centerOrigin(bulletRenderable, bulletBounds);
+    bulletRenderable.setRotation(rotation);
+    bulletRenderable.setPosition(position);
+
+    registry.assign<Bullet>(bulletId);
+    registry.assign<EntityRef<T>>(bulletId, id);
+    registry.assign<HitRadius>(bulletId, bulletHitRadius);
+    registry.assign<Renderable>(bulletId, std::move(bulletRenderable));
+    registry.assign<Velocity>(bulletId, helpers::makeVector2(rotation, BULLET_SPEED));
+
+    assets.getAudioManager().play(SoundId::Shot);
 }
