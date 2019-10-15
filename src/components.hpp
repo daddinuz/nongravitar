@@ -40,7 +40,10 @@ namespace nongravitar::components {
     struct Health final {
         int value;
 
-        [[nodiscard]] inline bool isDead() const noexcept {
+        void hit(unsigned short n = 1) noexcept;
+        void kill() noexcept;
+
+        [[nodiscard]] inline bool isOver() const noexcept {
             return value <= 0;
         }
     };

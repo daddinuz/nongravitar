@@ -287,7 +287,7 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
     const auto players = mRegistry.view<Player, Health, Energy>();
     for (const auto id : players) {
         const auto &[health, energy] = players.get<Health, Energy>(id);
-        if (health.isDead() or energy.isOver()) {
+        if (health.isOver() or energy.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
             mNextSceneId = mLeaderBoardSceneId;

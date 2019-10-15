@@ -30,6 +30,18 @@
 using namespace nongravitar::components;
 
 /*
+ * Health
+ */
+
+void Health::hit(const unsigned short n) noexcept {
+    value -= n;
+}
+
+void Health::kill() noexcept {
+    value = -1;
+}
+
+/*
  * ReloadTime
  */
 

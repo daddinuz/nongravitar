@@ -109,6 +109,7 @@ void PlanetAssault::operator()(const PlanetEntered &message) noexcept {
         mRegistry.destroy(tractors.begin(), tractors.end());
 
         for (const auto sourcePlayerId : message.registry.view<Player>()) {
+            const auto[windowWidth, windowHeight] = sf::Vector2f(message.window.getSize());
             auto tractorId = mRegistry.create();
             auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
 
@@ -127,7 +128,7 @@ void PlanetAssault::operator()(const PlanetEntered &message) noexcept {
 
             auto &playerRenderable = mRegistry.get<Renderable>(playerId);
             playerRenderable->setRotation(90.0f);
-            playerRenderable->setPosition(message.window.getSize().x / 2.0f, 128.0f);
+            playerRenderable->setPosition(windowWidth / 2.0f, windowHeight / 4.0f);
         }
     }
 }
@@ -137,7 +138,7 @@ void PlanetAssault::initializePubSub() const noexcept {
 }
 
 void PlanetAssault::initializeGroups() noexcept {
-    mRegistry.group<HitRadius, Renderable>();
+    mRegistry.group<Health, HitRadius, Renderable>();
     mRegistry.group<Velocity>(entt::get < Renderable > );
 
     mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > );
@@ -258,9 +259,10 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
-                mRegistry.assign<Supply<Energy>>(supplyId, energySupplyDistribution(mRandomEngine));
+                mRegistry.assign<Health>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
+                mRegistry.assign<Supply<Energy>>(supplyId, energySupplyDistribution(mRandomEngine));
             }
                 break;
 
@@ -275,6 +277,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
+                mRegistry.assign<Health>(supplyId, 1);
                 mRegistry.assign<Supply<Health>>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
@@ -353,76 +356,42 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
 }
 
 void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept {
-    auto entitiesToDestroy = std::set<entt::entity>();
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
-    const auto players = mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
+    auto solarSystemExited = false;
 
-    for (const auto playerId : players) {
-        auto &playerRenderable = players.get<Renderable>(playerId);
+    // general entities collisions
+    const auto collidableEntities = mRegistry.group<Health, HitRadius, Renderable>();
+    for (auto entityCursor1 = collidableEntities.begin(); entityCursor1 < collidableEntities.end(); entityCursor1++) {
+        for (auto entityCursor2 = entityCursor1 + 1; entityCursor2 < collidableEntities.end(); entityCursor2++) {
+            const auto &[entityHitRadius1, entityRenderable1] = collidableEntities.get<HitRadius, Renderable>(*entityCursor1);
+            const auto &[entityHitRadius2, entityRenderable2] = collidableEntities.get<HitRadius, Renderable>(*entityCursor2);
 
-        if (not viewport.contains(playerRenderable->getPosition())) {
-            const auto bullets = mRegistry.view<Bullet>();
-            mNextSceneId = mSolarSystemSceneId;
-            mRegistry.destroy(bullets.begin(), bullets.end());
-            pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId(), mBonus);
-            playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-            return;
+            if (helpers::magnitude(entityRenderable1->getPosition(), entityRenderable2->getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
+                collidableEntities.get<Health>(*entityCursor1).hit();
+                collidableEntities.get<Health>(*entityCursor2).hit();
+                assets.getAudioManager().play(SoundId::Hit);
+            }
         }
     }
 
+    // bullet exits screen / bullet hits terrain
     mRegistry
             .group<Bullet>(entt::get < HitRadius, Renderable > )
             .each([&](const auto bulletId, const auto, const auto &bulletHitRadius, const auto &bulletRenderable) {
                 if (viewport.contains(bulletRenderable->getPosition())) {
-                    mRegistry.group<HitRadius, Renderable>().each([&](const auto entityId, const auto &entityHitRadius, const auto &entityRenderable) {
-                        if (entityId != bulletId and helpers::magnitude(entityRenderable->getPosition(), bulletRenderable->getPosition()) <= *entityHitRadius + *bulletHitRadius) {
-                            if (not mRegistry.has<Tractor>(entityId)) {
-                                entitiesToDestroy.insert(bulletId);
-                            }
-
-                            if (mRegistry.has<Player>(entityId) or mRegistry.has<Bunker>(entityId)) {
-                                assets.getAudioManager().play(SoundId::Hit);
-                                mRegistry.get<Health>(entityId).value -= 1;
-                            }
-
-                            if (const auto playerId = mRegistry.try_get<EntityRef<Player>>(bulletId); playerId and mRegistry.has<Bunker>(entityId)) {
-                                mRegistry.get<Score>(**playerId).value += SCORE_PER_HIT;
-                            }
-                        }
-                    });
+                    mRegistry
+                            .group<Terrain>(entt::get < HitRadius, Renderable > )
+                            .each([&](const auto, const auto &terrainHitRadius, const auto &terrainRenderable) {
+                                if (helpers::magnitude(terrainRenderable->getPosition(), bulletRenderable->getPosition()) <= *terrainHitRadius + *bulletHitRadius) {
+                                    mRegistry.get<Health>(bulletId).kill();
+                                }
+                            });
                 } else {
-                    entitiesToDestroy.insert(bulletId);
+                    mRegistry.get<Health>(bulletId).kill();
                 }
             });
 
-    mRegistry
-            .group<Terrain>(entt::get < HitRadius, Renderable > )
-            .each([&](const auto, const auto &terrainHitRadius, const auto &terrainRenderable) {
-                mRegistry
-                        .group<Player>(entt::get < HitRadius, Renderable > )
-                        .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable) {
-                            if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
-                                playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-                                assets.getAudioManager().play(SoundId::Explosion);
-                                mRegistry.get<Health>(playerId).value -= 1;
-                            }
-                        });
-            });
-
-    mRegistry
-            .group<Bunker>(entt::get < HitRadius, Renderable > )
-            .each([&](const auto, const auto &bunkerHitRadius, const auto &bunkerRenderable) {
-                mRegistry
-                        .group<Player>(entt::get < HitRadius, Renderable > )
-                        .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable) {
-                            if (helpers::magnitude(bunkerRenderable->getPosition(), playerRenderable->getPosition()) <= *bunkerHitRadius + *playerHitRadius) {
-                                playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
-                                assets.getAudioManager().play(SoundId::Explosion);
-                                mRegistry.get<Health>(playerId).value -= 1;
-                            }
-                        });
-            });
-
+    // tractor hits supply
     mRegistry
             .group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > )
             .each([&](const auto, const auto &playerRef, const auto &tractorHitRadius, const auto &tractorRenderable) {
@@ -432,9 +401,9 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                         .group<Supply<Energy>>(entt::get < HitRadius, Renderable > )
                         .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
-                                assets.getAudioManager().play(SoundId::Tractor);
+                                mRegistry.get<Health>(supplyId).kill();
                                 mRegistry.get<Energy>(playerId).value += supply->value;
-                                entitiesToDestroy.insert(supplyId);
+                                assets.getAudioManager().play(SoundId::Tractor);
                             }
                         });
 
@@ -442,14 +411,39 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                         .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
                         .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
-                                assets.getAudioManager().play(SoundId::Tractor);
+                                mRegistry.get<Health>(supplyId).kill();
                                 mRegistry.get<Health>(playerId).value += supply->value;
-                                entitiesToDestroy.insert(supplyId);
+                                assets.getAudioManager().play(SoundId::Tractor);
                             }
                         });
             });
 
-    mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
+    // player exits screen / player hits terrain
+    mRegistry
+            .group<Player>(entt::get < HitRadius, Renderable > )
+            .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable) {
+                if (viewport.contains(playerRenderable->getPosition())) {
+                    mRegistry
+                            .group<Terrain>(entt::get < HitRadius, Renderable > )
+                            .each([&](const auto, const auto &terrainHitRadius, const auto &terrainRenderable) {
+                                if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
+                                    mRegistry.get<Health>(playerId).hit();
+                                    playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
+                                    assets.getAudioManager().play(SoundId::Explosion);
+                                }
+                            });
+                } else {
+                    solarSystemExited = true;
+                    playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
+                }
+            });
+
+    if (solarSystemExited) {
+        const auto bullets = mRegistry.view<Bullet>();
+        mRegistry.destroy(bullets.begin(), bullets.end());
+        mNextSceneId = mSolarSystemSceneId;
+        pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId(), mBonus);
+    }
 }
 
 void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
@@ -459,7 +453,7 @@ void PlanetAssault::reloadSystem(sf::Time elapsed) noexcept {
 }
 
 void PlanetAssault::AISystem(Assets &assets) noexcept {
-    auto AI1Precision = FloatDistribution(-32.0f, 32.0f);
+    auto AI1Precision = FloatDistribution(-16.0f, 16.0f);
     auto AI2Precision = FloatDistribution(-8.0f, 8.0f);
 
     mRegistry.view<Player, Renderable>().each([&](const auto, const auto playerRenderable) {
@@ -490,26 +484,30 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 }
 
 void PlanetAssault::livenessSystem(Assets &assets) noexcept {
+    const auto players = mRegistry.view<Player, Health, Energy>();
     auto entitiesToDestroy = std::vector<entt::entity>();
 
-    const auto players = mRegistry.view<Player, Health, Energy>();
-    for (const auto id : players) {
-        const auto &[health, energy] = players.get<Health, Energy>(id);
-        if (health.isDead() or energy.isOver()) {
+    mRegistry.view<Health>().each([&](const auto id, const auto &health) {
+        if (health.isOver()) {
             assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
+        }
+    });
+
+    mRegistry.view<Energy>().each([&](const auto id, const auto &energy) {
+        if (energy.isOver()) {
+            entitiesToDestroy.push_back(id);
+        }
+    });
+
+    for (const auto id : players) {
+        const auto &[health, energy] = players.get<Health, Energy>(id);
+        if (health.isOver() or energy.isOver()) {
             mNextSceneId = mLeaderBoardSceneId;
             pubsub::publish<GameOver>(mRegistry.get<Score>(id).value);
             return;
         }
     }
-
-    mRegistry.view<Bunker, Health>().each([&](const auto id, const auto, const auto &health) {
-        if (health.isDead()) {
-            assets.getAudioManager().play(SoundId::Explosion);
-            entitiesToDestroy.push_back(id);
-        }
-    });
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
@@ -536,6 +534,7 @@ void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &positio
     bulletRenderable.setPosition(position);
 
     registry.assign<Bullet>(bulletId);
+    registry.assign<Health>(bulletId, 1);
     registry.assign<EntityRef<T>>(bulletId, id);
     registry.assign<HitRadius>(bulletId, bulletHitRadius);
     registry.assign<Renderable>(bulletId, std::move(bulletRenderable));

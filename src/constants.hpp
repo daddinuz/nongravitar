@@ -32,8 +32,8 @@
 namespace nongravitar::constants {
     inline constexpr auto FPS = 65u;
 
-    inline constexpr auto PLAYER_HEALTH = 5;
-    inline constexpr auto PLAYER_ENERGY = 18'000.0f;
+    inline constexpr auto PLAYER_HEALTH = 8;
+    inline constexpr auto PLAYER_ENERGY = 20'000.0f;
     inline constexpr auto PLAYER_RELOAD_TIME = 0.38f;
     inline constexpr auto PLAYER_SPEED = 220.0f;
     inline constexpr auto PLAYER_ROTATION_SPEED = 220.0f;
@@ -42,10 +42,9 @@ namespace nongravitar::constants {
 
     inline constexpr auto BULLET_SPEED = 1'024.0f;
 
-    inline constexpr auto SCORE_PER_HIT = 10u;
-    inline constexpr auto SCORE_PER_AI1 = 20u;
-    inline constexpr auto SCORE_PER_AI2 = 25u;
-    inline constexpr auto SCORE_PER_SOLAR_SYSTEM = 2'000u;
+    inline constexpr auto SCORE_PER_AI1 = 800u;
+    inline constexpr auto SCORE_PER_AI2 = 1200u;
+    inline constexpr auto SCORE_PER_SOLAR_SYSTEM = 20'000u;
 
     inline constexpr auto PLANETS = 8u;
     inline constexpr std::array<std::array<sf::Uint8, 3>, 16> PLANET_COLORS{
