@@ -41,9 +41,9 @@ using namespace nongravitar::messages;
 using namespace nongravitar::constants;
 using namespace nongravitar::components;
 
-using RandomDevice = helpers::RandomDevice;
-using IntDistribution = helpers::IntDistribution;
-using FloatDistribution = helpers::FloatDistribution;
+using helpers::RandomDevice;
+using helpers::IntDistribution;
+using helpers::FloatDistribution;
 
 template<typename T>
 void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation, entt::entity id) noexcept;

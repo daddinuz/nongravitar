@@ -42,10 +42,10 @@ using namespace nongravitar::messages;
 using namespace nongravitar::constants;
 using namespace nongravitar::components;
 
-using RandomDevice = helpers::RandomDevice;
-using RandomEngine = helpers::RandomEngine;
-using IntDistribution = helpers::IntDistribution;
-using FloatDistribution = helpers::FloatDistribution;
+using helpers::RandomDevice;
+using helpers::RandomEngine;
+using helpers::IntDistribution;
+using helpers::FloatDistribution;
 
 SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
         mBuffer{},
