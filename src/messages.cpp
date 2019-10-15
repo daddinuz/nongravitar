@@ -29,8 +29,8 @@
 
 using namespace nongravitar::messages;
 
-SolarSystemEntered::SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
-        : window(window), registry(registry), sceneId(sceneId) {}
+SolarSystemEntered::SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId, const unsigned bonus)
+        : window(window), registry(registry), sceneId(sceneId), bonus(bonus) {}
 
 PlanetEntered::PlanetEntered(const sf::RenderWindow &window, entt::registry &registry, const SceneId sceneId)
         : window(window), registry(registry), sceneId(sceneId) {}

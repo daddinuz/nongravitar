@@ -35,7 +35,6 @@ namespace nongravitar::helpers {
     using RandomDevice = std::random_device;
     using RandomEngine = std::default_random_engine;
     using IntDistribution = std::uniform_int_distribution<int>;
-    using UintDistribution = std::uniform_int_distribution<unsigned>;
     using FloatDistribution = std::uniform_real_distribution<float>;
 
     template<typename F, typename ...Args>

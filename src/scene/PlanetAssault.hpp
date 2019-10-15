@@ -80,5 +80,6 @@ namespace nongravitar::scene {
         const SceneId mLeaderBoardSceneId;
         const SceneId mSolarSystemSceneId;
         SceneId mNextSceneId = nullSceneId;
+        unsigned mBonus{0u};
     };
 }

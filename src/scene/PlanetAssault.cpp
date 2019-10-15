@@ -293,6 +293,12 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             mRegistry.destroy(bunkerId);
         }
     }
+
+    const auto ai1 = mRegistry.view<AI1>();
+    const auto ai2 = mRegistry.view<AI2>();
+
+    mBonus += SCORE_PER_AI1 * std::distance(ai1.begin(), ai1.end());
+    mBonus += SCORE_PER_AI2 * std::distance(ai2.begin(), ai2.end());
 }
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
@@ -358,7 +364,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
             const auto bullets = mRegistry.view<Bullet>();
             mNextSceneId = mSolarSystemSceneId;
             mRegistry.destroy(bullets.begin(), bullets.end());
-            pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId());
+            pubsub::publish<SolarSystemEntered>(window, mRegistry, getSceneId(), mBonus);
             playerRenderable->setPosition(sf::Vector2f(window.getSize()) / 2.0f);
             return;
         }

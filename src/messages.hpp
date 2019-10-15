@@ -32,11 +32,12 @@
 
 namespace nongravitar::messages {
     struct SolarSystemEntered final {
-        SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, SceneId sceneId);
+        SolarSystemEntered(const sf::RenderWindow &window, entt::registry &registry, SceneId sceneId, unsigned bonus);
 
         const sf::RenderWindow &window;
         entt::registry &registry; // FIXME this should be const but EnTT requires a mutable &
         const SceneId sceneId; // source planet SceneId
+        const unsigned bonus;
     };
 
     struct PlanetEntered final {

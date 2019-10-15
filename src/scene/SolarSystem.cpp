@@ -45,7 +45,6 @@ using namespace nongravitar::components;
 using RandomDevice = helpers::RandomDevice;
 using RandomEngine = helpers::RandomEngine;
 using IntDistribution = helpers::IntDistribution;
-using UintDistribution = helpers::UintDistribution;
 using FloatDistribution = helpers::FloatDistribution;
 
 SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
@@ -99,12 +98,12 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColo
     if (collides) {
         std::cerr << trace("Unable to generate a random planet") << std::endl;
         std::terminate();
-    } else {
-        auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setFillColor(planetColor);
-        circleShape.setOutlineColor(sf::Color(120, 180, 220, 32));
-        circleShape.setOutlineThickness(8);
     }
+
+    auto &circleShape = planetRenderable.as<sf::CircleShape>();
+    circleShape.setFillColor(planetColor);
+    circleShape.setOutlineColor(sf::Color(120, 180, 220, 32));
+    circleShape.setOutlineThickness(8);
 }
 
 SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
@@ -158,8 +157,7 @@ void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
             }
 
             if (const auto bunkers = message.registry.view<Bunker>(); bunkers.begin() == bunkers.end()) {
-                const auto bonus = UintDistribution(800, 1200)(mRandomEngine);
-                mRegistry.view<Player, Score>().each([&](const auto, auto &score) { score.value += bonus; });
+                mRegistry.view<Player, Score>().each([&](const auto, auto &score) { score.value += message.bonus; });
                 mRegistry.destroy(planetId);
             }
 
@@ -299,8 +297,7 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
     }
 
     if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
-        const auto bonus = UintDistribution(2000, 2800)(mRandomEngine);
-        mRegistry.view<Player, Score>().each([&](const auto, auto &score) { score.value += bonus; });
+        mRegistry.view<Player, Score>().each([](const auto, auto &score) { score.value += SCORE_PER_SOLAR_SYSTEM; });
         resetPlanets(window, sceneManager, assets);
     }
 
