@@ -83,7 +83,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
 void PlanetAssault::render(sf::RenderTarget &window) noexcept {
     window.draw(mReport);
 
-    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
+    mRegistry.group<Renderable>(entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
         helpers::debug([&]() { // display hit-circle on debug builds only
             if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
                 auto shape = sf::CircleShape(**hitRadius);
@@ -138,22 +138,25 @@ void PlanetAssault::initializePubSub() const noexcept {
 }
 
 void PlanetAssault::initializeGroups() noexcept {
-    mRegistry.group<Health, HitRadius, Renderable>();
+    // render
+    mRegistry.group<Renderable>(entt::exclude < Hidden > );
+
+    // motionSystem
     mRegistry.group<Velocity>(entt::get < Renderable > );
 
-    mRegistry.group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > );
-    mRegistry.group<AI2>(entt::get < ReloadTime, HitRadius, Renderable > );
+    // collisionSystem
+    mRegistry.group<Health>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Damage>(entt::get < Renderable, HitRadius > );
 
-    mRegistry.group<Bunker>(entt::get < HitRadius, Renderable > );
-    mRegistry.group<Bullet>(entt::get < HitRadius, Renderable > );
-    mRegistry.group<Player>(entt::get < HitRadius, Renderable > );
-    mRegistry.group<Terrain>(entt::get < HitRadius, Renderable > );
+    mRegistry.group<Player>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > );
+    mRegistry.group<Supply<Energy>>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Supply<Health>>(entt::get < Renderable, HitRadius > );
 
-    mRegistry.group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > );
-    mRegistry.group<Supply<Energy>>(entt::get < HitRadius, Renderable > );
-    mRegistry.group<Supply<Health>>(entt::get < HitRadius, Renderable > );
-
-    mRegistry.group<>(entt::get < Renderable > , entt::exclude < Hidden > );
+    // AISystem
+    mRegistry.group<AI1>(entt::get < Renderable, HitRadius, ReloadTime > );
+    mRegistry.group<AI2>(entt::get < Renderable, HitRadius, ReloadTime > );
 }
 
 void PlanetAssault::initializeReport(Assets &assets) noexcept {
@@ -223,6 +226,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
                 mRegistry.assign<AI1>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
+                mRegistry.assign<Damage>(bunkerId, 2);
                 mRegistry.assign<Health>(bunkerId, 1);
                 mRegistry.assign<ReloadTime>(bunkerId, AI1ReloadDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
@@ -242,6 +246,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
                 mRegistry.assign<AI2>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
+                mRegistry.assign<Damage>(bunkerId, 3);
                 mRegistry.assign<Health>(bunkerId, 2);
                 mRegistry.assign<ReloadTime>(bunkerId, AI2ReloadDistribution(mRandomEngine));
                 mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
@@ -259,6 +264,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
+                mRegistry.assign<Damage>(supplyId, 1);
                 mRegistry.assign<Health>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
@@ -277,10 +283,11 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
                 supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
                 supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
 
+                mRegistry.assign<Damage>(supplyId, 1);
                 mRegistry.assign<Health>(supplyId, 1);
-                mRegistry.assign<Supply<Health>>(supplyId, 1);
                 mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
                 mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
+                mRegistry.assign<Supply<Health>>(supplyId, 1);
             }
                 break;
 
@@ -330,7 +337,7 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                 }
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
-                playerEnergy.value -= playerSpeed * elapsed.asSeconds();
+                playerEnergy.consume(playerSpeed * elapsed.asSeconds());
 
                 if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
                     mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
@@ -358,85 +365,96 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
 void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
     auto solarSystemExited = false;
+    auto isTractorActive = false;
 
     // general entities collisions
-    const auto collidableEntities = mRegistry.group<Health, HitRadius, Renderable>();
-    for (auto entityCursor1 = collidableEntities.begin(); entityCursor1 < collidableEntities.end(); entityCursor1++) {
-        for (auto entityCursor2 = entityCursor1 + 1; entityCursor2 < collidableEntities.end(); entityCursor2++) {
-            const auto &[entityHitRadius1, entityRenderable1] = collidableEntities.get<HitRadius, Renderable>(*entityCursor1);
-            const auto &[entityHitRadius2, entityRenderable2] = collidableEntities.get<HitRadius, Renderable>(*entityCursor2);
+    const auto g1 = mRegistry.group<Health>(entt::get < Renderable, HitRadius > );
+    const auto g2 = mRegistry.group<Damage>(entt::get < Renderable, HitRadius > );
+    for (auto e1 : g1) {
+        for (auto e2 : g2) {
+            if (e1 != e2) {
+                const auto &[entityRenderable1, entityHitRadius1] = g1.get<Renderable, HitRadius>(e1);
+                const auto &[entityRenderable2, entityHitRadius2] = g2.get<Renderable, HitRadius>(e2);
 
-            if (helpers::magnitude(entityRenderable1->getPosition(), entityRenderable2->getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
-                collidableEntities.get<Health>(*entityCursor1).hit();
-                collidableEntities.get<Health>(*entityCursor2).hit();
-                assets.getAudioManager().play(SoundId::Hit);
+                if (helpers::magnitude(entityRenderable1->getPosition(), entityRenderable2->getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
+                    assets.getAudioManager().play(SoundId::Hit);
+                    g1.get<Health>(e1).harm(g2.get<Damage>(e2));
+                }
             }
         }
     }
 
+    // tractor hits supply
+    mRegistry
+            .group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > )
+            .each([&](const auto, const auto &tractorRenderable, const auto &tractorHitRadius, const auto &playerRef) {
+                const auto playerId = *playerRef;
+
+                mRegistry
+                        .group<Supply<Energy>>(entt::get < Renderable, HitRadius > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyRenderable, const auto &supplyHitRadius) {
+                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                mRegistry.get<Health>(supplyId).kill();
+                                mRegistry.get<Energy>(playerId).recharge(supply);
+                                isTractorActive = true;
+                            }
+                        });
+
+                mRegistry
+                        .group<Supply<Health>>(entt::get < Renderable, HitRadius > )
+                        .each([&](const auto supplyId, const auto &supply, const auto &supplyRenderable, const auto &supplyHitRadius) {
+                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                                mRegistry.get<Health>(supplyId).kill();
+                                mRegistry.get<Health>(playerId).heal(supply);
+                                isTractorActive = true;
+                            }
+                        });
+            });
+
     // bullet exits screen / bullet hits terrain
     mRegistry
-            .group<Bullet>(entt::get < HitRadius, Renderable > )
-            .each([&](const auto bulletId, const auto, const auto &bulletHitRadius, const auto &bulletRenderable) {
+            .view<Bullet, Renderable, HitRadius>()
+            .each([&](const auto bulletId, const auto, const auto &bulletRenderable, const auto &bulletHitRadius) {
                 if (viewport.contains(bulletRenderable->getPosition())) {
-                    mRegistry
-                            .group<Terrain>(entt::get < HitRadius, Renderable > )
-                            .each([&](const auto, const auto &terrainHitRadius, const auto &terrainRenderable) {
-                                if (helpers::magnitude(terrainRenderable->getPosition(), bulletRenderable->getPosition()) <= *terrainHitRadius + *bulletHitRadius) {
-                                    mRegistry.get<Health>(bulletId).kill();
-                                }
-                            });
+                    const auto terrains = mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
+
+                    for (const auto terrainId : terrains) {
+                        const auto &[terrainRenderable, terrainHitRadius] = terrains.get<Renderable, HitRadius>(terrainId);
+                        if (helpers::magnitude(terrainRenderable->getPosition(), bulletRenderable->getPosition()) <= *terrainHitRadius + *bulletHitRadius) {
+                            mRegistry.get<Health>(bulletId).kill();
+                            break;
+                        }
+                    }
                 } else {
                     mRegistry.get<Health>(bulletId).kill();
                 }
             });
 
-    // tractor hits supply
-    mRegistry
-            .group<Tractor>(entt::get < EntityRef<Player>, HitRadius, Renderable > , entt::exclude < Hidden > )
-            .each([&](const auto, const auto &playerRef, const auto &tractorHitRadius, const auto &tractorRenderable) {
-                const auto playerId = *playerRef;
-
-                mRegistry
-                        .group<Supply<Energy>>(entt::get < HitRadius, Renderable > )
-                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
-                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
-                                mRegistry.get<Health>(supplyId).kill();
-                                mRegistry.get<Energy>(playerId).value += supply->value;
-                                assets.getAudioManager().play(SoundId::Tractor);
-                            }
-                        });
-
-                mRegistry
-                        .group<Supply<Health>>(entt::get < HitRadius, Renderable > )
-                        .each([&](const auto supplyId, const auto &supply, const auto &supplyHitRadius, const auto &supplyRenderable) {
-                            if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
-                                mRegistry.get<Health>(supplyId).kill();
-                                mRegistry.get<Health>(playerId).value += supply->value;
-                                assets.getAudioManager().play(SoundId::Tractor);
-                            }
-                        });
-            });
-
     // player exits screen / player hits terrain
     mRegistry
-            .group<Player>(entt::get < HitRadius, Renderable > )
-            .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable) {
+            .group<Player>(entt::get < Renderable, HitRadius > )
+            .each([&](const auto playerId, const auto, auto &playerRenderable, const auto &playerHitRadius) {
                 if (viewport.contains(playerRenderable->getPosition())) {
-                    mRegistry
-                            .group<Terrain>(entt::get < HitRadius, Renderable > )
-                            .each([&](const auto, const auto &terrainHitRadius, const auto &terrainRenderable) {
-                                if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
-                                    mRegistry.get<Health>(playerId).hit();
-                                    playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
-                                    assets.getAudioManager().play(SoundId::Explosion);
-                                }
-                            });
+                    const auto terrains = mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
+
+                    for (const auto terrainId : terrains) {
+                        const auto &[terrainRenderable, terrainHitRadius] = terrains.get<Renderable, HitRadius>(terrainId);
+                        if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
+                            assets.getAudioManager().play(SoundId::Explosion);
+                            mRegistry.get<Health>(playerId).harm(Damage(1));
+                            playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
+                            break;
+                        }
+                    }
                 } else {
                     solarSystemExited = true;
                     playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
                 }
             });
+
+    if (isTractorActive) {
+        assets.getAudioManager().play(SoundId::Tractor);
+    }
 
     if (solarSystemExited) {
         const auto bullets = mRegistry.view<Bullet>();
@@ -458,8 +476,8 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
 
     mRegistry.view<Player, Renderable>().each([&](const auto, const auto playerRenderable) {
         mRegistry
-                .group<AI1>(entt::get < ReloadTime, HitRadius, Renderable > )
-                .each([&](const auto AIId, const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
+                .group<AI1>(entt::get < Renderable, HitRadius, ReloadTime > )
+                .each([&](const auto AIId, const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI1Precision(mRandomEngine);
@@ -470,8 +488,8 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
                 });
 
         mRegistry
-                .group<AI2>(entt::get < ReloadTime, HitRadius, Renderable > )
-                .each([&](const auto AIId, const auto, auto &AIReloadTime, const auto &AIHitRadius, const auto &AIRenderable) {
+                .group<AI2>(entt::get < Renderable, HitRadius, ReloadTime > )
+                .each([&](const auto AIId, const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI2Precision(mRandomEngine);
@@ -489,8 +507,10 @@ void PlanetAssault::livenessSystem(Assets &assets) noexcept {
 
     mRegistry.view<Health>().each([&](const auto id, const auto &health) {
         if (health.isOver()) {
-            assets.getAudioManager().play(SoundId::Explosion);
             entitiesToDestroy.push_back(id);
+            if (mRegistry.has<Player>(id) or mRegistry.has<Bunker>(id)) {
+                assets.getAudioManager().play(SoundId::Explosion);
+            }
         }
     });
 
@@ -514,7 +534,11 @@ void PlanetAssault::livenessSystem(Assets &assets) noexcept {
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
     mRegistry.view<Player, Health, Energy, Score>().each([&](const auto, const auto &health, const auto &energy, const auto &score) {
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %02d energy: %05.0f score: %05u", health.value, energy.value, score.value);
+        std::snprintf(
+                mBuffer, std::size(mBuffer),
+                "health: %02d energy: %05.0f score: %05u",
+                health.getValue(), energy.getValue(), score.value
+        );
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);
@@ -535,6 +559,7 @@ void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &positio
 
     registry.assign<Bullet>(bulletId);
     registry.assign<Health>(bulletId, 1);
+    registry.assign<Damage>(bulletId, 1);
     registry.assign<EntityRef<T>>(bulletId, id);
     registry.assign<HitRadius>(bulletId, bulletHitRadius);
     registry.assign<Renderable>(bulletId, std::move(bulletRenderable));

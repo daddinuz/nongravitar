@@ -30,15 +30,67 @@
 using namespace nongravitar::components;
 
 /*
+ * Damage
+ */
+
+Damage::Damage(const int value) noexcept {
+    mValue = std::max(value, 0);
+}
+
+int Damage::getValue() const noexcept {
+    return mValue;
+}
+
+/*
  * Health
  */
 
-void Health::hit(const unsigned short n) noexcept {
-    value -= n;
+Health::Health(const int value) noexcept {
+    mValue = std::max(value, 0);
+}
+
+void Health::heal(const Supply<Health> &supply) noexcept {
+    mValue += std::max(supply->getValue(), 0);
+}
+
+void Health::harm(const Damage &damage) noexcept {
+    mValue = std::max(mValue - damage.getValue(), 0);
 }
 
 void Health::kill() noexcept {
-    value = -1;
+    mValue = 0;
+}
+
+bool Health::isOver() const noexcept {
+    return mValue <= 0;
+}
+
+int Health::getValue() const noexcept {
+    return mValue;
+}
+
+/*
+ * Energy
+ */
+
+Energy::Energy(const float value) noexcept {
+    mValue = std::max(value, 0.0f);
+}
+
+void Energy::recharge(const Supply<Energy> &supply) noexcept {
+    mValue += std::max(supply->getValue(), 0.0f);
+}
+
+void Energy::consume(const float value) noexcept {
+    mValue = std::max(mValue - value, 0.0f);
+}
+
+bool Energy::isOver() const noexcept {
+    return mValue <= 0.001f;
+}
+
+float Energy::getValue() const noexcept {
+    return mValue;
 }
 
 /*

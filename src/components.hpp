@@ -37,27 +37,18 @@ namespace nongravitar::components {
         sf::Vector2f value;
     };
 
-    struct Health final {
-        int value;
-
-        void hit(unsigned short n = 1) noexcept;
-        void kill() noexcept;
-
-        [[nodiscard]] inline bool isOver() const noexcept {
-            return value <= 0;
-        }
-    };
-
-    struct Energy final {
-        float value;
-
-        [[nodiscard]] inline bool isOver() const noexcept {
-            return value <= 0.0f;
-        }
-    };
-
     struct Score final {
         unsigned value;
+    };
+
+    class Damage final {
+    public:
+        explicit Damage(int value) noexcept;
+
+        [[nodiscard]] int getValue() const noexcept;
+
+    private:
+        int mValue;
     };
 
     template<typename T>
@@ -76,6 +67,35 @@ namespace nongravitar::components {
 
     private:
         T mInstance;
+    };
+
+    class Health final {
+    public:
+        explicit Health(int value) noexcept;
+
+        void heal(const Supply<Health> &supply) noexcept;
+        void harm(const Damage &damage) noexcept;
+        void kill() noexcept;
+
+        [[nodiscard]] bool isOver() const noexcept;
+        [[nodiscard]] int getValue() const noexcept;
+
+    private:
+        int mValue;
+    };
+
+    class Energy final {
+    public:
+        explicit Energy(float value) noexcept;
+
+        void recharge(const Supply<Energy> &supply) noexcept;
+        void consume(float value) noexcept;
+
+        [[nodiscard]] bool isOver() const noexcept;
+        [[nodiscard]] float getValue() const noexcept;
+
+    private:
+        float mValue;
     };
 
     class SceneRef final {

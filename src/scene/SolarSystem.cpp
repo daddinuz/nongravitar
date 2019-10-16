@@ -186,6 +186,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
 
     mRegistry.assign<Player>(playerId);
     mRegistry.assign<Score>(playerId);
+    mRegistry.assign<Damage>(playerId, 1);
     mRegistry.assign<Health>(playerId, PLAYER_HEALTH);
     mRegistry.assign<Energy>(playerId, PLAYER_ENERGY);
     mRegistry.assign<Velocity>(playerId);
@@ -232,7 +233,7 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
                 }
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), speed);
-                playerEnergy.value -= speed * elapsed.asSeconds();
+                playerEnergy.consume(speed * elapsed.asSeconds());
             });
 }
 
@@ -306,7 +307,11 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
     mRegistry.view<Player, Health, Energy, Score>().each([&](const auto, const auto &health, const auto &energy, const auto &score) {
-        std::snprintf(mBuffer, std::size(mBuffer), "health: %02d energy: %05.0f score: %05u", health.value, energy.value, score.value);
+        std::snprintf(
+                mBuffer, std::size(mBuffer),
+                "health: %02d energy: %05.0f score: %05u",
+                health.getValue(), energy.getValue(), score.value
+        );
         helpers::centerOrigin(mReport, mReport.getLocalBounds());
 
         mReport.setString(mBuffer);
