@@ -30,7 +30,7 @@
 #include <SFML/Graphics.hpp>
 
 namespace nongravitar::constants {
-    inline constexpr auto FPS = 65u;
+    inline constexpr auto FPS = 60u;
 
     inline constexpr auto PLAYER_HEALTH = 8;
     inline constexpr auto PLAYER_ENERGY = 20'000.0f;
