@@ -32,13 +32,14 @@ using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::assets;
 
-constexpr auto characterSize = 32.0f;
+constexpr auto TOP_PADDING = 64.0f;
+constexpr auto MIDDLE_PADDING = 96.0f;
+constexpr auto BOTTOM_PADDING = 32.0f;
 
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
         mTitle(assets.getTexturesManager().get(TextureId::Title)),
-        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), characterSize),
+        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 32.0f),
         mSolarSystemSceneId{solarSystemSceneId} {
-    mTitle.setScale(0.56f, 0.56f);
     helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
@@ -49,13 +50,16 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
+    const auto spaceLabelHeight = mSpaceLabel.getLocalBounds().height;
+    const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - spaceLabelHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    mTitle.setPosition(windowWidth / 2.0f, windowHeight / 2.5f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, (windowHeight - characterSize) / 1.1f);
+    mTitle.setScale(scaleFactor, scaleFactor);
+    mTitle.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height / 2.0f);
+    mSpaceLabel.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height + MIDDLE_PADDING + spaceLabelHeight / 2.0f);
 
     return Scene::update(window, sceneManager, assets, elapsed);
 }

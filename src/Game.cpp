@@ -90,7 +90,7 @@ void Game::handleEvents() {
                     break;
 
                 case sf::Keyboard::Delete:
-                    helpers::debug([&]() { mWindow.create({800, 600}, "NonGravitar", sf::Style::Close); });
+                    helpers::debug([&]() { mWindow.create({800, 600}, "NonGravitar", sf::Style::None); });
                     break;
 
                 case sf::Keyboard::F4:
