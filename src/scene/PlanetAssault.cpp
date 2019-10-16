@@ -204,7 +204,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto AI1ReloadDistribution = FloatDistribution(1.64f, 2.28f);
     auto AI2ReloadDistribution = FloatDistribution(1.96f, 2.28f);
     auto energySupplyDistribution = FloatDistribution(2000.0f, 4000.0f);
-    auto entityDistribution = IntDistribution(1, 18);
+    auto entityDistribution = IntDistribution(1, 16);
 
     const auto terrain = mRegistry.view<Terrain, Renderable>();
     for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, 2)) {
