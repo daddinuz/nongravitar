@@ -45,8 +45,7 @@ using helpers::RandomDevice;
 using helpers::IntDistribution;
 using helpers::FloatDistribution;
 
-template<typename T>
-void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation, entt::entity id) noexcept;
+void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation) noexcept;
 
 PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId leaderBoardSceneId) :
         mBuffer{},
@@ -351,7 +350,7 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                     const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + 1.0f);
                     playerReloadTime.reset();
                     // NOTE for a future me: be aware that this invalidates some component references !!!
-                    shoot<Player>(mRegistry, assets, bulletPosition, bulletRotation, playerId);
+                    shoot(mRegistry, assets, bulletPosition, bulletRotation);
                 }
             });
 }
@@ -477,25 +476,25 @@ void PlanetAssault::AISystem(Assets &assets) noexcept {
     mRegistry.view<Player, Renderable>().each([&](const auto, const auto playerRenderable) {
         mRegistry
                 .group<AI1>(entt::get < Renderable, HitRadius, ReloadTime > )
-                .each([&](const auto AIId, const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
+                .each([&](const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI1Precision(mRandomEngine);
                         const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
-                        shoot<AI1>(mRegistry, assets, bulletPosition, bulletRotation, AIId);
+                        shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
                 });
 
         mRegistry
                 .group<AI2>(entt::get < Renderable, HitRadius, ReloadTime > )
-                .each([&](const auto AIId, const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
+                .each([&](const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
                                                     AI2Precision(mRandomEngine);
                         const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
-                        shoot<AI2>(mRegistry, assets, bulletPosition, bulletRotation, AIId);
+                        shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
                 });
     });
@@ -546,8 +545,7 @@ void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
     });
 }
 
-template<typename T>
-void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, const float rotation, const entt::entity id) noexcept {
+void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, const float rotation) noexcept {
     auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
     const auto bulletBounds = bulletRenderable.getLocalBounds();
     const auto bulletId = registry.create();
@@ -560,7 +558,6 @@ void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &positio
     registry.assign<Bullet>(bulletId);
     registry.assign<Health>(bulletId, 1);
     registry.assign<Damage>(bulletId, 1);
-    registry.assign<EntityRef<T>>(bulletId, id);
     registry.assign<HitRadius>(bulletId, bulletHitRadius);
     registry.assign<Renderable>(bulletId, std::move(bulletRenderable));
     registry.assign<Velocity>(bulletId, helpers::makeVector2(rotation, BULLET_SPEED));
