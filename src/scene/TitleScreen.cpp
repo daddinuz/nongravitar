@@ -38,7 +38,7 @@ TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
         mTitle(assets.getTexturesManager().get(TextureId::Title)),
         mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), characterSize),
         mSolarSystemSceneId{solarSystemSceneId} {
-    mTitle.setScale(0.64f, 0.64f);
+    mTitle.setScale(0.56f, 0.56f);
     helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 }
