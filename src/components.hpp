@@ -179,6 +179,6 @@ namespace nongravitar::components {
     private:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
-        std::variant<sf::Sprite, sf::CircleShape, sf::RectangleShape> mInstance;
+        std::variant<sf::Sprite, sf::CircleShape> mInstance;
     };
 }
