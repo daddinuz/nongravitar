@@ -58,6 +58,9 @@ when you leave a planet with no bunkers left, the planet will explode and will n
 During your journey pay attention to your vehicle, if it gets too damaged or if you finish the energy your 
 journey will end, and you'll be lost in space!
 
+One last tip: the ray tractor is very useful, it will pull supplies from the ground but use it with caution 
+because it will also attract bullets near you.
+
 **SpaceShip Controls:**
 
 + Keyboard:
