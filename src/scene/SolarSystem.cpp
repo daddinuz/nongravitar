@@ -204,7 +204,12 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
 }
 
 void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
+    const auto windowCenter = sf::Vector2f(window.getSize()) / 2.0f;
     auto planetsColorsSelector = IntDistribution(0, PLANET_COLORS.size() - 1);
+
+    mRegistry.view<Player, Renderable>().each([&](const auto, auto &renderable) {
+        renderable->setPosition(windowCenter);
+    });
 
     for (auto i = 0u; i < PLANETS; i++) {
         const auto rgb = PLANET_COLORS[planetsColorsSelector(mRandomEngine)];
