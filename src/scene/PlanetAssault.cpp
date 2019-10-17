@@ -212,7 +212,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
         const auto &terrainRenderable = terrain.get<Renderable>(*terrainCursor);
         const auto position = terrainRenderable->getPosition() +
-                              helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius);
+                              helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius * (TERRAIN_SEGMENTS_PER_UNIT - 1u));
 
         switch (entityDistribution(mRandomEngine)) {
             case 2:
@@ -298,19 +298,14 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         }
     }
 
-    const auto bunkers = mRegistry.view<Bunker, Renderable>();
-    for (const auto bunkerId : bunkers) {
-        const auto &renderable = bunkers.get<Renderable>(bunkerId);
-        if (not viewport.contains(renderable->getPosition())) {
+    mRegistry.view<Bunker, Renderable>().each([&](const auto bunkerId, const auto, const auto &bunkerRenderable){
+        if (not viewport.contains(bunkerRenderable->getPosition())) {
             mRegistry.destroy(bunkerId);
         }
-    }
+    });
 
-    const auto ai1 = mRegistry.view<AI1>();
-    const auto ai2 = mRegistry.view<AI2>();
-
-    mBonus += SCORE_PER_AI1 * std::distance(ai1.begin(), ai1.end());
-    mBonus += SCORE_PER_AI2 * std::distance(ai2.begin(), ai2.end());
+    mBonus += SCORE_PER_AI1 * std::distance(mRegistry.view<AI1>().begin(), mRegistry.view<AI1>().end());
+    mBonus += SCORE_PER_AI2 * std::distance(mRegistry.view<AI2>().begin(), mRegistry.view<AI2>().end());
 }
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
@@ -577,3 +572,5 @@ void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &positio
 
     assets.getAudioManager().play(SoundId::Shot);
 }
+
+static_assert(TERRAIN_SEGMENTS_PER_UNIT >= 1u);
