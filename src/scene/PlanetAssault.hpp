@@ -74,7 +74,7 @@ namespace nongravitar::scene {
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
-        char mBuffer[128];
+        char mBuffer[56];
         sf::Text mReport;
         helpers::RandomEngine mRandomEngine;
         const SceneId mLeaderBoardSceneId;
