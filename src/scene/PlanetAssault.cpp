@@ -45,6 +45,8 @@ using helpers::RandomDevice;
 using helpers::IntDistribution;
 using helpers::FloatDistribution;
 
+constexpr auto TERRAIN_SEGMENTS_PER_UNIT = 4u;
+
 void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation) noexcept;
 
 PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId leaderBoardSceneId) :
@@ -181,7 +183,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     do {
         const auto terrainRotation = rotationDistribution(mRandomEngine);
 
-        for (auto i = 0; i < 2; i++) {
+        for (auto i = 0u; i < TERRAIN_SEGMENTS_PER_UNIT; i++) {
             auto terrainId = mRegistry.create();
             auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).instanceSprite(0);
             const auto terrainBounds = terrainRenderable.getLocalBounds();
@@ -207,7 +209,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto entityDistribution = IntDistribution(1, 16);
 
     const auto terrain = mRegistry.view<Terrain, Renderable>();
-    for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, 2)) {
+    for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
         const auto &terrainRenderable = terrain.get<Renderable>(*terrainCursor);
         const auto position = terrainRenderable->getPosition() +
                               helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius);
