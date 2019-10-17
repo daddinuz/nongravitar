@@ -64,7 +64,7 @@ SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneM
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
-void TitleScreen::render(sf::RenderTarget &window) noexcept {
+void TitleScreen::render(sf::RenderTarget &window) const noexcept {
     window.draw(mTitle);
     window.draw(mSpaceLabel);
 }

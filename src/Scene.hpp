@@ -58,7 +58,7 @@ namespace nongravitar {
          * Render the scene.
          * This method is called exactly once per iteration.
          */
-        virtual void render(sf::RenderTarget &window) noexcept = 0;
+        virtual void render(sf::RenderTarget &window) const noexcept = 0;
 
         [[nodiscard]] SceneId getSceneId() const noexcept;
 

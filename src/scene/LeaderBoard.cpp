@@ -59,7 +59,7 @@ SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneM
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
-void LeaderBoard::render(sf::RenderTarget &window) noexcept {
+void LeaderBoard::render(sf::RenderTarget &window) const noexcept {
     window.draw(mGameOverTitle);
     window.draw(mSpaceLabel);
 }

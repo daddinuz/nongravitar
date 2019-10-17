@@ -55,7 +55,7 @@ namespace nongravitar::scene {
 
         SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
-        void render(sf::RenderTarget &window) noexcept final;
+        void render(sf::RenderTarget &window) const noexcept final;
 
     private:
         void operator()(const messages::PlanetEntered &message) noexcept final;

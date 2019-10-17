@@ -129,10 +129,10 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneM
     return mNextSceneId;
 }
 
-void SolarSystem::render(sf::RenderTarget &window) noexcept {
+void SolarSystem::render(sf::RenderTarget &window) const noexcept {
     window.draw(mReport);
 
-    mRegistry.view<Renderable>().each([&](const auto id, const auto &renderable) {
+    mRegistry.view<const Renderable>().each([&](const auto id, const auto &renderable) {
         helpers::debug([&]() { // display hit-circle on debug builds only
             if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
                 auto shape = sf::CircleShape(**hitRadius);

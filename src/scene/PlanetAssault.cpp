@@ -81,10 +81,10 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
     return mNextSceneId;
 }
 
-void PlanetAssault::render(sf::RenderTarget &window) noexcept {
+void PlanetAssault::render(sf::RenderTarget &window) const noexcept {
     window.draw(mReport);
 
-    mRegistry.group<Renderable>(entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
+    mRegistry.group<const Renderable>(entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
         helpers::debug([&]() { // display hit-circle on debug builds only
             if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
                 auto shape = sf::CircleShape(**hitRadius);
@@ -140,7 +140,7 @@ void PlanetAssault::initializePubSub() const noexcept {
 
 void PlanetAssault::initializeGroups() noexcept {
     // render
-    mRegistry.group<Renderable>(entt::exclude < Hidden > );
+    mRegistry.group<const Renderable>(entt::exclude < Hidden > );
 
     // motionSystem
     mRegistry.group<Velocity>(entt::get < Renderable > );
