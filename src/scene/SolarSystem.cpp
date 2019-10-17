@@ -47,6 +47,10 @@ using helpers::RandomEngine;
 using helpers::IntDistribution;
 using helpers::FloatDistribution;
 
+constexpr auto PLANET_MIN_RADIUS = 32.0f;
+constexpr auto PLANET_MAX_RADIUS = 64.0f;
+constexpr auto SPAWN_RADIUS = 64.0f;
+
 SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
         mBuffer{},
         mRandomEngine{RandomDevice()()},
@@ -62,35 +66,35 @@ SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, SceneManage
 
 void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
-    auto planetXDistribution = FloatDistribution(0.0f, windowWidth);
-    auto planetYDistribution = FloatDistribution(0.0f, windowHeight);
-    auto planetSizeDistribution = FloatDistribution(24, 56);
-    const auto planetId = mRegistry.create();
-    auto &planetRenderable = mRegistry.assign<Renderable>(planetId, sf::CircleShape(0.0f, 256));
-    mRegistry.assign<SceneRef>(planetId, planetSceneId);
-    mRegistry.assign<Planet>(planetId);
+    const auto spawnPosition = sf::Vector2f(windowWidth, windowHeight) / 2.0f;
 
+    auto planetRadiusDistribution = FloatDistribution(PLANET_MIN_RADIUS, PLANET_MAX_RADIUS);
+    auto planetXDistribution = FloatDistribution(PLANET_MAX_RADIUS, windowWidth - PLANET_MAX_RADIUS);
+    auto planetYDistribution = FloatDistribution(PLANET_MAX_RADIUS, windowHeight - PLANET_MAX_RADIUS);
+
+    auto circleShape = sf::CircleShape();
     auto collides = true;
-    for (auto i = 0; collides and i < 128; i++) {
+
+    for (auto i = 0u; collides and i < 128u; i++) {
         collides = false;
+        circleShape.setRadius(planetRadiusDistribution(mRandomEngine));
+        helpers::centerOrigin(circleShape, circleShape.getLocalBounds());
+        circleShape.setPosition(planetXDistribution(mRandomEngine), planetYDistribution(mRandomEngine));
 
-        auto &circleShape = planetRenderable.as<sf::CircleShape>();
-        circleShape.setRadius(planetSizeDistribution(mRandomEngine));
-        helpers::centerOrigin(*planetRenderable, circleShape.getLocalBounds());
-        planetRenderable->setPosition(planetXDistribution(mRandomEngine), planetYDistribution(mRandomEngine));
-
-        auto &planetHitRadius = mRegistry.assign_or_replace<HitRadius>(planetId, circleShape.getRadius());
+        // if planet collides with spawn circle then retry
+        if (helpers::magnitude(spawnPosition, circleShape.getPosition()) <= SPAWN_RADIUS + circleShape.getRadius()) {
+            collides = true;
+            continue;
+        }
 
         // if planet collides with other entities then retry
-        const auto view = mRegistry.view<HitRadius, Renderable>();
+        const auto view = mRegistry.view<Renderable, HitRadius>();
         for (const auto entityId : view) {
-            if (planetId != entityId) {
-                const auto &[entityHitRadius, entityRenderable] = view.get<HitRadius, Renderable>(entityId);
+            const auto &[entityRenderable, entityHitRadius] = view.get<Renderable, HitRadius>(entityId);
 
-                if (helpers::magnitude(entityRenderable->getPosition(), planetRenderable->getPosition()) <= *planetHitRadius + *entityHitRadius) {
-                    collides = true;
-                    break;
-                }
+            if (helpers::magnitude(entityRenderable->getPosition(), circleShape.getPosition()) <= *entityHitRadius + circleShape.getRadius()) {
+                collides = true;
+                break;
             }
         }
     }
@@ -98,12 +102,15 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColo
     if (collides) {
         std::cerr << trace("Unable to generate a random planet") << std::endl;
         std::terminate();
-    }
+    } else {
+        const auto planetId = mRegistry.create();
 
-    auto &circleShape = planetRenderable.as<sf::CircleShape>();
-    circleShape.setFillColor(planetColor);
-    circleShape.setOutlineColor(sf::Color(120, 180, 220, 32));
-    circleShape.setOutlineThickness(8);
+        circleShape.setFillColor(planetColor);
+        mRegistry.assign<Planet>(planetId);
+        mRegistry.assign<SceneRef>(planetId, planetSceneId);
+        mRegistry.assign<HitRadius>(planetId, circleShape.getRadius());
+        mRegistry.assign<Renderable>(planetId, std::move(circleShape));
+    }
 }
 
 SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
@@ -183,6 +190,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
 
     helpers::centerOrigin(playerRenderable, playerBounds);
     playerRenderable.setPosition(sf::Vector2f(window.getSize()) / 2.0f);
+    playerRenderable.setRotation(90.0f);
 
     mRegistry.assign<Player>(playerId);
     mRegistry.assign<Score>(playerId);
@@ -268,13 +276,13 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
             if (playerX <= 0) {
                 playerX = viewport.width - *playerHitRadius;
             } else if (playerX >= viewport.width) {
-                playerX = 0 + *playerHitRadius;
+                playerX = *playerHitRadius;
             }
 
             if (playerY <= 0) {
                 playerY = viewport.height - *playerHitRadius;
             } else if (playerY >= viewport.height) {
-                playerY = 0 + *playerHitRadius;
+                playerY = *playerHitRadius;
             }
 
             playerRenderable->setPosition(playerX, playerY);
