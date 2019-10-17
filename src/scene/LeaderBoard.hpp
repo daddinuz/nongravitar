@@ -50,8 +50,6 @@ namespace nongravitar::scene {
          */
         LeaderBoard &initialize(Assets &assets) noexcept;
 
-        SceneId onEvent(const sf::Event &event) noexcept final;
-
         SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
         void render(sf::RenderTarget &window) noexcept final;

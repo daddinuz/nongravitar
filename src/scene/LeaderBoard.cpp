@@ -40,15 +40,10 @@ LeaderBoard &LeaderBoard::initialize(Assets &assets) noexcept {
 
     mSpaceLabel.setFont(assets.getFontsManager().get(FontId::Mechanical));
     mSpaceLabel.setCharacterSize(32);
-    mSpaceLabel.setString("[SPACE]");
-
+    mSpaceLabel.setString("[ESC]");
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
 
     return *this;
-}
-
-SceneId LeaderBoard::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? nullSceneId : getSceneId();
 }
 
 SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
