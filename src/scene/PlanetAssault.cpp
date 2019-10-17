@@ -150,6 +150,7 @@ void PlanetAssault::initializeGroups() noexcept {
     mRegistry.group<Player>(entt::get < Renderable, HitRadius > );
     mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
     mRegistry.group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > );
+    mRegistry.group<Bullet>(entt::get < Renderable, HitRadius, Velocity > );
     mRegistry.group<Supply<Energy>>(entt::get < Renderable, HitRadius > );
     mRegistry.group<Supply<Health>>(entt::get < Renderable, HitRadius > );
 
@@ -388,6 +389,16 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
             .group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > )
             .each([&](const auto, const auto &tractorRenderable, const auto &tractorHitRadius, const auto &playerRef) {
                 const auto playerId = *playerRef;
+
+                mRegistry
+                        .group<Bullet>(entt::get < Renderable, HitRadius, Velocity > )
+                        .each([&](const auto, auto &bulletRenderable, const auto &bulletHitRadius, auto &velocity) {
+                            if (helpers::magnitude(tractorRenderable->getPosition(), bulletRenderable->getPosition()) <= *tractorHitRadius + *bulletHitRadius) {
+                                const auto rotation = helpers::rotation(bulletRenderable->getPosition(), tractorRenderable->getPosition());
+                                bulletRenderable->setRotation(rotation);
+                                velocity.value = helpers::makeVector2(rotation, BULLET_SPEED);
+                            }
+                        });
 
                 mRegistry
                         .group<Supply<Energy>>(entt::get < Renderable, HitRadius > )
