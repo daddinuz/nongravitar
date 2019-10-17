@@ -72,7 +72,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
 
     inputSystem(assets, elapsed);
     motionSystem(elapsed);
-    collisionSystem(window, assets);
+    collisionSystem(window, assets, elapsed);
     reloadSystem(elapsed);
     AISystem(assets);
     livenessSystem(assets);
@@ -336,19 +336,19 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
                 playerEnergy.consume(playerSpeed * elapsed.asSeconds());
 
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+                if (isKeyPressed(Key::RShift)) {
                     mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
                     mRegistry.reset<Hidden>(tractorId);
                 } else {
                     mRegistry.assign_or_replace<Hidden>(tractorId);
-                }
 
-                if (playerReloadTime.canShoot() and sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                    const auto bulletRotation = playerRenderable->getRotation();
-                    const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + 1.0f);
-                    playerReloadTime.reset();
-                    // NOTE for a future me: be aware that this invalidates some component references !!!
-                    shoot(mRegistry, assets, bulletPosition, bulletRotation);
+                    if (playerReloadTime.canShoot() and isKeyPressed(Key::Space)) {
+                        const auto bulletRotation = playerRenderable->getRotation();
+                        const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, 1.0f + *playerHitRadius);
+                        playerReloadTime.reset();
+                        // NOTE for a future me: be aware that this invalidates some component references !!!
+                        shoot(mRegistry, assets, bulletPosition, bulletRotation);
+                    }
                 }
             });
 }
@@ -359,7 +359,7 @@ void PlanetAssault::motionSystem(const sf::Time elapsed) noexcept {
     });
 }
 
-void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept {
+void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &assets, const sf::Time elapsed) noexcept {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
     auto solarSystemExited = false;
     auto isTractorActive = false;
@@ -391,9 +391,13 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                         .group<Bullet>(entt::get < Renderable, HitRadius, Velocity > )
                         .each([&](const auto, auto &bulletRenderable, const auto &bulletHitRadius, auto &velocity) {
                             if (helpers::magnitude(tractorRenderable->getPosition(), bulletRenderable->getPosition()) <= *tractorHitRadius + *bulletHitRadius) {
-                                const auto rotation = helpers::rotation(bulletRenderable->getPosition(), tractorRenderable->getPosition());
-                                bulletRenderable->setRotation(rotation);
-                                velocity.value = helpers::makeVector2(rotation, BULLET_SPEED);
+                                const auto rotationDiff = helpers::shortestRotation(
+                                        bulletRenderable->getRotation(),
+                                        helpers::rotation(bulletRenderable->getPosition(), tractorRenderable->getPosition())
+                                );
+
+                                bulletRenderable->rotate(helpers::signum(rotationDiff) * 220.0f * elapsed.asSeconds());
+                                velocity.value = helpers::makeVector2(bulletRenderable->getRotation(), BULLET_SPEED);
                             }
                         });
 

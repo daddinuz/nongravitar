@@ -67,7 +67,7 @@ namespace nongravitar::scene {
 
         void inputSystem(Assets &assets, sf::Time elapsed) noexcept;
         void motionSystem(sf::Time elapsed) noexcept;
-        void collisionSystem(const sf::RenderWindow &window, Assets &assets) noexcept;
+        void collisionSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
         void reloadSystem(sf::Time elapsed) noexcept;
         void AISystem(Assets &assets) noexcept;
         void livenessSystem(Assets &assets) noexcept;
