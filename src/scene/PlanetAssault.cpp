@@ -298,7 +298,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         }
     }
 
-    mRegistry.view<Bunker, Renderable>().each([&](const auto bunkerId, const auto, const auto &bunkerRenderable){
+    mRegistry.view<Bunker, Renderable>().each([&](const auto bunkerId, const auto, const auto &bunkerRenderable) {
         if (not viewport.contains(bunkerRenderable->getPosition())) {
             mRegistry.destroy(bunkerId);
         }
@@ -313,9 +313,9 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Energy, Velocity, ReloadTime, HitRadius, Renderable>()
-            .each([&](const auto playerId, const auto, auto &playerEnergy, auto &playerVelocity,
-                      auto &playerReloadTime, const auto &playerHitRadius, auto &playerRenderable) {
+            .view<Player, HitRadius, Renderable, Energy, Velocity, ReloadTime>()
+            .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable,
+                      auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
                 auto playerSpeed = PLAYER_SPEED;
 
