@@ -29,10 +29,18 @@
 
 using namespace nongravitar;
 
-float helpers::deg2rad(const float deg) {
+int helpers::signum(const float n) noexcept {
+    return ((0.0f < n) - (n < 0.0f));
+}
+
+float helpers::deg2rad(const float deg) noexcept {
     return deg * static_cast<float>(M_PI) / 180.0f;
 }
 
-float helpers::rad2deg(const float rad) {
+float helpers::rad2deg(const float rad) noexcept {
     return rad * 180.0f / static_cast<float>(M_PI);
+}
+
+float helpers::shortestRotation(const float currentBearing, const float targetBearing) noexcept {
+    return std::fmod(targetBearing - currentBearing + 540.0f, 360.0f) - 180.0f;
 }
