@@ -28,6 +28,7 @@
 #pragma once
 
 #include <Scene.hpp>
+#include <Animation.hpp>
 
 namespace nongravitar::scene {
     class TitleScreen final : public Scene {
@@ -42,6 +43,13 @@ namespace nongravitar::scene {
         TitleScreen(TitleScreen &&) = delete; // move-constructible
         TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
 
+        /**
+         * @warning
+         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
+         *  without proper initialization will result in a error.
+         */
+        TitleScreen &initialize() noexcept;
+
         SceneId onEvent(const sf::Event &event) noexcept final;
 
         SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
@@ -50,7 +58,8 @@ namespace nongravitar::scene {
 
     private:
         sf::Sprite mTitle;
-        sf::Text mSpaceLabel;
+        sf::Text mAction;
+        Animation<sf::Color> mActionAnimation;
         const SceneId mSolarSystemSceneId;
     };
 }

@@ -34,14 +34,29 @@ using namespace nongravitar::assets;
 
 constexpr auto TOP_PADDING = 64.0f;
 constexpr auto MIDDLE_PADDING = 96.0f;
-constexpr auto BOTTOM_PADDING = 32.0f;
+constexpr auto BOTTOM_PADDING = 64.0f;
 
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
         mTitle(assets.getTexturesManager().get(TextureId::Title)),
-        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 32.0f),
+        mAction("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 32.0f),
         mSolarSystemSceneId{solarSystemSceneId} {
     helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
-    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+    helpers::centerOrigin(mAction, mAction.getLocalBounds());
+}
+
+TitleScreen &TitleScreen::initialize() noexcept {
+    mActionAnimation.addFrame(sf::Color(255, 255, 255, 255), sf::seconds(0.2f));
+    mActionAnimation.addFrame(sf::Color(250, 250, 250, 240), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(245, 245, 245, 230), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(240, 240, 240, 220), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(235, 235, 235, 210), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(230, 230, 230, 200), sf::seconds(0.2f));
+    mActionAnimation.addFrame(sf::Color(235, 235, 235, 210), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(240, 240, 240, 220), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(245, 245, 245, 230), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(250, 250, 250, 240), sf::seconds(0.1f));
+
+    return *this;
 }
 
 SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
@@ -50,21 +65,29 @@ SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
     const auto[windowWidth, windowHeight] = window.getSize();
-    const auto spaceLabelHeight = mSpaceLabel.getLocalBounds().height;
-    const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - spaceLabelHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
+    const auto windowXCenter = windowWidth / 2.0f;
+    const auto actionHalfHeight = mAction.getLocalBounds().height / 2.0f;
+    const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - actionHalfHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
+    if (const sf::Color *color = mActionAnimation.update(elapsed); color) {
+        mAction.setFillColor(*color);
+    } else {
+        mAction.setFillColor(*mActionAnimation.reset());
+    }
+
+    mAction.setPosition(windowXCenter, windowHeight - BOTTOM_PADDING - actionHalfHeight);
+
     mTitle.setScale(scaleFactor, scaleFactor);
-    mTitle.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height / 2.0f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height + MIDDLE_PADDING + spaceLabelHeight / 2.0f);
+    mTitle.setPosition(windowXCenter, TOP_PADDING + mTitle.getGlobalBounds().height / 2.0f);
 
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) const noexcept {
     window.draw(mTitle);
-    window.draw(mSpaceLabel);
+    window.draw(mAction);
 }

@@ -30,12 +30,15 @@
 #include <Scene.hpp>
 #include <pubsub.hpp>
 #include <messages.hpp>
+#include <Animation.hpp>
 
 namespace nongravitar::scene {
     class LeaderBoard final : public Scene,
                               public pubsub::Handler<messages::GameOver> {
     public:
-        LeaderBoard() = default; // default-constructible
+        LeaderBoard() = delete; // no default-constructible
+
+        explicit LeaderBoard(Assets &assets);
 
         LeaderBoard(const LeaderBoard &) = delete; // no copy-constructible
         LeaderBoard &operator=(const LeaderBoard &) = delete; // no copy-assignable
@@ -48,7 +51,7 @@ namespace nongravitar::scene {
          *  This method should be called exactly once in the life-cycle of this object, any usage of this object
          *  without proper initialization will result in a error.
          */
-        LeaderBoard &initialize(Assets &assets) noexcept;
+        LeaderBoard &initialize() noexcept;
 
         SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
 
@@ -57,7 +60,8 @@ namespace nongravitar::scene {
     private:
         void operator()(const messages::GameOver &message) noexcept final;
 
-        sf::Text mGameOverTitle;
-        sf::Text mSpaceLabel;
+        sf::Text mScore;
+        sf::Text mAction;
+        Animation<sf::Color> mActionAnimation;
     };
 }
