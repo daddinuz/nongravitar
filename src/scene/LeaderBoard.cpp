@@ -44,16 +44,9 @@ LeaderBoard::LeaderBoard(Assets &assets) :
 LeaderBoard &LeaderBoard::initialize() noexcept {
     pubsub::subscribe(*this);
 
-    mActionAnimation.addFrame(sf::Color(255, 255, 255, 255), sf::seconds(0.2f));
-    mActionAnimation.addFrame(sf::Color(250, 250, 250, 240), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(245, 245, 245, 230), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(240, 240, 240, 220), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(235, 235, 235, 210), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(230, 230, 230, 200), sf::seconds(0.2f));
-    mActionAnimation.addFrame(sf::Color(235, 235, 235, 210), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(240, 240, 240, 220), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(245, 245, 245, 230), sf::seconds(0.1f));
-    mActionAnimation.addFrame(sf::Color(250, 250, 250, 240), sf::seconds(0.1f));
+    mActionAnimation.addFrame(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
+    mActionAnimation.addFrame(sf::Color(230, 230, 230, 230), sf::seconds(0.100f));
+    mActionAnimation.addFrame(sf::Color(200, 200, 200, 200), sf::seconds(0.225f));
 
     return *this;
 }
