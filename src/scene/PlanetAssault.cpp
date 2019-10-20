@@ -171,8 +171,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     const auto halfWindowHeight = window.getSize().y / 2.0f;
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
-    const auto _terrainFrame = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getBuffer().at(0);
-    const auto terrainHitDiameter = std::max(_terrainFrame.width, _terrainFrame.height);
+    const auto terrainFrame = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getRect({0, 0});
+    const auto terrainHitDiameter = std::max(terrainFrame.width, terrainFrame.height);
     const auto terrainHitRadius = terrainHitDiameter / 2.0f;
     auto rotationDistribution = FloatDistribution(-32.0f, 32.0f);
     auto terrainPosition = sf::Vector2f(
@@ -185,7 +185,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
         for (auto i = 0u; i < TERRAIN_SEGMENTS_PER_UNIT; i++) {
             auto terrainId = mRegistry.create();
-            auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).instanceSprite(0);
+            auto terrainRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Terrain).getSprite({0, 0});
             const auto terrainBounds = terrainRenderable.getLocalBounds();
             const auto terrainOffset = helpers::makeVector2(terrainRotation, terrainHitRadius);
 
@@ -218,7 +218,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             case 2:
             case 16: {
                 auto bunkerId = mRegistry.create();
-                auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(0);
+                auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).getSprite({0, 0});
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
                 const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
@@ -238,7 +238,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 8: {
                 auto bunkerId = mRegistry.create();
-                auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).instanceSprite(1);
+                auto bunkerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bunker).getSprite({1, 0});
                 const auto bunkerBounds = bunkerRenderable.getLocalBounds();
                 const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
 
@@ -258,7 +258,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
             case 4: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).instanceSprite(1);
+                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).getSprite({1, 0});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
@@ -277,7 +277,7 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
             case 6:
             case 12: {
                 auto supplyId = mRegistry.create();
-                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).instanceSprite(0);
+                auto supplyRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Supply).getSprite({0, 0});
                 const auto supplyBounds = supplyRenderable.getLocalBounds();
                 const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
 
@@ -558,7 +558,7 @@ void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {
 }
 
 void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, const float rotation) noexcept {
-    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).instanceSprite(0);
+    auto bulletRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::Bullet).getSprite({0, 0});
     const auto bulletBounds = bulletRenderable.getLocalBounds();
     const auto bulletId = registry.create();
     static const auto bulletHitRadius = std::max(bulletBounds.width, bulletBounds.height) / 2.0f;

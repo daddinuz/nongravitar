@@ -185,7 +185,7 @@ void SolarSystem::initializeReport(Assets &assets) noexcept {
 
 void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept {
     auto playerId = mRegistry.create();
-    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).getSprite({0, 0});
     const auto playerBounds = playerRenderable.getLocalBounds();
 
     helpers::centerOrigin(playerRenderable, playerBounds);
