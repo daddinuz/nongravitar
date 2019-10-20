@@ -25,34 +25,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#pragma once
-
-#include <Scene.hpp>
 #include <Animation.hpp>
 
-namespace nongravitar::scene {
-    class TitleScreen final : public Scene {
-    public:
-        TitleScreen() = delete;
+using namespace nongravitar::animation;
 
-        TitleScreen(SceneId solarSystemSceneId, Assets &assets);
-
-        TitleScreen(const TitleScreen &) = delete; // no copy-constructible
-        TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
-
-        TitleScreen(TitleScreen &&) = delete; // move-constructible
-        TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
-
-        SceneId onEvent(const sf::Event &event) noexcept final;
-
-        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) const noexcept final;
-
-    private:
-        sf::Sprite mTitle;
-        sf::Text mAction;
-        animation::BlinkingText mActionAnimation;
-        const SceneId mSolarSystemSceneId;
-    };
+BlinkingText::BlinkingText() {
+    mDelegate.addStep(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
+    mDelegate.addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
+    mDelegate.addStep(sf::Color(180, 180, 180, 180), sf::seconds(0.225f));
+    mDelegate.addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
 }

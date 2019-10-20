@@ -44,14 +44,6 @@ TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
     helpers::centerOrigin(mAction, mAction.getLocalBounds());
 }
 
-TitleScreen &TitleScreen::initialize() noexcept {
-    mActionAnimation.addFrame(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
-    mActionAnimation.addFrame(sf::Color(230, 230, 230, 230), sf::seconds(0.100f));
-    mActionAnimation.addFrame(sf::Color(200, 200, 200, 200), sf::seconds(0.225f));
-
-    return *this;
-}
-
 SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mSolarSystemSceneId : getSceneId();
 }

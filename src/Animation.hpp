@@ -30,58 +30,104 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-namespace nongravitar {
-    template<typename T>
-    class Animation {
+namespace nongravitar::animation {
+    template<typename Data>
+    struct Animation {
+        /// nullptr indicates the end of animation
+        [[nodiscard]] virtual const Data *current() const noexcept = 0;
+
+        /// nullptr indicates the end of animation
+        virtual const Data *update(sf::Time elapsed) noexcept = 0;
+
+        /// nullptr indicates the end of animation
+        virtual const Data *reset() noexcept = 0;
+
+        virtual ~Animation() = default;
+    };
+
+    template<typename Data>
+    class BaseAnimation final : public Animation<Data> {
     public:
-        Animation() = default;
+        BaseAnimation() = default;
 
-        Animation(const Animation &) = delete; // no copy-constructible
-        Animation &operator=(const Animation &) = delete; // no copy-assignable
+        BaseAnimation(const BaseAnimation &) = delete; // no copy-constructible
+        BaseAnimation &operator=(const BaseAnimation &) = delete; // no copy-assignable
 
-        Animation(Animation &&) = delete; // no move-constructible
-        Animation &operator=(Animation &&) = delete; // no move-assignable
+        BaseAnimation(BaseAnimation &&) noexcept = default; // move-constructible
+        BaseAnimation &operator=(BaseAnimation &&) noexcept = default; // move-assignable
 
-        void addFrame(const T &&data, const sf::Time timer) noexcept {
+        void addStep(const Data &&data, const sf::Time timer) noexcept {
             mData.push_back(std::move(data));
             mTimers.push_back(timer);
         }
 
-        /// nullptr indicates the end of animation
-        inline const T *current() const noexcept {
-            return mCurrentFrameIndex < mData.size() ? &mData[mCurrentFrameIndex] : nullptr;
+        [[nodiscard]] inline const Data *current() const noexcept final {
+            return mCurrentIndex < mData.size() ? &mData[mCurrentIndex] : nullptr;
         }
 
-        /// nullptr indicates the end of animation
-        const T *reset() noexcept {
-            mElapsed = sf::Time::Zero;
-            mCurrentFrameIndex = 0;
-            return current();
-        }
-
-        /// nullptr indicates the end of animation
-        const T *update(const sf::Time elapsed) noexcept {
-            if (mCurrentFrameIndex < mTimers.size()) {
+        const Data *update(const sf::Time elapsed) noexcept final {
+            if (mCurrentIndex < mTimers.size()) {
                 mElapsed += elapsed;
 
-                if (const auto &timer = mTimers[mCurrentFrameIndex]; mElapsed >= timer) {
+                if (const auto &timer = mTimers[mCurrentIndex]; mElapsed >= timer) {
                     mElapsed -= timer;
 
-                    if (++mCurrentFrameIndex < mData.size()) {
-                        return &mData[mCurrentFrameIndex];
+                    if (++mCurrentIndex < mData.size()) {
+                        return &mData[mCurrentIndex];
                     }
                 } else {
-                    return &mData[mCurrentFrameIndex];
+                    return &mData[mCurrentIndex];
                 }
             }
 
             return nullptr;
         }
 
+        const Data *reset() noexcept final {
+            mElapsed = sf::Time::Zero;
+            mCurrentIndex = 0;
+            return current();
+        }
+
     private:
-        std::vector<T> mData;
+        std::vector<Data> mData;
         std::vector<sf::Time> mTimers;
-        std::size_t mCurrentFrameIndex{0};
+        std::size_t mCurrentIndex{0};
         sf::Time mElapsed{sf::Time::Zero};
+    };
+
+    template<typename Data, typename Delegate = BaseAnimation<Data>>
+    class DelegateAnimation : public Animation<Data> {
+        static_assert(std::is_base_of<Animation<Data>, Delegate>::value);
+
+    public:
+        DelegateAnimation() = default;
+
+        explicit DelegateAnimation(Delegate &&delegate) noexcept : mDelegate(std::move(delegate)) {};
+
+        DelegateAnimation(const DelegateAnimation &) = delete; // no copy-constructible
+        DelegateAnimation &operator=(const DelegateAnimation &) = delete; // no copy-assignable
+
+        DelegateAnimation(DelegateAnimation &&) noexcept = default; // move-constructible
+        DelegateAnimation &operator=(DelegateAnimation &&) noexcept = default; // move-assignable
+
+        [[nodiscard]] inline const Data *current() const noexcept final {
+            return mDelegate.current();
+        }
+
+        inline const Data *update(const sf::Time elapsed) noexcept final {
+            return mDelegate.update(elapsed);
+        }
+
+        inline const Data *reset() noexcept final {
+            return mDelegate.reset();
+        }
+
+    protected:
+        Delegate mDelegate;
+    };
+
+    struct BlinkingText final : public DelegateAnimation<sf::Color> {
+        BlinkingText();
     };
 }

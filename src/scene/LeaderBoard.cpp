@@ -43,11 +43,6 @@ LeaderBoard::LeaderBoard(Assets &assets) :
 
 LeaderBoard &LeaderBoard::initialize() noexcept {
     pubsub::subscribe(*this);
-
-    mActionAnimation.addFrame(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
-    mActionAnimation.addFrame(sf::Color(230, 230, 230, 230), sf::seconds(0.100f));
-    mActionAnimation.addFrame(sf::Color(200, 200, 200, 200), sf::seconds(0.225f));
-
     return *this;
 }
 

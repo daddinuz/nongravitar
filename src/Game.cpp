@@ -72,7 +72,7 @@ void Game::initializeScenes() {
             .emplace<SolarSystem>(leaderBoard.getSceneId())
             .initialize(mWindow, mSceneManager, mAssets);
 
-    mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).initialize().getSceneId();
+    mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();
 }
 
 void Game::handleEvents() {

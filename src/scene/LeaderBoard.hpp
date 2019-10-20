@@ -62,6 +62,6 @@ namespace nongravitar::scene {
 
         sf::Text mScore;
         sf::Text mAction;
-        Animation<sf::Color> mActionAnimation;
+        animation::BlinkingText mActionAnimation;
     };
 }
