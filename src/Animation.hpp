@@ -50,8 +50,8 @@ namespace nongravitar::animation {
     public:
         BaseAnimation() = default;
 
-        BaseAnimation(const BaseAnimation &) = delete; // no copy-constructible
-        BaseAnimation &operator=(const BaseAnimation &) = delete; // no copy-assignable
+        BaseAnimation(const BaseAnimation &) = default; // copy-constructible
+        BaseAnimation &operator=(const BaseAnimation &) = default; // copy-assignable
 
         BaseAnimation(BaseAnimation &&) noexcept = default; // move-constructible
         BaseAnimation &operator=(BaseAnimation &&) noexcept = default; // move-assignable
@@ -105,8 +105,8 @@ namespace nongravitar::animation {
 
         explicit DelegateAnimation(Delegate &&delegate) noexcept : mDelegate(std::move(delegate)) {};
 
-        DelegateAnimation(const DelegateAnimation &) = delete; // no copy-constructible
-        DelegateAnimation &operator=(const DelegateAnimation &) = delete; // no copy-assignable
+        DelegateAnimation(const DelegateAnimation &) = default; // copy-constructible
+        DelegateAnimation &operator=(const DelegateAnimation &) = default; // copy-assignable
 
         DelegateAnimation(DelegateAnimation &&) noexcept = default; // move-constructible
         DelegateAnimation &operator=(DelegateAnimation &&) noexcept = default; // move-assignable
@@ -130,4 +130,6 @@ namespace nongravitar::animation {
     struct BlinkingText final : public DelegateAnimation<sf::Color> {
         BlinkingText();
     };
+
+    using SpriteAnimation = DelegateAnimation<sf::IntRect>;
 }

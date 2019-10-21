@@ -313,11 +313,17 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, HitRadius, Renderable, Energy, Velocity, ReloadTime>()
+            .view<Player, HitRadius, Renderable, SpaceShipEngineAnimation, Energy, Velocity, ReloadTime>()
             .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable,
-                      auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
+                      auto &playerAnimation, auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
                 auto playerSpeed = PLAYER_SPEED;
+
+                if (const auto rect = playerAnimation.update(elapsed); rect) {
+                    playerRenderable.template as<sf::Sprite>().setTextureRect(*rect);
+                } else {
+                    playerRenderable.template as<sf::Sprite>().setTextureRect(*playerAnimation.reset());
+                }
 
                 if (isKeyPressed(Key::W)) {
                     playerSpeed *= 1.32f;

@@ -27,6 +27,7 @@
 
 #include <components.hpp>
 
+using namespace nongravitar::assets;
 using namespace nongravitar::components;
 
 /*
@@ -108,6 +109,23 @@ void ReloadTime::elapse(sf::Time time) {
     if (not canShoot()) {
         mElapsed += time.asSeconds();
     }
+}
+
+/*
+ * SpaceShipEngineAnimation
+ */
+
+SpaceShipEngineAnimation::SpaceShipEngineAnimation(Assets &assets) {
+    const auto &sheet = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip);
+
+    mDelegate.addStep(sheet.getRect({0, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({1, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({2, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({3, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({4, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({5, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({6, 0}), sf::seconds(0.1f));
+    mDelegate.addStep(sheet.getRect({7, 0}), sf::seconds(0.1f));
 }
 
 /*

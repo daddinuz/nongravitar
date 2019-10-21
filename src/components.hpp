@@ -31,6 +31,7 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
+#include <Animation.hpp>
 
 namespace nongravitar::components {
     struct Velocity final {
@@ -153,6 +154,10 @@ namespace nongravitar::components {
 
     private:
         float mInstance;
+    };
+
+    struct SpaceShipEngineAnimation final : public animation::SpriteAnimation {
+        explicit SpaceShipEngineAnimation(Assets &assets);
     };
 
     class Renderable final : public sf::Drawable {

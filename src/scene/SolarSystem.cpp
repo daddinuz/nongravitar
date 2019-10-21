@@ -200,6 +200,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Velocity>(playerId);
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
+    mRegistry.assign<SpaceShipEngineAnimation>(playerId, assets);
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
@@ -227,9 +228,15 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Energy, Velocity, Renderable>()
-            .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
+            .view<Player, Energy, Velocity, SpaceShipEngineAnimation, Renderable>()
+            .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerAnimation, auto &playerRenderable) {
                 auto speed = PLAYER_SPEED;
+
+                if (const auto rect = playerAnimation.update(elapsed); rect) {
+                    playerRenderable.template as<sf::Sprite>().setTextureRect(*rect);
+                } else {
+                    playerRenderable.template as<sf::Sprite>().setTextureRect(*playerAnimation.reset());
+                }
 
                 if (isKeyPressed(Key::W)) {
                     speed *= 1.32f;
