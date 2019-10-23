@@ -30,12 +30,7 @@
 using namespace nongravitar;
 using namespace nongravitar::assets;
 
-void Assets::initialize() {
-    mFontsManager.initialize();
-    mAudioManager.initialize();
-    mTexturesManager.initialize();
-    mSpriteSheetsManager.initialize(mTexturesManager);
-}
+Assets::Assets() : mSpriteSheetsManager(mTexturesManager) {}
 
 const SpriteSheetsManager &Assets::getSpriteSheetsManager() const noexcept {
     return mSpriteSheetsManager;

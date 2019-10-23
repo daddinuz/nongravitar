@@ -35,22 +35,13 @@
 namespace nongravitar {
     class Game final {
     public:
-        Game() = default; // no default-constructible
+        Game();
 
         Game(const Game &) = delete; // no copy-constructible
         Game &operator=(const Game &) = delete; // no copy-assignable
 
         Game(Game &&) = delete; // no move-constructible
         Game &operator=(Game &&) = delete; // no move-assignable
-
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        Game &initialize();
 
         int run();
 

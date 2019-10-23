@@ -31,7 +31,7 @@
 
 using namespace nongravitar::assets;
 
-void AudioManager::initialize() {
+AudioManager::AudioManager() {
     // sounds
     load("hit.ogg", SoundId::Hit);
     load("shot.ogg", SoundId::Shot);
@@ -79,10 +79,6 @@ void AudioManager::toggle() noexcept {
                 break;
         }
     }
-}
-
-SoundTrackId AudioManager::getPlaying() const noexcept {
-    return mCurrentSoundtrackId;
 }
 
 void AudioManager::load(const char *const filename, const SoundId id) {

@@ -180,12 +180,12 @@ void SolarSystem::initializePubSub() const noexcept {
 void SolarSystem::initializeReport(Assets &assets) noexcept {
     mReport.setCharacterSize(18);
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
-    mReport.setFont(assets.getFontsManager().get(FontId::Mechanical));
+    mReport.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
 }
 
 void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept {
     auto playerId = mRegistry.create();
-    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    auto playerRenderable = assets.getSpriteSheetsManager().getSpriteSheet(SpriteSheetId::SpaceShip).instanceSprite(0);
     const auto playerBounds = playerRenderable.getLocalBounds();
 
     helpers::centerOrigin(playerRenderable, playerBounds);

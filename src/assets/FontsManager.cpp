@@ -26,17 +26,12 @@
  */
 
 #include <trace.hpp>
-#include <helpers.hpp>
 #include <assets/FontsManager.hpp>
 
 using namespace nongravitar::assets;
 
-void FontsManager::initialize() {
+FontsManager::FontsManager() {
     load("mechanical.otf", FontId::Mechanical);
-}
-
-const sf::Font &FontsManager::get(const FontId id) const noexcept {
-    return mFonts.at(helpers::enumValue(id));
 }
 
 void FontsManager::load(const char *const filename, const FontId id) {

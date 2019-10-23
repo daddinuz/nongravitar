@@ -27,17 +27,13 @@
 
 #include <assets/SpriteSheetsManager.hpp>
 
-using namespace nongravitar;
 using namespace nongravitar::assets;
 
-void SpriteSheetsManager::initialize(const TexturesManager &textureManager) {
-    mSpriteSheets.emplace(SpriteSheetId::SpaceShip, SpriteSheet::from(textureManager.get(TextureId::SpaceShip), {32, 32}));
-    mSpriteSheets.emplace(SpriteSheetId::Bullet, SpriteSheet::from(textureManager.get(TextureId::Bullet), {8, 8}));
-    mSpriteSheets.emplace(SpriteSheetId::Bunker, SpriteSheet::from(textureManager.get(TextureId::Bunker), {56, 56}));
-    mSpriteSheets.emplace(SpriteSheetId::Terrain, SpriteSheet::from(textureManager.get(TextureId::Terrain), {14, 1}));
-    mSpriteSheets.emplace(SpriteSheetId::Supply, SpriteSheet::from(textureManager.get(TextureId::Supply), {22, 22}));
-}
-
-const SpriteSheet &SpriteSheetsManager::get(SpriteSheetId id) const noexcept {
-    return mSpriteSheets.at(id);
+SpriteSheetsManager::SpriteSheetsManager(const TexturesManager &texturesManager) {
+    // WARNING: the order of the elements in the vector must match the underlying value of SpriteSheetId enumerators!
+    mSpriteSheets.emplace_back(texturesManager.getTexture(TextureId::Bullet), sf::Vector2u(8, 8));
+    mSpriteSheets.emplace_back(texturesManager.getTexture(TextureId::Bunker), sf::Vector2u(56, 56));
+    mSpriteSheets.emplace_back(texturesManager.getTexture(TextureId::SpaceShip), sf::Vector2u(32, 32));
+    mSpriteSheets.emplace_back(texturesManager.getTexture(TextureId::Supply), sf::Vector2u(22, 22));
+    mSpriteSheets.emplace_back(texturesManager.getTexture(TextureId::Terrain), sf::Vector2u(14, 1));
 }

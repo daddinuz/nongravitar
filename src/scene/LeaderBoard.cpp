@@ -35,10 +35,10 @@ using namespace nongravitar::assets;
 LeaderBoard &LeaderBoard::initialize(Assets &assets) noexcept {
     pubsub::subscribe(*this);
 
-    mGameOverTitle.setFont(assets.getFontsManager().get(FontId::Mechanical));
+    mGameOverTitle.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
     mGameOverTitle.setCharacterSize(64);
 
-    mSpaceLabel.setFont(assets.getFontsManager().get(FontId::Mechanical));
+    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
     mSpaceLabel.setCharacterSize(32);
     mSpaceLabel.setString("[ESC]");
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());

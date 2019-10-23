@@ -36,11 +36,9 @@ using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::constants;
 
-Game &Game::initialize() {
-    mAssets.initialize();
+Game::Game() {
     initializeWindow();
     initializeScenes();
-    return *this;
 }
 
 int Game::run() {

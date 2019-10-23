@@ -35,7 +35,7 @@
 namespace nongravitar {
     class Assets final {
     public:
-        Assets() = default; // default-constructible
+        Assets();
 
         Assets(const Assets &) = delete; // no copy-constructible
         Assets &operator=(const Assets &) = delete; // no copy-assignable
@@ -43,24 +43,15 @@ namespace nongravitar {
         Assets(Assets &&) = delete; // no move-constructible
         Assets &operator=(Assets &&) = delete; // no move-assignable
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
         [[nodiscard]] const assets::SpriteSheetsManager &getSpriteSheetsManager() const noexcept;
         [[nodiscard]] const assets::TexturesManager &getTexturesManager() const noexcept;
         [[nodiscard]] const assets::FontsManager &getFontsManager() const noexcept;
         [[nodiscard]] assets::AudioManager &getAudioManager() noexcept;
 
     private:
-        assets::SpriteSheetsManager mSpriteSheetsManager;
-        assets::TexturesManager mTexturesManager;
-        assets::FontsManager mFontsManager;
         assets::AudioManager mAudioManager;
+        assets::FontsManager mFontsManager;
+        assets::TexturesManager mTexturesManager;
+        assets::SpriteSheetsManager mSpriteSheetsManager;
     };
 }

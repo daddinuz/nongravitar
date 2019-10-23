@@ -31,5 +31,5 @@ using namespace nongravitar;
 
 int main() {
     auto game = Game();
-    return game.initialize().run();
+    return game.run();
 }

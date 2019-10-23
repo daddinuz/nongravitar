@@ -47,7 +47,7 @@ namespace nongravitar::assets {
 
     class AudioManager final {
     public:
-        AudioManager() = default; // default-constructible
+        AudioManager();
 
         AudioManager(const AudioManager &) = delete; // no copy-constructible
         AudioManager &operator=(const AudioManager &) = delete; // no copy-assignable
@@ -55,22 +55,15 @@ namespace nongravitar::assets {
         AudioManager(AudioManager &&) = delete; // no move-constructible
         AudioManager &operator=(AudioManager &&) = delete; // no move-assignable
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
         void play(SoundId id) noexcept;
 
         void play(SoundTrackId id) noexcept;
 
         void toggle() noexcept;
 
-        [[nodiscard]] SoundTrackId getPlaying() const noexcept;
+        [[nodiscard]] inline SoundTrackId getPlaying() const noexcept {
+            return mCurrentSoundtrackId;
+        }
 
     private:
         void load(const char *filename, SoundId id);

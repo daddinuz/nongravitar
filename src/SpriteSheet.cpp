@@ -30,47 +30,20 @@
 
 using namespace nongravitar;
 
-SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept
-        : mBuffer(std::move(buffer)), mTexture(texture) {}
-
-SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u frameSize, const sf::Vector2u startCoord) {
+SpriteSheet::SpriteSheet(const sf::Texture &texture, const sf::Vector2u frameSize) : mTexture(texture) {
     const auto[textureWidth, textureHeight] = texture.getSize();
     const auto columns = textureWidth / frameSize.x, rows = textureHeight / frameSize.y;
 
-    if (startCoord.x + columns * frameSize.x > textureWidth || startCoord.y + rows * frameSize.y > textureHeight) {
+    if (columns * frameSize.x > textureWidth || rows * frameSize.y > textureHeight) {
         throw std::invalid_argument(trace("bad dimensions supplied"));
     }
 
-    auto buffer = Buffer();
-    buffer.reserve(rows * columns);
-
+    mBuffer.reserve(rows * columns);
     for (auto row = 0u; row < rows; ++row) {
-        const auto top = startCoord.y + row * frameSize.y;
+        const auto top = row * frameSize.y;
 
         for (auto column = 0u; column < columns; ++column) {
-            buffer.emplace_back(startCoord.x + column * frameSize.x, top, frameSize.x, frameSize.y);
+            mBuffer.emplace_back(column * frameSize.x, top, frameSize.x, frameSize.y);
         }
     }
-
-    return SpriteSheet(texture, std::move(buffer));
-}
-
-SpriteSheet::const_iterator SpriteSheet::cbegin() const noexcept {
-    return mBuffer.cbegin();
-}
-
-SpriteSheet::const_iterator SpriteSheet::cend() const noexcept {
-    return mBuffer.cend();
-}
-
-const SpriteSheet::Buffer &SpriteSheet::getBuffer() const noexcept {
-    return mBuffer;
-}
-
-const sf::Texture &SpriteSheet::getTexture() const noexcept {
-    return mTexture;
-}
-
-sf::Sprite SpriteSheet::instanceSprite(const std::size_t frameIndex) const {
-    return sf::Sprite(mTexture, mBuffer.at(frameIndex));
 }

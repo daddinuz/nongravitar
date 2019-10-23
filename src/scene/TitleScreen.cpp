@@ -37,8 +37,8 @@ constexpr auto MIDDLE_PADDING = 96.0f;
 constexpr auto BOTTOM_PADDING = 32.0f;
 
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
-        mTitle(assets.getTexturesManager().get(TextureId::Title)),
-        mSpaceLabel("[SPACE]", assets.getFontsManager().get(FontId::Mechanical), 32.0f),
+        mTitle(assets.getTexturesManager().getTexture(TextureId::Title)),
+        mSpaceLabel("[SPACE]", assets.getFontsManager().getFont(FontId::Mechanical), 32.0f),
         mSolarSystemSceneId{solarSystemSceneId} {
     helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
     helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());

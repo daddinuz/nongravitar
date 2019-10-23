@@ -26,28 +26,23 @@
  */
 
 #include <trace.hpp>
-#include <helpers.hpp>
 #include <assets/TexturesManager.hpp>
 
 using namespace nongravitar::assets;
 
-void TexturesManager::initialize() {
-    load("title.png", TextureId::Title);
-    load("spaceship.png", TextureId::SpaceShip);
+TexturesManager::TexturesManager() {
     load("bullet.png", TextureId::Bullet);
     load("bunker.png", TextureId::Bunker);
-    load("terrain.png", TextureId::Terrain);
+    load("spaceship.png", TextureId::SpaceShip);
     load("supply.png", TextureId::Supply);
+    load("terrain.png", TextureId::Terrain);
+    load("title.png", TextureId::Title);
 }
 
-const sf::Texture &TexturesManager::get(const TextureId id) const noexcept {
-    return mTextures.at(helpers::enumValue(id));
-}
-
-void TexturesManager::load(const char *const filename, const TextureId id) {
+void TexturesManager::load(const char *filename, const TextureId textureId) {
     auto path = std::string(NONGRAVITAR_TEXTURES_PATH "/") + filename;
 
-    if (auto &texture = mTextures[helpers::enumValue(id)]; texture.loadFromFile(path)) {
+    if (auto &texture = mTextures[helpers::enumValue(textureId)]; texture.loadFromFile(path)) {
         texture.setSmooth(true);
     } else {
         path.insert(0, __TRACE__ "Unable to load texture: ");

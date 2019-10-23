@@ -28,46 +28,55 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include <SFML/Graphics.hpp>
 
 namespace nongravitar {
+    struct Sprite final {
+        using Frame = sf::IntRect;
+
+        const sf::Texture &texture;
+        const Frame frame;
+    };
+
     class SpriteSheet final {
     public:
-        using Frame = sf::IntRect;
-        using Buffer = std::vector<Frame>;
-
-        using const_iterator = Buffer::const_iterator;
-
-        using difference_type = Buffer::difference_type;
-        using value_type = Buffer::value_type;
-        using pointer = Buffer::pointer;
-        using reference = Buffer::reference;
-        using iterator_category = std::random_access_iterator_tag;
+        using Buffer = std::vector<Sprite::Frame>;
 
         SpriteSheet() = delete; // no default-constructible
 
-        SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept;
+        SpriteSheet(const sf::Texture &texture, sf::Vector2u frameSize);
 
         SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
         SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
-        SpriteSheet &operator=(SpriteSheet &&) noexcept = delete; // no move-assignable;
+        SpriteSheet &operator=(SpriteSheet &&) noexcept = default; // move-assignable;
 
-        [[nodiscard]] static SpriteSheet from(const sf::Texture &texture, sf::Vector2u frameSize, sf::Vector2u startCoord = {0, 0});
+        [[nodiscard]] inline std::size_t getSize() const noexcept {
+            return mBuffer.size();
+        }
 
-        [[nodiscard]] const Buffer &getBuffer() const noexcept;
+        [[nodiscard]] inline Sprite getSprite(const std::size_t frameId) const {
+            return {.texture=mTexture, .frame=getFrame(frameId)};
+        }
 
-        [[nodiscard]] const sf::Texture &getTexture() const noexcept;
+        // TODO think about returning a reference
+        [[nodiscard]] inline Sprite::Frame getFrame(const std::size_t frameId) const {
+            return mBuffer.at(frameId);
+        }
 
-        [[nodiscard]] sf::Sprite instanceSprite(std::size_t frameIndex) const;
+        [[nodiscard]] inline const sf::Texture &getTexture() const noexcept {
+            return mTexture;
+        }
 
-        [[nodiscard]] const_iterator cbegin() const noexcept;
-
-        [[nodiscard]] const_iterator cend() const noexcept;
+        // TODO: complete remove this method
+        [[nodiscard]] [[deprecated]] inline sf::Sprite instanceSprite(const std::size_t frameId) const {
+            return {mTexture, getFrame(frameId)};
+        }
 
     private:
         Buffer mBuffer;
-        const sf::Texture &mTexture;
+        std::reference_wrapper<const sf::Texture> mTexture;
     };
 }

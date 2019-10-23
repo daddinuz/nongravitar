@@ -28,6 +28,7 @@
 #pragma once
 
 #include <array>
+#include <helpers.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace nongravitar::assets {
@@ -37,7 +38,7 @@ namespace nongravitar::assets {
 
     class FontsManager final {
     public:
-        FontsManager() = default; // default-constructible
+        FontsManager();
 
         FontsManager(const FontsManager &) = delete; // no copy-constructible
         FontsManager &operator=(const FontsManager &) = delete; // no copy-assignable
@@ -45,16 +46,9 @@ namespace nongravitar::assets {
         FontsManager(FontsManager &&) = delete; // no move-constructible
         FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
-        [[nodiscard]] const sf::Font &get(FontId id) const noexcept;
+        [[nodiscard]] inline const sf::Font &getFont(const FontId id) const noexcept {
+            return mFonts.at(helpers::enumValue(id));
+        }
 
     private:
         void load(const char *filename, FontId id);

@@ -27,22 +27,24 @@
 
 #pragma once
 
-#include <map>
+#include <vector>
 #include <SpriteSheet.hpp>
 #include <assets/TexturesManager.hpp>
 
 namespace nongravitar::assets {
     enum class SpriteSheetId : std::size_t {
-        SpaceShip = 0,
-        Bullet,
-        Bunker,
-        Terrain,
-        Supply,
+        Bullet = 0,
+        Bunker = 1,
+        SpaceShip = 2,
+        Supply = 3,
+        Terrain = 4,
     };
 
     class SpriteSheetsManager final {
     public:
-        SpriteSheetsManager() = default; // default-constructible
+        SpriteSheetsManager() = delete; // no default-constructible
+
+        explicit SpriteSheetsManager(const TexturesManager &texturesManager);
 
         SpriteSheetsManager(const SpriteSheetsManager &) = delete; // no copy-constructible
         SpriteSheetsManager &operator=(const SpriteSheetsManager &) = delete; // no copy-assignable
@@ -50,20 +52,11 @@ namespace nongravitar::assets {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] const SpriteSheet &get(SpriteSheetId id) const noexcept;
-
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         *
-         *  Calling this method with a `TextureManager` not properly initialized will result in an error.
-         */
-        void initialize(const TexturesManager &textureManager);
+        [[nodiscard]] inline const SpriteSheet &getSpriteSheet(const SpriteSheetId spriteSheetId) const noexcept {
+            return mSpriteSheets.at(helpers::enumValue(spriteSheetId));
+        }
 
     private:
-        std::map<SpriteSheetId, SpriteSheet> mSpriteSheets;
+        std::vector<SpriteSheet> mSpriteSheets;
     };
 }

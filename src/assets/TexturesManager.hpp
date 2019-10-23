@@ -28,21 +28,22 @@
 #pragma once
 
 #include <array>
+#include <helpers.hpp>
 #include <SFML/Graphics.hpp>
 
 namespace nongravitar::assets {
     enum class TextureId : std::size_t {
-        Title = 0,
-        SpaceShip,
-        Bullet,
-        Bunker,
-        Terrain,
-        Supply,
+        Bullet = 0,
+        Bunker = 1,
+        SpaceShip = 2,
+        Supply = 3,
+        Terrain = 4,
+        Title = 5,
     };
 
     class TexturesManager final {
     public:
-        TexturesManager() = default; // default-constructible
+        TexturesManager();
 
         TexturesManager(const TexturesManager &) = delete; // no copy-constructible
         TexturesManager &operator=(const TexturesManager &) = delete; // no copy-assignable
@@ -50,19 +51,12 @@ namespace nongravitar::assets {
         TexturesManager(TexturesManager &&) = delete; // no move-constructible
         TexturesManager &operator=(TexturesManager &&) = delete; // no move-assignable
 
-        /**
-         * Initialize assets loading them into memory.
-         *
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        void initialize();
-
-        [[nodiscard]] const sf::Texture &get(TextureId id) const noexcept;
+        [[nodiscard]] inline const sf::Texture &getTexture(const TextureId textureId) const noexcept {
+            return mTextures.at(helpers::enumValue(textureId));
+        }
 
     private:
-        void load(const char *filename, TextureId id);
+        void load(const char *filename, TextureId textureId);
 
         std::array<sf::Texture, 6> mTextures;
     };
