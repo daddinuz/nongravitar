@@ -30,8 +30,8 @@
 using namespace nongravitar::animation;
 
 BlinkingText::BlinkingText() {
-    mDelegate.addStep(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
-    mDelegate.addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
-    mDelegate.addStep(sf::Color(180, 180, 180, 180), sf::seconds(0.225f));
-    mDelegate.addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
+    addStep(sf::Color(255, 255, 255, 255), sf::seconds(0.225f));
+    addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
+    addStep(sf::Color(180, 180, 180, 180), sf::seconds(0.225f));
+    addStep(sf::Color(220, 220, 220, 220), sf::seconds(0.125f));
 }

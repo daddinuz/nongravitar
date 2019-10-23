@@ -76,6 +76,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
     reloadSystem(elapsed);
     AISystem(assets);
     livenessSystem(assets);
+    animationSystem(elapsed);
     reportSystem(window);
 
     return mNextSceneId;
@@ -313,17 +314,11 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, HitRadius, Renderable, SpaceShipEngineAnimation, Energy, Velocity, ReloadTime>()
+            .view<Player, HitRadius, Renderable, Energy, Velocity, ReloadTime>()
             .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable,
-                      auto &playerAnimation, auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
+                      auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
                 auto playerSpeed = PLAYER_SPEED;
-
-                if (const auto rect = playerAnimation.update(elapsed); rect) {
-                    playerRenderable.template as<sf::Sprite>().setTextureRect(*rect);
-                } else {
-                    playerRenderable.template as<sf::Sprite>().setTextureRect(*playerAnimation.reset());
-                }
 
                 if (isKeyPressed(Key::W)) {
                     playerSpeed *= 1.32f;
@@ -382,6 +377,11 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                 if (helpers::magnitude(entityRenderable1->getPosition(), entityRenderable2->getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
                     assets.getAudioManager().play(SoundId::Hit);
                     g1.get<Health>(e1).harm(g2.get<Damage>(e2));
+
+                    // FIXME: really bad, rethink animation design
+                    if (const auto animation = mRegistry.try_get<SpaceShipAnimation>(e1); animation) {
+                        animation->setState(SpaceShipAnimation::State::Hit);
+                    }
                 }
             }
         }
@@ -547,6 +547,17 @@ void PlanetAssault::livenessSystem(Assets &assets) noexcept {
     }
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
+}
+
+void PlanetAssault::animationSystem(const sf::Time elapsed) noexcept {
+    mRegistry.view<SpaceShipAnimation, Renderable>().each([&](auto &animation, auto &renderable){
+        if (const auto rect = animation.update(elapsed); rect) {
+            renderable.template as<sf::Sprite>().setTextureRect(*rect);
+        } else {
+            animation.reset();
+            animation.setState(SpaceShipAnimation::State::Default).reset();
+        }
+    });
 }
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) noexcept {

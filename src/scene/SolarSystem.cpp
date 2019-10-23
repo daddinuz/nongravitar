@@ -124,6 +124,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneM
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem(window, sceneManager, assets);
+    animationSystem(elapsed);
     reportSystem(window);
 
     return mNextSceneId;
@@ -199,8 +200,8 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Energy>(playerId, PLAYER_ENERGY);
     mRegistry.assign<Velocity>(playerId);
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
+    mRegistry.assign<SpaceShipAnimation>(playerId, assets);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
-    mRegistry.assign<SpaceShipEngineAnimation>(playerId, assets);
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
@@ -228,15 +229,9 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, Energy, Velocity, SpaceShipEngineAnimation, Renderable>()
-            .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerAnimation, auto &playerRenderable) {
+            .view<Player, Energy, Velocity, Renderable>()
+            .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
                 auto speed = PLAYER_SPEED;
-
-                if (const auto rect = playerAnimation.update(elapsed); rect) {
-                    playerRenderable.template as<sf::Sprite>().setTextureRect(*rect);
-                } else {
-                    playerRenderable.template as<sf::Sprite>().setTextureRect(*playerAnimation.reset());
-                }
 
                 if (isKeyPressed(Key::W)) {
                     speed *= 1.32f;
@@ -323,6 +318,17 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
     }
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
+}
+
+void SolarSystem::animationSystem(const sf::Time elapsed) noexcept {
+    mRegistry.view<SpaceShipAnimation, Renderable>().each([&](auto &animation, auto &renderable) {
+        if (const auto rect = animation.update(elapsed); rect) {
+            renderable.template as<sf::Sprite>().setTextureRect(*rect);
+        } else {
+            animation.reset();
+            animation.setState(SpaceShipAnimation::State::Default).reset();
+        }
+    });
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {

@@ -27,7 +27,9 @@
 
 #include <components.hpp>
 
+using namespace nongravitar;
 using namespace nongravitar::assets;
+using namespace nongravitar::animation;
 using namespace nongravitar::components;
 
 /*
@@ -112,23 +114,6 @@ void ReloadTime::elapse(sf::Time time) {
 }
 
 /*
- * SpaceShipEngineAnimation
- */
-
-SpaceShipEngineAnimation::SpaceShipEngineAnimation(Assets &assets) {
-    const auto &sheet = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip);
-
-    mDelegate.addStep(sheet.getRect({0, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({1, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({2, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({3, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({4, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({5, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({6, 0}), sf::seconds(0.1f));
-    mDelegate.addStep(sheet.getRect({7, 0}), sf::seconds(0.1f));
-}
-
-/*
  * Renderable
  */
 
@@ -150,4 +135,64 @@ sf::Transformable *Renderable::operator->() {
 
 const sf::Transformable *Renderable::operator->() const {
     return std::visit([](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
+}
+
+/*
+ * SpaceShipAnimation
+ */
+
+struct SpaceShipDefaultAnimation final : public BaseAnimation<sf::IntRect> {
+    explicit SpaceShipDefaultAnimation(Assets &assets) {
+        const auto &sheet = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip);
+
+        addStep(sheet.getRect({0, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({1, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({2, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({3, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({4, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({5, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({6, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({7, 0}), sf::seconds(0.0625f));
+    }
+};
+
+struct SpaceShipHitAnimation final : public BaseAnimation<sf::IntRect> {
+    explicit SpaceShipHitAnimation(Assets &assets) {
+        const auto &sheet = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip);
+
+        addStep(sheet.getRect({0, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({1, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({2, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({3, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({4, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({5, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({6, 1}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({7, 1}), sf::seconds(0.0625f));
+    }
+};
+
+SpaceShipAnimation::SpaceShipAnimation(Assets &assets) {
+    mDelegates.emplace(State::Default, SpaceShipDefaultAnimation(assets));
+    mDelegates.emplace(State::Hit, SpaceShipHitAnimation(assets));
+}
+
+SpaceShipAnimation &SpaceShipAnimation::setState(const State state) noexcept {
+    mState = state;
+    return *this;
+}
+
+SpaceShipAnimation::State SpaceShipAnimation::getState() const noexcept {
+    return mState;
+}
+
+const sf::IntRect *SpaceShipAnimation::current() const noexcept {
+    return mDelegates.at(getState()).current();
+}
+
+const sf::IntRect *SpaceShipAnimation::update(const sf::Time elapsed) noexcept {
+    return mDelegates.at(getState()).update(elapsed);
+}
+
+const sf::IntRect *SpaceShipAnimation::reset() noexcept {
+    return mDelegates.at(getState()).reset();
 }

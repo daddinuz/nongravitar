@@ -71,6 +71,7 @@ namespace nongravitar::scene {
         void reloadSystem(sf::Time elapsed) noexcept;
         void AISystem(Assets &assets) noexcept;
         void livenessSystem(Assets &assets) noexcept;
+        void animationSystem(sf::Time elapsed) noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;
