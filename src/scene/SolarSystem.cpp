@@ -121,8 +121,6 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneM
 }
 
 void SolarSystem::render(sf::RenderTarget &window) const {
-    window.draw(mReport);
-
     mRegistry.view<const Renderable>().each([&](const auto id, const auto &renderable) {
         helpers::debug([&]() { // display hit-circle on debug builds only
             if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
@@ -138,6 +136,8 @@ void SolarSystem::render(sf::RenderTarget &window) const {
 
         window.draw(renderable);
     });
+
+    window.draw(mReport);
 }
 
 Scene &SolarSystem::setup(const sf::RenderWindow &window, Assets &assets) {
@@ -176,8 +176,8 @@ void SolarSystem::operator()(const SolarSystemEntered &message) {
 }
 
 void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) {
-    auto playerId = mRegistry.create();
-    auto playerRenderable = assets.getSpriteSheetsManager().getSpriteSheet(SpriteSheetId::SpaceShip).instanceSprite(0);
+    const auto playerId = mRegistry.create();
+    auto playerRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::SpaceShip, 0);
     const auto playerBounds = playerRenderable.getLocalBounds();
 
     helpers::centerOrigin(playerRenderable, playerBounds);

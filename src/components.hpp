@@ -167,6 +167,9 @@ namespace nongravitar::components {
         float mInstance;
     };
 
+    using Transformable = sf::Transformable;
+    using Sprite = assets::Sprite;
+
     class Renderable final : public sf::Drawable {
     public:
         template<typename ...Args>

@@ -28,17 +28,41 @@
 #pragma once
 
 #include <vector>
-#include <SpriteSheet.hpp>
 #include <assets/TexturesManager.hpp>
 
 namespace nongravitar::assets {
-    enum class SpriteSheetId : std::size_t {
+    enum class SpriteSheetId {
         Bullet = 0,
         Bunker = 1,
         SpaceShip = 2,
         Supply = 3,
         Terrain = 4,
     };
+
+    using Frame = sf::FloatRect;
+
+    class Sprite final {
+    public:
+        Sprite() = delete;
+
+        Sprite(const sf::Texture &texture, Frame frame);
+
+        [[nodiscard]] inline Frame getFrame() const {
+            return mFrame;
+        }
+
+        [[nodiscard]] inline const sf::Texture *getTexture() const {
+            return mTexture;
+        }
+
+    private:
+        Frame mFrame;
+        const sf::Texture *mTexture;
+    };
+
+    using Canvas = std::array<sf::Vertex, 4>;
+
+    void bind(Canvas &canvas, sf::RenderStates &renderStates, const sf::Transformable &transformable, const Sprite &sprite);
 
     class SpriteSheetsManager final {
     public:
@@ -52,11 +76,27 @@ namespace nongravitar::assets {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline const SpriteSheet &getSpriteSheet(const SpriteSheetId spriteSheetId) const {
-            return mSpriteSheets.at(helpers::enumValue(spriteSheetId));
+        [[nodiscard]] inline Frame getFrame(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
+            return mSpriteSheets.at(helpers::enumValue(spriteSheetId)).at(frameId);
+        }
+
+        [[nodiscard]] inline Sprite getSprite(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
+            return {getTexture(spriteSheetId), getFrame(spriteSheetId, frameId)};
+        }
+
+        [[nodiscard]] inline const sf::Texture &getTexture(const SpriteSheetId spriteSheetId) const {
+            return *mTextures.at(helpers::enumValue(spriteSheetId));
+        }
+
+        // TODO: complete remove this method
+        [[nodiscard]] [[deprecated]] inline sf::Sprite instanceSprite(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
+            return {getTexture(spriteSheetId), sf::IntRect(getFrame(spriteSheetId, frameId))};
         }
 
     private:
-        std::vector<SpriteSheet> mSpriteSheets;
+        void load(const TexturesManager &texturesManager, SpriteSheetId spriteSheetId, TextureId textureId, sf::Vector2u frameSize);
+
+        std::array<std::vector<Frame>, 5> mSpriteSheets;
+        std::array<const sf::Texture *, 5> mTextures;
     };
 }
