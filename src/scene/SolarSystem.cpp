@@ -49,28 +49,19 @@ using helpers::FloatDistribution;
 
 constexpr auto PLANET_MIN_RADIUS = 32.0f;
 constexpr auto PLANET_MAX_RADIUS = 64.0f;
+constexpr auto PLANET_MAX_DIAMETER = PLANET_MAX_RADIUS * 2.0f;
 constexpr auto SPAWN_RADIUS = 64.0f;
 
 SolarSystem::SolarSystem(const SceneId leaderBoardSceneId) :
-        mBuffer{},
-        mRandomEngine{RandomDevice()()},
-        mLeaderBoardSceneId{leaderBoardSceneId} {}
+        mBuffer{}, mRandomEngine{RandomDevice()()}, mLeaderBoardSceneId{leaderBoardSceneId} {}
 
-SolarSystem &SolarSystem::initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
-    initializePubSub();
-    initializeReport(assets);
-    initializePlayers(window, assets);
-    resetPlanets(window, sceneManager, assets);
-    return *this;
-}
-
-void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) noexcept {
+void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) {
     const auto[windowWidth, windowHeight] = window.getSize();
     const auto spawnPosition = sf::Vector2f(windowWidth, windowHeight) / 2.0f;
 
     auto planetRadiusDistribution = FloatDistribution(PLANET_MIN_RADIUS, PLANET_MAX_RADIUS);
-    auto planetXDistribution = FloatDistribution(PLANET_MAX_RADIUS, windowWidth - PLANET_MAX_RADIUS);
-    auto planetYDistribution = FloatDistribution(PLANET_MAX_RADIUS, windowHeight - PLANET_MAX_RADIUS);
+    auto planetXDistribution = FloatDistribution(PLANET_MAX_DIAMETER, windowWidth - PLANET_MAX_DIAMETER);
+    auto planetYDistribution = FloatDistribution(PLANET_MAX_DIAMETER, windowHeight - PLANET_MAX_DIAMETER);
 
     auto circleShape = sf::CircleShape();
     auto collides = true;
@@ -113,23 +104,23 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, sf::Color planetColo
     }
 }
 
-SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) noexcept {
+SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, const sf::Time elapsed) {
     mNextSceneId = getSceneId();
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::ComputerF__k != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::ComputerF__k);
     }
 
+    livenessSystem(window, sceneManager, assets);
     inputSystem(elapsed);
     motionSystem(elapsed);
     collisionSystem(window);
-    livenessSystem(window, sceneManager, assets);
     reportSystem(window);
 
     return mNextSceneId;
 }
 
-void SolarSystem::render(sf::RenderTarget &window) const noexcept {
+void SolarSystem::render(sf::RenderTarget &window) const {
     window.draw(mReport);
 
     mRegistry.view<const Renderable>().each([&](const auto id, const auto &renderable) {
@@ -149,7 +140,18 @@ void SolarSystem::render(sf::RenderTarget &window) const noexcept {
     });
 }
 
-void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
+Scene &SolarSystem::setup(const sf::RenderWindow &window, Assets &assets) {
+    mReport.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mReport.setFillColor(sf::Color(105, 235, 245, 255));
+    mReport.setCharacterSize(18.0f);
+
+    initializePlayers(window, assets);
+
+    pubsub::subscribe<messages::SolarSystemEntered>(*this);
+    return Scene::setup(window, assets);
+}
+
+void SolarSystem::operator()(const SolarSystemEntered &message) {
     const auto planets = mRegistry.view<Planet, SceneRef>();
 
     for (const auto planetId : planets) {
@@ -173,17 +175,7 @@ void SolarSystem::operator()(const SolarSystemEntered &message) noexcept {
     }
 }
 
-void SolarSystem::initializePubSub() const noexcept {
-    pubsub::subscribe<messages::SolarSystemEntered>(*this);
-}
-
-void SolarSystem::initializeReport(Assets &assets) noexcept {
-    mReport.setCharacterSize(18);
-    mReport.setFillColor(sf::Color(105, 235, 245, 255));
-    mReport.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-}
-
-void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept {
+void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) {
     auto playerId = mRegistry.create();
     auto playerRenderable = assets.getSpriteSheetsManager().getSpriteSheet(SpriteSheetId::SpaceShip).instanceSprite(0);
     const auto playerBounds = playerRenderable.getLocalBounds();
@@ -203,7 +195,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
 
-void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
+void SolarSystem::initializePlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) {
     const auto windowCenter = sf::Vector2f(window.getSize()) / 2.0f;
     auto planetsColorsSelector = IntDistribution(0, PLANET_COLORS.size() - 1);
 
@@ -211,18 +203,16 @@ void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sce
         renderable->setPosition(windowCenter);
     });
 
+    const auto solarSystemSceneId = getSceneId();
     for (auto i = 0u; i < PLANETS; i++) {
         const auto rgb = PLANET_COLORS[planetsColorsSelector(mRandomEngine)];
         const auto planetColor = sf::Color(rgb[0], rgb[1], rgb[2]);
-        auto &planetAssault = sceneManager
-                .emplace<PlanetAssault>(getSceneId(), mLeaderBoardSceneId)
-                .initialize(window, assets, planetColor);
-
+        const auto &planetAssault = sceneManager.emplace<PlanetAssault>(window, assets, solarSystemSceneId, mLeaderBoardSceneId, planetColor);
         addPlanet(window, planetColor, planetAssault.getSceneId());
     }
 }
 
-void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
+void SolarSystem::inputSystem(const sf::Time elapsed) {
     using Key = sf::Keyboard::Key;
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
@@ -250,13 +240,13 @@ void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
             });
 }
 
-void SolarSystem::motionSystem(const sf::Time elapsed) noexcept {
+void SolarSystem::motionSystem(const sf::Time elapsed) {
     mRegistry.view<Velocity, Renderable>().each([&](const auto &velocity, auto &renderable) {
         renderable->move(velocity.value * elapsed.asSeconds());
     });
 }
 
-void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
+void SolarSystem::collisionSystem(const sf::RenderWindow &window) {
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
     const auto players = mRegistry.view<Player, HitRadius, Renderable>();
 
@@ -295,7 +285,7 @@ void SolarSystem::collisionSystem(const sf::RenderWindow &window) noexcept {
     }
 }
 
-void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept {
+void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
     const auto players = mRegistry.view<Player, Health, Energy>();
@@ -311,14 +301,13 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
     }
 
     if (mRegistry.view<Planet>().begin() == mRegistry.view<Planet>().end()) { // no more planets left
-        mRegistry.view<Player, Score>().each([](const auto, auto &score) { score.value += SCORE_PER_SOLAR_SYSTEM; });
-        resetPlanets(window, sceneManager, assets);
+        initializePlanets(window, sceneManager, assets);
     }
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
 }
 
-void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {
+void SolarSystem::reportSystem(const sf::RenderWindow &window) {
     mRegistry.view<Player, Health, Energy, Score>().each([&](const auto, const auto &health, const auto &energy, const auto &score) {
         std::snprintf(
                 mBuffer, std::size(mBuffer),

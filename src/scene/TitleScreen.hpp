@@ -34,21 +34,23 @@ namespace nongravitar::scene {
     public:
         TitleScreen() = delete;
 
-        TitleScreen(SceneId solarSystemSceneId, Assets &assets);
+        explicit TitleScreen(SceneId solarSystemSceneId);
 
         TitleScreen(const TitleScreen &) = delete; // no copy-constructible
         TitleScreen &operator=(const TitleScreen &) = delete; // no copy-assignable
 
-        TitleScreen(TitleScreen &&) = delete; // move-constructible
+        TitleScreen(TitleScreen &&) = delete; // no move-constructible
         TitleScreen &operator=(TitleScreen &&) = delete; // no move-assignable
 
-        SceneId onEvent(const sf::Event &event) noexcept final;
+        SceneId onEvent(const sf::Event &event) final;
 
-        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) final;
 
-        void render(sf::RenderTarget &window) const noexcept final;
+        void render(sf::RenderTarget &window) const final;
 
     private:
+        Scene &setup(const sf::RenderWindow &window, Assets &assets) final;
+
         sf::Sprite mTitle;
         sf::Text mSpaceLabel;
         const SceneId mSolarSystemSceneId;

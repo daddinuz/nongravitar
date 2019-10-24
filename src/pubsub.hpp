@@ -48,7 +48,7 @@ namespace nongravitar::pubsub {
         virtual ~Handler();
 
     protected:
-        virtual void operator()(const T &) noexcept = 0;
+        virtual void operator()(const T &) = 0;
 
     private:
         inline static std::unordered_set<Handler<T> *> mHandlers; // mutex is not needed because we are single-threaded

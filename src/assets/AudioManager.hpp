@@ -55,13 +55,13 @@ namespace nongravitar::assets {
         AudioManager(AudioManager &&) = delete; // no move-constructible
         AudioManager &operator=(AudioManager &&) = delete; // no move-assignable
 
-        void play(SoundId id) noexcept;
+        void play(SoundId id);
 
-        void play(SoundTrackId id) noexcept;
+        void play(SoundTrackId id);
 
-        void toggle() noexcept;
+        void toggle();
 
-        [[nodiscard]] inline SoundTrackId getPlaying() const noexcept {
+        [[nodiscard]] inline SoundTrackId getPlaying() const {
             return mCurrentSoundtrackId;
         }
 

@@ -50,10 +50,10 @@ namespace nongravitar {
         SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
-        SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
-        SpriteSheet &operator=(SpriteSheet &&) noexcept = default; // move-assignable;
+        SpriteSheet(SpriteSheet &&) = default; // move-constructible;
+        SpriteSheet &operator=(SpriteSheet &&) = default; // move-assignable;
 
-        [[nodiscard]] inline std::size_t getSize() const noexcept {
+        [[nodiscard]] inline std::size_t getSize() const {
             return mBuffer.size();
         }
 
@@ -66,7 +66,7 @@ namespace nongravitar {
             return mBuffer.at(frameId);
         }
 
-        [[nodiscard]] inline const sf::Texture &getTexture() const noexcept {
+        [[nodiscard]] inline const sf::Texture &getTexture() const {
             return mTexture;
         }
 

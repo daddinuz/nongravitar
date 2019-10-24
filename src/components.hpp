@@ -43,9 +43,11 @@ namespace nongravitar::components {
 
     class Damage final {
     public:
-        explicit Damage(int value) noexcept;
+        explicit Damage(int value);
 
-        [[nodiscard]] int getValue() const noexcept;
+        [[nodiscard]] inline int getValue() const {
+            return mValue;
+        }
 
     private:
         int mValue;
@@ -57,11 +59,11 @@ namespace nongravitar::components {
         template<typename ...Args>
         explicit Supply(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        [[nodiscard]] inline T *operator->() noexcept {
+        [[nodiscard]] inline T *operator->() {
             return &mInstance;
         }
 
-        [[nodiscard]] inline const T *operator->() const noexcept {
+        [[nodiscard]] inline const T *operator->() const {
             return &mInstance;
         }
 
@@ -71,14 +73,19 @@ namespace nongravitar::components {
 
     class Health final {
     public:
-        explicit Health(int value) noexcept;
+        explicit Health(int value);
 
-        void heal(const Supply<Health> &supply) noexcept;
-        void harm(const Damage &damage) noexcept;
-        void kill() noexcept;
+        void heal(const Supply<Health> &supply);
+        void harm(const Damage &damage);
+        void kill();
 
-        [[nodiscard]] bool isOver() const noexcept;
-        [[nodiscard]] int getValue() const noexcept;
+        [[nodiscard]] inline bool isOver() const {
+            return mValue <= 0;
+        }
+
+        [[nodiscard]] inline int getValue() const {
+            return mValue;
+        }
 
     private:
         int mValue;
@@ -86,13 +93,18 @@ namespace nongravitar::components {
 
     class Energy final {
     public:
-        explicit Energy(float value) noexcept;
+        explicit Energy(float value);
 
-        void recharge(const Supply<Energy> &supply) noexcept;
-        void consume(float value) noexcept;
+        void recharge(const Supply<Energy> &supply);
+        void consume(float value);
 
-        [[nodiscard]] bool isOver() const noexcept;
-        [[nodiscard]] float getValue() const noexcept;
+        [[nodiscard]] inline bool isOver() const {
+            return mValue <= 0.001f;
+        }
+
+        [[nodiscard]] inline float getValue() const {
+            return mValue;
+        }
 
     private:
         float mValue;
@@ -103,7 +115,7 @@ namespace nongravitar::components {
         template<typename ...Args>
         explicit SceneRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        [[nodiscard]] inline SceneId operator*() const noexcept {
+        [[nodiscard]] inline SceneId operator*() const {
             return mInstance;
         }
 
@@ -117,7 +129,7 @@ namespace nongravitar::components {
         template<typename ...Args>
         explicit EntityRef(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        [[nodiscard]] inline entt::entity operator*() const noexcept {
+        [[nodiscard]] inline entt::entity operator*() const {
             return mInstance;
         }
 
@@ -133,7 +145,7 @@ namespace nongravitar::components {
 
         void elapse(sf::Time time);
 
-        [[nodiscard]] inline bool canShoot() const noexcept {
+        [[nodiscard]] inline bool canShoot() const {
             return mElapsed >= mSecondsBeforeShoot;
         }
 
@@ -147,7 +159,7 @@ namespace nongravitar::components {
         template<typename ...Args>
         explicit HitRadius(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
 
-        [[nodiscard]] inline float operator*() const noexcept {
+        [[nodiscard]] inline float operator*() const {
             return mInstance;
         }
 
@@ -167,12 +179,12 @@ namespace nongravitar::components {
         [[nodiscard]] const sf::Transformable *operator->() const;
 
         template<typename T>
-        [[nodiscard]] inline T &as() noexcept {
+        [[nodiscard]] inline T &as() {
             return std::get<T>(mInstance);
         }
 
         template<typename T>
-        [[nodiscard]] inline const T &as() const noexcept {
+        [[nodiscard]] inline const T &as() const {
             return std::get<T>(mInstance);
         }
 

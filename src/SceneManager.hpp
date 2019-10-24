@@ -30,6 +30,7 @@
 #include <memory>
 #include <vector>
 #include <Scene.hpp>
+#include <helpers.hpp>
 
 namespace nongravitar {
     class SceneManager final {
@@ -43,18 +44,19 @@ namespace nongravitar {
         SceneManager &operator=(SceneManager &&) = delete; // no move-assignable
 
         template<typename T, typename ...Args>
-        T &emplace(Args &&... args) {
+        Scene &emplace(const sf::RenderWindow &window, Assets &assets, Args &&... args) {
             static_assert(std::is_base_of<Scene, T>::value);
 
-            const auto id = SceneId{mScenes.size()};
             auto scene = std::make_unique<T>(std::forward<Args>(args)...);
-            scene->mSceneId = id;
+            scene->mSceneId = SceneId{mScenes.size()};
             mScenes.push_back(std::move(scene));
 
-            return dynamic_cast<T &>(*mScenes.back());
+            return mScenes.back()->setup(window, assets);
         }
 
-        Scene &get(SceneId id);
+        [[nodiscard]] inline Scene &getScene(const SceneId id) const {
+            return *mScenes.at(helpers::enumValue(id));
+        }
 
     private:
         std::vector<std::unique_ptr<Scene>> mScenes;

@@ -44,38 +44,38 @@ namespace nongravitar::helpers {
 #endif
     }
 
-    int signum(float n) noexcept;
+    int signum(float n);
 
-    float deg2rad(float deg) noexcept;
+    float deg2rad(float deg);
 
-    float rad2deg(float rad) noexcept;
+    float rad2deg(float rad);
 
     template<typename T>
-    void centerOrigin(sf::Transformable &self, const sf::Rect<T> &bounds) noexcept {
+    void centerOrigin(sf::Transformable &self, const sf::Rect<T> &bounds) {
         self.setOrigin(bounds.left + bounds.width / T(2), bounds.top + bounds.height / T(2));
     }
 
     template<typename T>
-    auto enumValue(T instance) noexcept {
+    auto enumValue(T instance) {
         static_assert(std::is_enum<T>::value);
         return static_cast<typename std::underlying_type<T>::type>(instance);
     }
 
     /// Range [0, 360).
     template<typename T>
-    float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) noexcept {
+    float rotation(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
         return std::fmod(rad2deg(std::atan2(point.y - origin.y, point.x - origin.x)) + 360.0f, 360.0f);
     }
 
-    float shortestRotation(float currentBearing, float targetBearing) noexcept;
+    float shortestRotation(float currentBearing, float targetBearing);
 
     template<typename T>
-    float magnitude(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) noexcept {
+    float magnitude(const sf::Vector2<T> &origin, const sf::Vector2<T> &point) {
         return std::sqrt(std::pow(point.x - origin.x, 2) + std::pow(point.y - origin.y, 2));
     }
 
     template<typename T>
-    sf::Vector2<T> makeVector2(float angle, const T magnitude) noexcept {
+    sf::Vector2<T> makeVector2(float angle, const T magnitude) {
         angle = deg2rad(angle);
         return sf::Vector2<T>(std::cos(angle), std::sin(angle)) * magnitude;
     }

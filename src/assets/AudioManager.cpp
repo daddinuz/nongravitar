@@ -44,13 +44,13 @@ AudioManager::AudioManager() {
     load("Drozerix-ComputerF__k.flac", SoundTrackId::ComputerF__k);
 }
 
-void AudioManager::play(const SoundId id) noexcept {
+void AudioManager::play(const SoundId id) {
     if (not mMuted) {
         mSounds.at(helpers::enumValue(id)).play();
     }
 }
 
-void AudioManager::play(const SoundTrackId id) noexcept {
+void AudioManager::play(const SoundTrackId id) {
     if (not mMuted) {
         if (SoundTrackId::None != mCurrentSoundtrackId) {
             mSoundtracks.at(helpers::enumValue(mCurrentSoundtrackId)).stop();
@@ -64,7 +64,7 @@ void AudioManager::play(const SoundTrackId id) noexcept {
     }
 }
 
-void AudioManager::toggle() noexcept {
+void AudioManager::toggle() {
     mMuted ^= true;
 
     if (SoundTrackId::None != mCurrentSoundtrackId) {

@@ -28,22 +28,5 @@
 #include <Assets.hpp>
 
 using namespace nongravitar;
-using namespace nongravitar::assets;
 
 Assets::Assets() : mSpriteSheetsManager(mTexturesManager) {}
-
-const SpriteSheetsManager &Assets::getSpriteSheetsManager() const noexcept {
-    return mSpriteSheetsManager;
-}
-
-const TexturesManager &Assets::getTexturesManager() const noexcept {
-    return mTexturesManager;
-}
-
-const FontsManager &Assets::getFontsManager() const noexcept {
-    return mFontsManager;
-}
-
-AudioManager &Assets::getAudioManager() noexcept {
-    return mAudioManager;
-}

@@ -45,9 +45,10 @@ int Game::run() {
     mClock.restart();
 
     for (handleEvents(); nullSceneId != mCurrentSceneId; handleEvents()) {
-        mCurrentSceneId = mSceneManager.get(mCurrentSceneId).update(mWindow, mSceneManager, mAssets, mClock.restart());
+        auto &scene = mSceneManager.getScene(mCurrentSceneId);
+        mCurrentSceneId = scene.update(mWindow, mSceneManager, mAssets, mClock.restart());
         mWindow.clear();
-        mSceneManager.get(mCurrentSceneId).render(mWindow);
+        scene.render(mWindow);
         mWindow.display();
     }
 
@@ -65,12 +66,11 @@ void Game::initializeWindow() {
 }
 
 void Game::initializeScenes() {
-    auto &leaderBoard = mSceneManager.emplace<LeaderBoard>().initialize(mAssets);
-    auto &solarSystem = mSceneManager
-            .emplace<SolarSystem>(leaderBoard.getSceneId())
-            .initialize(mWindow, mSceneManager, mAssets);
+    const auto &leaderBoard = mSceneManager.emplace<LeaderBoard>(mWindow, mAssets);
+    const auto &solarSystem = mSceneManager.emplace<SolarSystem>(mWindow, mAssets, leaderBoard.getSceneId());
+    const auto &titleScreen = mSceneManager.emplace<TitleScreen>(mWindow, mAssets, solarSystem.getSceneId());
 
-    mCurrentSceneId = mSceneManager.emplace<TitleScreen>(solarSystem.getSceneId(), mAssets).getSceneId();
+    mCurrentSceneId = titleScreen.getSceneId();
 }
 
 void Game::handleEvents() {
@@ -96,7 +96,7 @@ void Game::handleEvents() {
                     break;
 
                 default:
-                    mCurrentSceneId = mSceneManager.get(mCurrentSceneId).onEvent(event);
+                    mCurrentSceneId = mSceneManager.getScene(mCurrentSceneId).onEvent(event);
                     break;
             }
         }

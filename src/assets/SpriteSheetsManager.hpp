@@ -52,7 +52,7 @@ namespace nongravitar::assets {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline const SpriteSheet &getSpriteSheet(const SpriteSheetId spriteSheetId) const noexcept {
+        [[nodiscard]] inline const SpriteSheet &getSpriteSheet(const SpriteSheetId spriteSheetId) const {
             return mSpriteSheets.at(helpers::enumValue(spriteSheetId));
         }
 

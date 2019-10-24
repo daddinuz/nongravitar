@@ -44,7 +44,6 @@ namespace nongravitar::constants {
 
     inline constexpr auto SCORE_PER_AI1 = 800u;
     inline constexpr auto SCORE_PER_AI2 = 1200u;
-    inline constexpr auto SCORE_PER_SOLAR_SYSTEM = 20'000u;
 
     inline constexpr auto PLANETS = 8u;
     inline constexpr std::array<std::array<sf::Uint8, 3>, 16> PLANET_COLORS{

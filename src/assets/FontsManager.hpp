@@ -46,7 +46,7 @@ namespace nongravitar::assets {
         FontsManager(FontsManager &&) = delete; // no move-constructible
         FontsManager &operator=(FontsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline const sf::Font &getFont(const FontId id) const noexcept {
+        [[nodiscard]] inline const sf::Font &getFont(const FontId id) const {
             return mFonts.at(helpers::enumValue(id));
         }
 

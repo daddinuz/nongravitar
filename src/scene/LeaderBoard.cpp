@@ -32,21 +32,11 @@ using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::assets;
 
-LeaderBoard &LeaderBoard::initialize(Assets &assets) noexcept {
-    pubsub::subscribe(*this);
-
-    mGameOverTitle.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mGameOverTitle.setCharacterSize(64);
-
-    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mSpaceLabel.setCharacterSize(32);
-    mSpaceLabel.setString("[ESC]");
-    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
-
-    return *this;
+SceneId LeaderBoard::onEvent(const sf::Event &event) {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Escape == event.key.code) ? nullSceneId : Scene::onEvent(event);
 }
 
-SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
+SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) {
     const auto[windowWidth, windowHeight] = window.getSize();
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
@@ -59,12 +49,25 @@ SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneM
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
-void LeaderBoard::render(sf::RenderTarget &window) const noexcept {
+void LeaderBoard::render(sf::RenderTarget &window) const {
     window.draw(mGameOverTitle);
     window.draw(mSpaceLabel);
 }
 
-void LeaderBoard::operator()(const messages::GameOver &message) noexcept {
+Scene &LeaderBoard::setup(const sf::RenderWindow &window, Assets &assets) {
+    mGameOverTitle.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mGameOverTitle.setCharacterSize(64.0f);
+
+    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mSpaceLabel.setString("[ESC]");
+    mSpaceLabel.setCharacterSize(32.0f);
+    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+
+    pubsub::subscribe<messages::GameOver>(*this);
+    return Scene::setup(window, assets);
+}
+
+void LeaderBoard::operator()(const messages::GameOver &message) {
     char buffer[64];
     snprintf(buffer, std::size(buffer), "  Game Over\n\n\nScore: %05u", message.score);
     mGameOverTitle.setString(buffer);

@@ -46,25 +46,30 @@ namespace nongravitar {
          * React to an event returning a new scene if needed.
          * This method may be called many times per iteration depending on how many events have been emitted during the iteration.
          */
-        [[nodiscard]] virtual SceneId onEvent(const sf::Event &event) noexcept;
+        [[nodiscard]] virtual SceneId onEvent(const sf::Event &event);
 
         /**
          * Update the logic of the scene returning a new scene if needed.
          * This method is called exactly once per iteration.
          */
-        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept;
+        [[nodiscard]] virtual SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed);
 
         /**
          * Render the scene.
          * This method is called exactly once per iteration.
          */
-        virtual void render(sf::RenderTarget &window) const noexcept = 0;
+        virtual void render(sf::RenderTarget &window) const = 0;
 
-        [[nodiscard]] SceneId getSceneId() const noexcept;
+        [[nodiscard]] inline SceneId getSceneId() const {
+            return mSceneId;
+        }
 
         virtual ~Scene() = default;
 
-    private:
+    protected:
+        // TODO docs
+        virtual Scene &setup(const sf::RenderWindow &window, Assets &assets);
+
         SceneId mSceneId = nullSceneId;
     };
 }

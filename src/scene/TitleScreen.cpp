@@ -36,19 +36,13 @@ constexpr auto TOP_PADDING = 64.0f;
 constexpr auto MIDDLE_PADDING = 96.0f;
 constexpr auto BOTTOM_PADDING = 32.0f;
 
-TitleScreen::TitleScreen(const SceneId solarSystemSceneId, Assets &assets) :
-        mTitle(assets.getTexturesManager().getTexture(TextureId::Title)),
-        mSpaceLabel("[SPACE]", assets.getFontsManager().getFont(FontId::Mechanical), 32.0f),
-        mSolarSystemSceneId{solarSystemSceneId} {
-    helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
-    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+TitleScreen::TitleScreen(const SceneId solarSystemSceneId) : mSolarSystemSceneId{solarSystemSceneId} {}
+
+SceneId TitleScreen::onEvent(const sf::Event &event) {
+    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mSolarSystemSceneId : Scene::onEvent(event);
 }
 
-SceneId TitleScreen::onEvent(const sf::Event &event) noexcept {
-    return (sf::Event::KeyPressed == event.type and sf::Keyboard::Space == event.key.code) ? mSolarSystemSceneId : getSceneId();
-}
-
-SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept {
+SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) {
     const auto[windowWidth, windowHeight] = window.getSize();
     const auto spaceLabelHeight = mSpaceLabel.getLocalBounds().height;
     const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - spaceLabelHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
@@ -64,7 +58,19 @@ SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneM
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
-void TitleScreen::render(sf::RenderTarget &window) const noexcept {
+void TitleScreen::render(sf::RenderTarget &window) const {
     window.draw(mTitle);
     window.draw(mSpaceLabel);
+}
+
+Scene &TitleScreen::setup(const sf::RenderWindow &window, Assets &assets) {
+    mTitle.setTexture(assets.getTexturesManager().getTexture(TextureId::Title));
+    helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
+
+    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mSpaceLabel.setString("[SPACE]");
+    mSpaceLabel.setCharacterSize(32.0f);
+    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+
+    return Scene::setup(window, assets);
 }

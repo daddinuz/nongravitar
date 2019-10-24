@@ -43,10 +43,21 @@ namespace nongravitar {
         Assets(Assets &&) = delete; // no move-constructible
         Assets &operator=(Assets &&) = delete; // no move-assignable
 
-        [[nodiscard]] const assets::SpriteSheetsManager &getSpriteSheetsManager() const noexcept;
-        [[nodiscard]] const assets::TexturesManager &getTexturesManager() const noexcept;
-        [[nodiscard]] const assets::FontsManager &getFontsManager() const noexcept;
-        [[nodiscard]] assets::AudioManager &getAudioManager() noexcept;
+        [[nodiscard]] inline const assets::SpriteSheetsManager &getSpriteSheetsManager() const {
+            return mSpriteSheetsManager;
+        }
+
+        [[nodiscard]] inline const assets::TexturesManager &getTexturesManager() const {
+            return mTexturesManager;
+        }
+
+        [[nodiscard]] inline const assets::FontsManager &getFontsManager() const {
+            return mFontsManager;
+        }
+
+        [[nodiscard]] inline assets::AudioManager &getAudioManager() {
+            return mAudioManager;
+        }
 
     private:
         assets::AudioManager mAudioManager;

@@ -29,14 +29,14 @@
 
 using namespace nongravitar;
 
-SceneId Scene::onEvent(const sf::Event &) noexcept {
+SceneId Scene::onEvent(const sf::Event &) {
     return getSceneId();
 }
 
-SceneId Scene::update(const sf::RenderWindow &, SceneManager &, Assets &, sf::Time) noexcept {
+SceneId Scene::update(const sf::RenderWindow &, SceneManager &, Assets &, sf::Time) {
     return getSceneId();
 }
 
-SceneId Scene::getSceneId() const noexcept {
-    return mSceneId;
+Scene &Scene::setup([[maybe_unused]] const sf::RenderWindow &window, [[maybe_unused]] Assets &assets) {
+    return *this;
 }

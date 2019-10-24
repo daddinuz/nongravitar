@@ -38,7 +38,7 @@ namespace nongravitar::scene {
     public:
         PlanetAssault() = delete; // no default-constructible
 
-        PlanetAssault(SceneId solarSystemSceneId, SceneId leaderBoardSceneId);
+        PlanetAssault(SceneId solarSystemSceneId, SceneId leaderBoardSceneId, sf::Color terrainColor);
 
         PlanetAssault(const PlanetAssault &) = delete; // no copy-constructible
         PlanetAssault &operator=(const PlanetAssault &) = delete; // no copy-assignable
@@ -46,32 +46,25 @@ namespace nongravitar::scene {
         PlanetAssault(PlanetAssault &&) = delete; // no move-constructible
         PlanetAssault &operator=(PlanetAssault &&) = delete; // no move-assignable
 
-        /**
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        PlanetAssault &initialize(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) final;
 
-        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) const noexcept final;
+        void render(sf::RenderTarget &window) const final;
 
     private:
-        void operator()(const messages::PlanetEntered &message) noexcept final;
+        Scene &setup(const sf::RenderWindow &window, Assets &assets) final;
 
-        void initializePubSub() const noexcept;
-        void initializeGroups() noexcept;
-        void initializeReport(Assets &assets) noexcept;
-        void initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor) noexcept;
+        void operator()(const messages::PlanetEntered &message) final;
 
-        void inputSystem(Assets &assets, sf::Time elapsed) noexcept;
-        void motionSystem(sf::Time elapsed) noexcept;
-        void collisionSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed) noexcept;
-        void reloadSystem(sf::Time elapsed) noexcept;
-        void AISystem(Assets &assets) noexcept;
-        void livenessSystem(Assets &assets) noexcept;
-        void reportSystem(const sf::RenderWindow &window) noexcept;
+        void initializeGroups();
+        void initializeTerrain(const sf::RenderWindow &window, Assets &assets, sf::Color terrainColor);
+
+        void inputSystem(Assets &assets, sf::Time elapsed);
+        void motionSystem(sf::Time elapsed);
+        void collisionSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed);
+        void reloadSystem(sf::Time elapsed);
+        void AISystem(Assets &assets);
+        void livenessSystem(Assets &assets);
+        void reportSystem(const sf::RenderWindow &window);
 
         entt::registry mRegistry;
         char mBuffer[56];
@@ -80,6 +73,7 @@ namespace nongravitar::scene {
         const SceneId mLeaderBoardSceneId;
         const SceneId mSolarSystemSceneId;
         SceneId mNextSceneId = nullSceneId;
+        const sf::Color mTerrainColor;
         unsigned mBonus{0u};
     };
 }

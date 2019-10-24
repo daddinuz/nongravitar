@@ -51,7 +51,7 @@ namespace nongravitar::assets {
         TexturesManager(TexturesManager &&) = delete; // no move-constructible
         TexturesManager &operator=(TexturesManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline const sf::Texture &getTexture(const TextureId textureId) const noexcept {
+        [[nodiscard]] inline const sf::Texture &getTexture(const TextureId textureId) const {
             return mTextures.at(helpers::enumValue(textureId));
         }
 

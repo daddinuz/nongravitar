@@ -48,32 +48,25 @@ namespace nongravitar::scene {
         SolarSystem(SolarSystem &&) = delete; // no move-constructible
         SolarSystem &operator=(SolarSystem &&) = delete; // no move-assignable
 
-        /**
-         * @warning
-         *  This method should be called exactly once in the life-cycle of this object, any usage of this object
-         *  without proper initialization will result in a error.
-         */
-        SolarSystem &initialize(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
+        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) final;
 
-        SceneId update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) noexcept final;
-
-        void render(sf::RenderTarget &window) const noexcept final;
+        void render(sf::RenderTarget &window) const final;
 
     private:
-        void operator()(const messages::SolarSystemEntered &message) noexcept final;
+        Scene &setup(const sf::RenderWindow &window, Assets &assets) final;
 
-        void initializePubSub() const noexcept;
-        void initializeReport(Assets &assets) noexcept;
-        void initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept;
-        void resetPlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
+        void operator()(const messages::SolarSystemEntered &message) final;
 
-        void addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId) noexcept;
+        void initializePlayers(const sf::RenderWindow &window, Assets &assets);
+        void initializePlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets);
 
-        void inputSystem(sf::Time elapsed) noexcept;
-        void motionSystem(sf::Time elapsed) noexcept;
-        void collisionSystem(const sf::RenderWindow &window) noexcept;
-        void livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
-        void reportSystem(const sf::RenderWindow &window) noexcept;
+        void addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId);
+
+        void inputSystem(sf::Time elapsed);
+        void motionSystem(sf::Time elapsed);
+        void collisionSystem(const sf::RenderWindow &window);
+        void livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets);
+        void reportSystem(const sf::RenderWindow &window);
 
         entt::registry mRegistry;
         char mBuffer[56];
