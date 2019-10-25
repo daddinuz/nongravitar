@@ -43,6 +43,8 @@ namespace nongravitar {
 
         void bind(const Sprite &sprite);
 
+        void setColor(const sf::Color &color);
+
     protected:
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 

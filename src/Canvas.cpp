@@ -45,6 +45,13 @@ void Canvas::bind(const Sprite &sprite) {
     mTexture = sprite.getTexture();
 }
 
+void Canvas::setColor(const sf::Color &color) {
+    mVertices[0].color = color;
+    mVertices[1].color = color;
+    mVertices[2].color = color;
+    mVertices[3].color = color;
+}
+
 void Canvas::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     if (mTexture) {
         states.texture = mTexture;
