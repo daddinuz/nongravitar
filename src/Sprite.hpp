@@ -44,6 +44,11 @@ namespace nongravitar {
             return mTexture;
         }
 
+        // TODO: find a better name ;D
+        [[nodiscard]] inline float getRadius() const {
+            return std::max(mFrame.width, mFrame.height) / 2.0f;
+        }
+
     private:
         sf::IntRect mFrame;
         const sf::Texture *mTexture;
