@@ -36,9 +36,10 @@ namespace nongravitar::assets {
     enum class SpriteSheetId {
         Bullet = 0,
         Bunker = 1,
-        SpaceShip = 2,
-        Supply = 3,
-        Terrain = 4,
+        Planet = 2,
+        SpaceShip = 3,
+        Supply = 4,
+        Terrain = 5,
     };
 
     class SpriteSheetsManager final {
@@ -73,7 +74,7 @@ namespace nongravitar::assets {
     private:
         void load(const TexturesManager &texturesManager, SpriteSheetId spriteSheetId, TextureId textureId, sf::Vector2u frameSize);
 
-        std::array<std::vector<sf::IntRect>, 5> mSpriteSheets;
-        std::array<const sf::Texture *, 5> mTextures;
+        std::array<std::vector<sf::IntRect>, 6> mSpriteSheets;
+        std::array<const sf::Texture *, 6> mTextures;
     };
 }

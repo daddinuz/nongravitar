@@ -35,10 +35,11 @@ namespace nongravitar::assets {
     enum class TextureId : std::size_t {
         Bullet = 0,
         Bunker = 1,
-        SpaceShip = 2,
-        Supply = 3,
-        Terrain = 4,
-        Title = 5,
+        Planet = 2,
+        SpaceShip = 3,
+        Supply = 4,
+        Terrain = 5,
+        Title = 6,
     };
 
     class TexturesManager final {
@@ -58,6 +59,6 @@ namespace nongravitar::assets {
     private:
         void load(const char *filename, TextureId textureId);
 
-        std::array<sf::Texture, 6> mTextures;
+        std::array<sf::Texture, 7> mTextures;
     };
 }

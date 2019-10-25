@@ -34,6 +34,7 @@ using namespace nongravitar::assets;
 SpriteSheetsManager::SpriteSheetsManager(const TexturesManager &texturesManager) : mTextures{} {
     load(texturesManager, SpriteSheetId::Bullet, TextureId::Bullet, sf::Vector2u(8, 8));
     load(texturesManager, SpriteSheetId::Bunker, TextureId::Bunker, sf::Vector2u(56, 56));
+    load(texturesManager, SpriteSheetId::Planet, TextureId::Planet, sf::Vector2u(64, 64));
     load(texturesManager, SpriteSheetId::SpaceShip, TextureId::SpaceShip, sf::Vector2u(32, 32));
     load(texturesManager, SpriteSheetId::Supply, TextureId::Supply, sf::Vector2u(22, 22));
     load(texturesManager, SpriteSheetId::Terrain, TextureId::Terrain, sf::Vector2u(14, 1));

@@ -33,6 +33,7 @@ using namespace nongravitar::assets;
 TexturesManager::TexturesManager() {
     load("bullet.png", TextureId::Bullet);
     load("bunker.png", TextureId::Bunker);
+    load("planet.png", TextureId::Planet);
     load("spaceship.png", TextureId::SpaceShip);
     load("supply.png", TextureId::Supply);
     load("terrain.png", TextureId::Terrain);
