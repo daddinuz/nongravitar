@@ -39,7 +39,7 @@ namespace nongravitar::assets {
         Terrain = 4,
     };
 
-    using Frame = sf::FloatRect;
+    using Frame = sf::IntRect;
 
     class Sprite final {
     public:
@@ -88,7 +88,7 @@ namespace nongravitar::assets {
             return *mTextures.at(helpers::enumValue(spriteSheetId));
         }
 
-        // TODO: complete remove this method
+        // TODO: remove me
         [[nodiscard]] [[deprecated]] inline sf::Sprite instanceSprite(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
             return {getTexture(spriteSheetId), sf::IntRect(getFrame(spriteSheetId, frameId))};
         }

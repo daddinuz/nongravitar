@@ -34,17 +34,17 @@ using namespace nongravitar::assets;
 Sprite::Sprite(const sf::Texture &texture, Frame frame) : mFrame(frame), mTexture(&texture) {}
 
 void assets::bind(Canvas &canvas, sf::RenderStates &renderStates, const sf::Transformable &transformable, const Sprite &sprite) {
-    const auto frame = sprite.getFrame();
+    const auto[left, top, width, height]  = sf::FloatRect(sprite.getFrame());
 
     canvas[0].position = {0, 0};
-    canvas[1].position = {frame.width, 0};
-    canvas[2].position = {frame.width, frame.height};
-    canvas[3].position = {0, frame.height};
+    canvas[1].position = {width, 0};
+    canvas[2].position = {width, height};
+    canvas[3].position = {0, height};
 
-    canvas[0].texCoords = {frame.left, frame.top};
-    canvas[1].texCoords = {frame.left + frame.width, frame.top};
-    canvas[2].texCoords = {frame.left + frame.width, frame.top + frame.height};
-    canvas[3].texCoords = {frame.left, frame.top + frame.height};
+    canvas[0].texCoords = {left, top};
+    canvas[1].texCoords = {left + width, top};
+    canvas[2].texCoords = {left + width, top + height};
+    canvas[3].texCoords = {left, top + height};
 
     renderStates.transform = transformable.getTransform();
     renderStates.texture = sprite.getTexture();
