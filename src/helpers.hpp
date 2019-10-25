@@ -50,9 +50,9 @@ namespace nongravitar::helpers {
 
     float rad2deg(float rad);
 
-    template<typename T>
-    void centerOrigin(sf::Transformable &self, const sf::Rect<T> &bounds) {
-        self.setOrigin(bounds.left + bounds.width / T(2), bounds.top + bounds.height / T(2));
+    template<typename T, typename U>
+    void centerOrigin(T &self, const sf::Rect<U> &bounds) {
+        self.setOrigin(bounds.left + bounds.width / U(2), bounds.top + bounds.height / U(2));
     }
 
     template<typename T>

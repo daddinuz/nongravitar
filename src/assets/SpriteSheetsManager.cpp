@@ -31,25 +31,6 @@
 using namespace nongravitar;
 using namespace nongravitar::assets;
 
-Sprite::Sprite(const sf::Texture &texture, Frame frame) : mFrame(frame), mTexture(&texture) {}
-
-void assets::bind(Canvas &canvas, sf::RenderStates &renderStates, const sf::Transformable &transformable, const Sprite &sprite) {
-    const auto[left, top, width, height]  = sf::FloatRect(sprite.getFrame());
-
-    canvas[0].position = {0, 0};
-    canvas[1].position = {width, 0};
-    canvas[2].position = {width, height};
-    canvas[3].position = {0, height};
-
-    canvas[0].texCoords = {left, top};
-    canvas[1].texCoords = {left + width, top};
-    canvas[2].texCoords = {left + width, top + height};
-    canvas[3].texCoords = {left, top + height};
-
-    renderStates.transform = transformable.getTransform();
-    renderStates.texture = sprite.getTexture();
-}
-
 SpriteSheetsManager::SpriteSheetsManager(const TexturesManager &texturesManager) : mTextures{} {
     load(texturesManager, SpriteSheetId::Bullet, TextureId::Bullet, sf::Vector2u(8, 8));
     load(texturesManager, SpriteSheetId::Bunker, TextureId::Bunker, sf::Vector2u(56, 56));

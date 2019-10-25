@@ -91,6 +91,63 @@ void ReloadTime::elapse(sf::Time time) {
 }
 
 /*
+ * Transformable
+ */
+
+void Transformable::setPosition(const float x, const float y) {
+    mPosition.x = x;
+    mPosition.y = y;
+}
+
+void Transformable::setPosition(const sf::Vector2f &position) {
+    mPosition = position;
+}
+
+void Transformable::setRotation(const float angle) {
+    if ((mRotation = std::fmod(angle, 360.0f)) < 0.0f) {
+        mRotation += 360.0f;
+    }
+}
+
+void Transformable::setOrigin(const float x, const float y) {
+    mOrigin.x = x;
+    mOrigin.y = y;
+}
+
+void Transformable::setOrigin(const sf::Vector2f &origin) {
+    mOrigin = origin;
+}
+
+void Transformable::move(const float offsetX, const float offsetY) {
+    mPosition.x += offsetX;
+    mPosition.y += offsetY;
+}
+
+void Transformable::move(const sf::Vector2f &offset) {
+    mPosition += offset;
+}
+
+void Transformable::rotate(const float angle) {
+    setRotation(mRotation + angle);
+}
+
+sf::Transform Transformable::getTransform() const {
+    // no need to cache this computation since we are going to use it once per frame
+
+    const auto angle = -mRotation * M_PI / 180.0;
+    const auto cosine = static_cast<float>(std::cos(angle));
+    const auto sine = static_cast<float>(std::sin(angle));
+    const auto sxc = cosine;
+    const auto syc = cosine;
+    const auto sxs = sine;
+    const auto sys = sine;
+    const auto tx = -mOrigin.x * sxc - mOrigin.y * sys + mPosition.x;
+    const auto ty = mOrigin.x * sxs - mOrigin.y * syc + mPosition.y;
+
+    return sf::Transform(sxc, sys, tx, -sxs, syc, ty, 0.0f, 0.0f, 1.0f);
+}
+
+/*
  * Renderable
  */
 

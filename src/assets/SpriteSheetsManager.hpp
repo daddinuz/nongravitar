@@ -27,7 +27,9 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
+#include <Sprite.hpp>
 #include <assets/TexturesManager.hpp>
 
 namespace nongravitar::assets {
@@ -38,31 +40,6 @@ namespace nongravitar::assets {
         Supply = 3,
         Terrain = 4,
     };
-
-    using Frame = sf::IntRect;
-
-    class Sprite final {
-    public:
-        Sprite() = delete;
-
-        Sprite(const sf::Texture &texture, Frame frame);
-
-        [[nodiscard]] inline Frame getFrame() const {
-            return mFrame;
-        }
-
-        [[nodiscard]] inline const sf::Texture *getTexture() const {
-            return mTexture;
-        }
-
-    private:
-        Frame mFrame;
-        const sf::Texture *mTexture;
-    };
-
-    using Canvas = std::array<sf::Vertex, 4>;
-
-    void bind(Canvas &canvas, sf::RenderStates &renderStates, const sf::Transformable &transformable, const Sprite &sprite);
 
     class SpriteSheetsManager final {
     public:
@@ -76,7 +53,7 @@ namespace nongravitar::assets {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline Frame getFrame(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
+        [[nodiscard]] inline sf::IntRect getFrame(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
             return mSpriteSheets.at(helpers::enumValue(spriteSheetId)).at(frameId);
         }
 
@@ -96,7 +73,7 @@ namespace nongravitar::assets {
     private:
         void load(const TexturesManager &texturesManager, SpriteSheetId spriteSheetId, TextureId textureId, sf::Vector2u frameSize);
 
-        std::array<std::vector<Frame>, 5> mSpriteSheets;
+        std::array<std::vector<sf::IntRect>, 5> mSpriteSheets;
         std::array<const sf::Texture *, 5> mTextures;
     };
 }

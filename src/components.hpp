@@ -167,8 +167,48 @@ namespace nongravitar::components {
         float mInstance;
     };
 
-    using Transformable = sf::Transformable;
-    using Sprite = assets::Sprite;
+    /// Custom implementation of transformable, basically a shrank version of the SFML's one.
+    class Transformable final {
+    public:
+        Transformable() = default;
+
+        void setPosition(float x, float y);
+
+        void setPosition(const sf::Vector2f &position);
+
+        void setRotation(float angle);
+
+        void setOrigin(float x, float y);
+
+        void setOrigin(const sf::Vector2f &origin);
+
+        void move(float offsetX, float offsetY);
+
+        void move(const sf::Vector2f &offset);
+
+        void rotate(float angle);
+
+        [[nodiscard]] inline const sf::Vector2f &getPosition() const {
+            return mPosition;
+        }
+
+        [[nodiscard]] inline float getRotation() const {
+            return mRotation;
+        }
+
+        [[nodiscard]] inline const sf::Vector2f &getOrigin() const {
+            return mOrigin;
+        }
+
+        [[nodiscard]] sf::Transform getTransform() const;
+
+    private:
+        sf::Vector2f mOrigin;
+        sf::Vector2f mPosition;
+        float mRotation = 0.0f;
+    };
+
+    using Sprite = nongravitar::Sprite;
 
     class Renderable final : public sf::Drawable {
     public:
