@@ -32,36 +32,42 @@ using namespace nongravitar;
 using namespace nongravitar::scene;
 using namespace nongravitar::assets;
 
+constexpr auto TOP_PADDING = 64.0f;
+constexpr auto BOTTOM_PADDING = 64.0f;
+
 SceneId LeaderBoard::onEvent(const sf::Event &event) {
     return (sf::Event::KeyPressed == event.type and sf::Keyboard::Escape == event.key.code) ? nullSceneId : Scene::onEvent(event);
 }
 
 SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) {
     const auto[windowWidth, windowHeight] = window.getSize();
+    const auto windowXCenter = windowWidth / 2.0f;
+    const auto actionY = windowHeight - BOTTOM_PADDING - mAction.getLocalBounds().height / 2.0f;
+    const auto scoreY = (actionY - TOP_PADDING) / 2.0f;
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
-    mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
-    mEscLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+    mAction.setPosition(windowXCenter, actionY);
+    mScore.setPosition(windowXCenter, scoreY);
 
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
 void LeaderBoard::render(sf::RenderTarget &window) const {
-    window.draw(mGameOverTitle);
-    window.draw(mEscLabel);
+    window.draw(mAction);
+    window.draw(mScore);
 }
 
 Scene &LeaderBoard::setup(const sf::RenderWindow &window, Assets &assets) {
-    mGameOverTitle.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mGameOverTitle.setCharacterSize(64.0f);
+    mAction.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mAction.setString("[ESC]");
+    mAction.setCharacterSize(32.0f);
+    helpers::centerOrigin(mAction);
 
-    mEscLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mEscLabel.setString("[ESC]");
-    mEscLabel.setCharacterSize(32.0f);
-    helpers::centerOrigin(mEscLabel);
+    mScore.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mScore.setCharacterSize(64.0f);
 
     pubsub::subscribe<messages::GameOver>(*this);
     return Scene::setup(window, assets);
@@ -70,6 +76,6 @@ Scene &LeaderBoard::setup(const sf::RenderWindow &window, Assets &assets) {
 void LeaderBoard::operator()(const messages::GameOver &message) {
     char buffer[64];
     snprintf(buffer, std::size(buffer), "  Game Over\n\n\nScore: %05u", message.score);
-    mGameOverTitle.setString(buffer);
-    helpers::centerOrigin(mGameOverTitle);
+    mScore.setString(buffer);
+    helpers::centerOrigin(mScore);
 }
