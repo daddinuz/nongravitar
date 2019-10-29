@@ -63,7 +63,7 @@ namespace nongravitar::scene {
         void collisionSystem(const sf::RenderWindow &window, Assets &assets, sf::Time elapsed);
         void reloadSystem(sf::Time elapsed);
         void AISystem(Assets &assets);
-        void livenessSystem(Assets &assets);
+        void livenessSystem();
         void reportSystem(const sf::RenderWindow &window);
 
         entt::registry mRegistry;

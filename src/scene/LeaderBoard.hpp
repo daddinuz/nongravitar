@@ -56,5 +56,6 @@ namespace nongravitar::scene {
 
         sf::Text mAction;
         sf::Text mScore;
+        unsigned mBestScore = 0u;
     };
 }

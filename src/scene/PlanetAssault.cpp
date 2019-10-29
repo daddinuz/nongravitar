@@ -48,6 +48,19 @@ using helpers::FloatDistribution;
 
 constexpr auto TERRAIN_SEGMENTS_PER_UNIT = 4u;
 
+struct SignalHandlers {
+    inline void playExplosion(const entt::entity, const entt::registry &) {
+        assets.getAudioManager().play(SoundId::Explosion);
+    }
+
+    inline void publishScore(const entt::entity id, const entt::registry &registry) {
+        (void) assets; // Note: this method cannot be static due to entt sink requirements
+        pubsub::publish<GameOver>(registry.get<Score>(id).value);
+    }
+
+    Assets &assets;
+};
+
 void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, float rotation);
 
 PlanetAssault::PlanetAssault(const SceneId solarSystemSceneId, const SceneId leaderBoardSceneId, const sf::Color terrainColor) :
@@ -65,7 +78,7 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
     collisionSystem(window, assets, elapsed);
     reloadSystem(elapsed);
     AISystem(assets);
-    livenessSystem(assets);
+    livenessSystem();
     reportSystem(window);
 
     return mNextSceneId;
@@ -75,16 +88,17 @@ void PlanetAssault::render(sf::RenderTarget &window) const {
     auto canvas = Canvas();
 
     mRegistry
-            .view<const Transformation, const Sprite>()
-            .each([&](const auto id, const auto &transformable, const auto &sprite) {
+            .group<>(entt::get<const Transformation, const Sprite>, entt::exclude<const Color>)
+            .each([&](const auto &transformable, const auto &sprite) {
                 canvas.bind(sprite);
+                window.draw(canvas, transformable.getTransform());
+            });
 
-                if (const auto color = mRegistry.try_get<Color>(id); color) {
-                    canvas.setColor(*color);
-                } else {
-                    canvas.setColor(sf::Color::White);
-                }
-
+    mRegistry
+            .group<const Transformation, const Sprite, const Color>()
+            .each([&](const auto &transformable, const auto &sprite, const auto &color) {
+                canvas.setColor(color);
+                canvas.bind(sprite);
                 window.draw(canvas, transformable.getTransform());
             });
 
@@ -106,6 +120,11 @@ void PlanetAssault::render(sf::RenderTarget &window) const {
 }
 
 Scene &PlanetAssault::setup(const sf::RenderWindow &window, nongravitar::Assets &assets) {
+    auto &signalHandler = mRegistry.set<SignalHandlers>(assets);
+    mRegistry.on_destroy<Score>().connect<&SignalHandlers::publishScore>(signalHandler);
+    mRegistry.on_destroy<Bunker>().connect<&SignalHandlers::playExplosion>(signalHandler);
+    mRegistry.on_destroy<Player>().connect<&SignalHandlers::playExplosion>(signalHandler);
+
     mReport.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
     mReport.setFillColor(sf::Color(105, 235, 245, 255));
     mReport.setCharacterSize(18.0f);
@@ -145,7 +164,8 @@ void PlanetAssault::operator()(const PlanetEntered &message) {
 
 void PlanetAssault::initializeGroups() {
     // render
-    mRegistry.group<const Transformation, const Sprite>();
+    mRegistry.group<const Transformation, const Sprite, const Color>();
+    mRegistry.group<>(entt::get<const Transformation, const Sprite>, entt::exclude<const Color>);
 
     // motionSystem
     mRegistry.group<Velocity>(entt::get < Transformation > );
@@ -157,7 +177,7 @@ void PlanetAssault::initializeGroups() {
     mRegistry.group<Player>(entt::get < Transformation, HitRadius > );
     mRegistry.group<Terrain>(entt::get < Transformation, HitRadius > );
     mRegistry.group<Tractor>(entt::get < Transformation, HitRadius, EntityRef<Player>>);
-    mRegistry.group<Bullet>(entt::get < Transformation, HitRadius, Velocity > );
+    mRegistry.group<Bullet>(entt::get < Transformation, HitRadius > );
     mRegistry.group<Supply<Energy>>(entt::get < Transformation, HitRadius > );
     mRegistry.group<Supply<Health>>(entt::get < Transformation, HitRadius > );
 
@@ -372,8 +392,8 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
         const auto playerId = *playerRef;
 
         mRegistry
-                .group<Bullet>(entt::get < Transformation, HitRadius, Velocity > )
-                .each([&](const auto, auto &bulletTransformation, const auto &bulletHitRadius, auto &velocity) {
+                .group<Bullet>(entt::get < Transformation, HitRadius > )
+                .each([&](const auto bulletId, const auto, auto &bulletTransformation, const auto &bulletHitRadius) {
                     if (helpers::magnitude(tractorTransformation.getPosition(), bulletTransformation.getPosition()) <= *tractorHitRadius + *bulletHitRadius) {
                         const auto rotationDiff = helpers::shortestRotation(
                                 bulletTransformation.getRotation(),
@@ -381,7 +401,10 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                         );
 
                         bulletTransformation.rotate(helpers::signum(rotationDiff) * 220.0f * elapsed.asSeconds());
-                        velocity.value = helpers::makeVector2(bulletTransformation.getRotation(), BULLET_SPEED);
+
+                        if (auto velocity = mRegistry.try_get<Velocity>(bulletId); velocity) {
+                            velocity->value = helpers::makeVector2(bulletTransformation.getRotation(), BULLET_SPEED);
+                        }
                     }
                 });
 
@@ -408,7 +431,7 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
     // bullet exits screen / bullet hits terrain
     mRegistry
-            .view<Bullet, Transformation, HitRadius>()
+            .group<Bullet>(entt::get < Transformation, HitRadius > )
             .each([&](const auto bulletId, const auto, const auto &bulletTransformation, const auto &bulletHitRadius) {
                 if (viewport.contains(bulletTransformation.getPosition())) {
                     const auto terrains = mRegistry.group<Terrain>(entt::get < Transformation, HitRadius > );
@@ -496,16 +519,12 @@ void PlanetAssault::AISystem(Assets &assets) {
     });
 }
 
-void PlanetAssault::livenessSystem(Assets &assets) {
-    const auto players = mRegistry.view<Player, Health, Energy>();
+void PlanetAssault::livenessSystem() {
     auto entitiesToDestroy = std::vector<entt::entity>();
 
     mRegistry.view<Health>().each([&](const auto id, const auto &health) {
         if (health.isOver()) {
             entitiesToDestroy.push_back(id);
-            if (mRegistry.has<Player>(id) or mRegistry.has<Bunker>(id)) {
-                assets.getAudioManager().play(SoundId::Explosion);
-            }
         }
     });
 
@@ -515,16 +534,11 @@ void PlanetAssault::livenessSystem(Assets &assets) {
         }
     });
 
-    for (const auto id : players) {
-        const auto &[health, energy] = players.get<Health, Energy>(id);
-        if (health.isOver() or energy.isOver()) {
-            mNextSceneId = mLeaderBoardSceneId;
-            pubsub::publish<GameOver>(mRegistry.get<Score>(id).value);
-            return;
-        }
-    }
-
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
+
+    if (mRegistry.view<Player>().begin() == mRegistry.view<Player>().end()) {
+        mNextSceneId = mLeaderBoardSceneId;
+    }
 }
 
 void PlanetAssault::reportSystem(const sf::RenderWindow &window) {

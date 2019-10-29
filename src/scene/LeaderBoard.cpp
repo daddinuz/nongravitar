@@ -74,8 +74,13 @@ Scene &LeaderBoard::setup(const sf::RenderWindow &window, Assets &assets) {
 }
 
 void LeaderBoard::operator()(const messages::GameOver &message) {
-    char buffer[64];
-    snprintf(buffer, std::size(buffer), "  Game Over\n\n\nScore: %05u", message.score);
-    mScore.setString(buffer);
-    helpers::centerOrigin(mScore);
+    static char buffer[64] = "";
+
+    if (message.score >= mBestScore) {
+        mBestScore = message.score;
+
+        snprintf(buffer, std::size(buffer), "  Game Over\n\n\nScore: %05u", mBestScore);
+        mScore.setString(buffer);
+        helpers::centerOrigin(mScore);
+    }
 }
