@@ -34,7 +34,7 @@ using namespace nongravitar::assets;
 
 constexpr auto TOP_PADDING = 64.0f;
 constexpr auto MIDDLE_PADDING = 96.0f;
-constexpr auto BOTTOM_PADDING = 32.0f;
+constexpr auto BOTTOM_PADDING = 64.0f;
 
 TitleScreen::TitleScreen(const SceneId solarSystemSceneId) : mSolarSystemSceneId{solarSystemSceneId} {}
 
@@ -44,33 +44,35 @@ SceneId TitleScreen::onEvent(const sf::Event &event) {
 
 SceneId TitleScreen::update(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets, sf::Time elapsed) {
     const auto[windowWidth, windowHeight] = window.getSize();
-    const auto spaceLabelHeight = mSpaceLabel.getLocalBounds().height;
-    const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - spaceLabelHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
+    const auto windowXCenter = windowWidth / 2.0f;
+    const auto actionHalfHeight = mAction.getLocalBounds().height / 2.0f;
+    const auto scaleFactor = (windowHeight - TOP_PADDING - MIDDLE_PADDING - actionHalfHeight - BOTTOM_PADDING) / mTitle.getLocalBounds().height;
 
     if (auto &audioManager = assets.getAudioManager(); SoundTrackId::AmbientStarfield != audioManager.getPlaying()) {
         audioManager.play(SoundTrackId::AmbientStarfield);
     }
 
+    mAction.setPosition(windowXCenter, windowHeight - BOTTOM_PADDING - actionHalfHeight);
+
     mTitle.setScale(scaleFactor, scaleFactor);
-    mTitle.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height / 2.0f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, TOP_PADDING + mTitle.getGlobalBounds().height + MIDDLE_PADDING + spaceLabelHeight / 2.0f);
+    mTitle.setPosition(windowXCenter, TOP_PADDING + mTitle.getGlobalBounds().height / 2.0f);
 
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
 void TitleScreen::render(sf::RenderTarget &window) const {
     window.draw(mTitle);
-    window.draw(mSpaceLabel);
+    window.draw(mAction);
 }
 
 Scene &TitleScreen::setup(const sf::RenderWindow &window, Assets &assets) {
+    mAction.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mAction.setString("[SPACE]");
+    mAction.setCharacterSize(32.0f);
+    helpers::centerOrigin(mAction);
+
     mTitle.setTexture(assets.getTexturesManager().getTexture(TextureId::Title));
     helpers::centerOrigin(mTitle);
-
-    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mSpaceLabel.setString("[SPACE]");
-    mSpaceLabel.setCharacterSize(32.0f);
-    helpers::centerOrigin(mSpaceLabel);
 
     return Scene::setup(window, assets);
 }

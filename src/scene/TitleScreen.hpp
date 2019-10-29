@@ -51,8 +51,8 @@ namespace nongravitar::scene {
     private:
         Scene &setup(const sf::RenderWindow &window, Assets &assets) final;
 
+        sf::Text mAction;
         sf::Sprite mTitle;
-        sf::Text mSpaceLabel;
         const SceneId mSolarSystemSceneId;
     };
 }
