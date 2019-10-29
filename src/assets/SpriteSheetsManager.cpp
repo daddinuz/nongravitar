@@ -38,6 +38,7 @@ SpriteSheetsManager::SpriteSheetsManager(const TexturesManager &texturesManager)
     load(texturesManager, SpriteSheetId::SpaceShip, TextureId::SpaceShip, sf::Vector2u(32, 32));
     load(texturesManager, SpriteSheetId::Supply, TextureId::Supply, sf::Vector2u(22, 22));
     load(texturesManager, SpriteSheetId::Terrain, TextureId::Terrain, sf::Vector2u(14, 1));
+    load(texturesManager, SpriteSheetId::Tractor, TextureId::Tractor, sf::Vector2u(128, 128));
 }
 
 void SpriteSheetsManager::load(const TexturesManager &texturesManager, const SpriteSheetId spriteSheetId, const TextureId textureId, const sf::Vector2u frameSize) {

@@ -60,7 +60,7 @@ namespace nongravitar::scene {
         void initializePlayers(const sf::RenderWindow &window, Assets &assets);
         void initializePlanets(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets);
 
-        void addPlanet(const sf::RenderWindow &window, sf::Color planetColor, SceneId planetSceneId);
+        void addPlanet(const sf::RenderWindow &window, Assets &assets, sf::Color planetColor, SceneId planetSceneId);
 
         void inputSystem(sf::Time elapsed);
         void motionSystem(sf::Time elapsed);

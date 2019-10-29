@@ -65,12 +65,12 @@ void TitleScreen::render(sf::RenderTarget &window) const {
 
 Scene &TitleScreen::setup(const sf::RenderWindow &window, Assets &assets) {
     mTitle.setTexture(assets.getTexturesManager().getTexture(TextureId::Title));
-    helpers::centerOrigin(mTitle, mTitle.getLocalBounds());
+    helpers::centerOrigin(mTitle);
 
     mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
     mSpaceLabel.setString("[SPACE]");
     mSpaceLabel.setCharacterSize(32.0f);
-    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+    helpers::centerOrigin(mSpaceLabel);
 
     return Scene::setup(window, assets);
 }

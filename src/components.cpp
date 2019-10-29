@@ -91,82 +91,77 @@ void ReloadTime::elapse(sf::Time time) {
 }
 
 /*
- * Transformable
+ * Transformation
  */
 
-void Transformable::setPosition(const float x, const float y) {
+void Transformation::setScale(const float factorX, const float factorY) {
+    mScale.x = factorX;
+    mScale.y = factorY;
+}
+
+void Transformation::setScale(const sf::Vector2f &factors) {
+    mScale = factors;
+}
+
+void Transformation::setOrigin(const float x, const float y) {
+    mOrigin.x = x;
+    mOrigin.y = y;
+}
+
+void Transformation::setOrigin(const sf::Vector2f &origin) {
+    mOrigin = origin;
+}
+
+void Transformation::setPosition(const float x, const float y) {
     mPosition.x = x;
     mPosition.y = y;
 }
 
-void Transformable::setPosition(const sf::Vector2f &position) {
+void Transformation::setPosition(const sf::Vector2f &position) {
     mPosition = position;
 }
 
-void Transformable::setRotation(const float angle) {
+void Transformation::setRotation(const float angle) {
     if ((mRotation = std::fmod(angle, 360.0f)) < 0.0f) {
         mRotation += 360.0f;
     }
 }
 
-void Transformable::setOrigin(const float x, const float y) {
-    mOrigin.x = x;
-    mOrigin.y = y;
+void Transformation::scale(const float factorX, const float factorY) {
+    mScale.x *= factorX;
+    mScale.y *= factorY;
 }
 
-void Transformable::setOrigin(const sf::Vector2f &origin) {
-    mOrigin = origin;
+void Transformation::scale(const sf::Vector2f &factors) {
+    mScale.x *= factors.x;
+    mScale.y *= factors.y;
 }
 
-void Transformable::move(const float offsetX, const float offsetY) {
+void Transformation::move(const float offsetX, const float offsetY) {
     mPosition.x += offsetX;
     mPosition.y += offsetY;
 }
 
-void Transformable::move(const sf::Vector2f &offset) {
+void Transformation::move(const sf::Vector2f &offset) {
     mPosition += offset;
 }
 
-void Transformable::rotate(const float angle) {
+void Transformation::rotate(const float angle) {
     setRotation(mRotation + angle);
 }
 
-sf::Transform Transformable::getTransform() const {
+sf::Transform Transformation::getTransform() const {
     // no need to cache this computation since we are going to use it once per frame
 
     const auto angle = -mRotation * M_PI / 180.0;
     const auto cosine = static_cast<float>(std::cos(angle));
     const auto sine = static_cast<float>(std::sin(angle));
-    const auto sxc = cosine;
-    const auto syc = cosine;
-    const auto sxs = sine;
-    const auto sys = sine;
+    const auto sxc = mScale.x * cosine;
+    const auto syc = mScale.y * cosine;
+    const auto sxs = mScale.x * sine;
+    const auto sys = mScale.y * sine;
     const auto tx = -mOrigin.x * sxc - mOrigin.y * sys + mPosition.x;
     const auto ty = mOrigin.x * sxs - mOrigin.y * syc + mPosition.y;
 
     return sf::Transform(sxc, sys, tx, -sxs, syc, ty, 0.0f, 0.0f, 1.0f);
-}
-
-/*
- * Renderable
- */
-
-void Renderable::draw(sf::RenderTarget &target, sf::RenderStates) const {
-    std::visit([&target](const auto &instance) { target.draw(instance); }, mInstance);
-}
-
-sf::Transformable &Renderable::operator*() {
-    return std::visit([](auto &instance) -> sf::Transformable & { return instance; }, mInstance);
-}
-
-const sf::Transformable &Renderable::operator*() const {
-    return std::visit([](const auto &instance) -> const sf::Transformable & { return instance; }, mInstance);
-}
-
-sf::Transformable *Renderable::operator->() {
-    return std::visit([](auto &instance) -> sf::Transformable * { return &instance; }, mInstance);
-}
-
-const sf::Transformable *Renderable::operator->() const {
-    return std::visit([](const auto &instance) -> const sf::Transformable * { return &instance; }, mInstance);
 }

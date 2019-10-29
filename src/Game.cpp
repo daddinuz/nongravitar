@@ -58,9 +58,9 @@ int Game::run() {
 
 void Game::initializeWindow() {
     mWindow.create({800, 600}, "NonGravitar", sf::Style::Fullscreen);
+    mWindow.setVerticalSyncEnabled(true);
     mWindow.setMouseCursorVisible(false);
     mWindow.setKeyRepeatEnabled(false);
-    mWindow.setFramerateLimit(FPS);
     mWindow.setActive(true);
 }
 

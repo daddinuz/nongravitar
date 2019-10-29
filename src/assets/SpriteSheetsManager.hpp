@@ -40,9 +40,12 @@ namespace nongravitar::assets {
         SpaceShip = 3,
         Supply = 4,
         Terrain = 5,
+        Tractor = 6,
     };
 
     class SpriteSheetsManager final {
+        using Frame = sf::IntRect;
+
     public:
         SpriteSheetsManager() = delete; // no default-constructible
 
@@ -54,7 +57,7 @@ namespace nongravitar::assets {
         SpriteSheetsManager(SpriteSheetsManager &&) = delete; // no move-constructible
         SpriteSheetsManager &operator=(SpriteSheetsManager &&) = delete; // no move-assignable
 
-        [[nodiscard]] inline sf::IntRect getFrame(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
+        [[nodiscard]] inline Frame getFrame(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
             return mSpriteSheets.at(helpers::enumValue(spriteSheetId)).at(frameId);
         }
 
@@ -66,15 +69,10 @@ namespace nongravitar::assets {
             return *mTextures.at(helpers::enumValue(spriteSheetId));
         }
 
-        // TODO: remove me
-        [[nodiscard]] [[deprecated]] inline sf::Sprite instanceSprite(const SpriteSheetId spriteSheetId, const std::size_t frameId) const {
-            return {getTexture(spriteSheetId), sf::IntRect(getFrame(spriteSheetId, frameId))};
-        }
-
     private:
         void load(const TexturesManager &texturesManager, SpriteSheetId spriteSheetId, TextureId textureId, sf::Vector2u frameSize);
 
-        std::array<std::vector<sf::IntRect>, 6> mSpriteSheets;
-        std::array<const sf::Texture *, 6> mTextures;
+        std::array<std::vector<Frame>, 7> mSpriteSheets;
+        std::array<const sf::Texture *, 7> mTextures;
     };
 }

@@ -44,24 +44,24 @@ SceneId LeaderBoard::update(const sf::RenderWindow &window, SceneManager &sceneM
     }
 
     mGameOverTitle.setPosition(windowWidth / 2.0f, windowHeight / 3.14f);
-    mSpaceLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
+    mEscLabel.setPosition(windowWidth / 2.0f, windowHeight / 1.12f);
 
     return Scene::update(window, sceneManager, assets, elapsed);
 }
 
 void LeaderBoard::render(sf::RenderTarget &window) const {
     window.draw(mGameOverTitle);
-    window.draw(mSpaceLabel);
+    window.draw(mEscLabel);
 }
 
 Scene &LeaderBoard::setup(const sf::RenderWindow &window, Assets &assets) {
     mGameOverTitle.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
     mGameOverTitle.setCharacterSize(64.0f);
 
-    mSpaceLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
-    mSpaceLabel.setString("[ESC]");
-    mSpaceLabel.setCharacterSize(32.0f);
-    helpers::centerOrigin(mSpaceLabel, mSpaceLabel.getLocalBounds());
+    mEscLabel.setFont(assets.getFontsManager().getFont(FontId::Mechanical));
+    mEscLabel.setString("[ESC]");
+    mEscLabel.setCharacterSize(32.0f);
+    helpers::centerOrigin(mEscLabel);
 
     pubsub::subscribe<messages::GameOver>(*this);
     return Scene::setup(window, assets);
@@ -71,5 +71,5 @@ void LeaderBoard::operator()(const messages::GameOver &message) {
     char buffer[64];
     snprintf(buffer, std::size(buffer), "  Game Over\n\n\nScore: %05u", message.score);
     mGameOverTitle.setString(buffer);
-    helpers::centerOrigin(mGameOverTitle, mGameOverTitle.getLocalBounds());
+    helpers::centerOrigin(mGameOverTitle);
 }

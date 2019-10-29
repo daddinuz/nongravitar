@@ -38,6 +38,7 @@ TexturesManager::TexturesManager() {
     load("supply.png", TextureId::Supply);
     load("terrain.png", TextureId::Terrain);
     load("title.png", TextureId::Title);
+    load("tractor.png", TextureId::Tractor);
 }
 
 void TexturesManager::load(const char *filename, const TextureId textureId) {

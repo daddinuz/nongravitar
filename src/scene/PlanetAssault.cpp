@@ -27,6 +27,7 @@
 
 #include <tags.hpp>
 #include <pubsub.hpp>
+#include <Canvas.hpp>
 #include <helpers.hpp>
 #include <messages.hpp>
 #include <constants.hpp>
@@ -71,23 +72,37 @@ SceneId PlanetAssault::update(const sf::RenderWindow &window, SceneManager &, As
 }
 
 void PlanetAssault::render(sf::RenderTarget &window) const {
-    window.draw(mReport);
+    auto canvas = Canvas();
 
-    mRegistry.group<const Renderable>(entt::exclude < Hidden > ).each([&](const auto id, const auto &renderable) {
-        helpers::debug([&]() { // display hit-circle on debug builds only
-            if (const auto hitRadius = mRegistry.try_get<HitRadius>(id); hitRadius) {
-                auto shape = sf::CircleShape(**hitRadius);
-                helpers::centerOrigin(shape, shape.getLocalBounds());
-                shape.setPosition(renderable->getPosition());
-                shape.setFillColor(sf::Color::Transparent);
-                shape.setOutlineColor(sf::Color::Red);
-                shape.setOutlineThickness(1);
-                window.draw(shape);
-            }
-        });
+    mRegistry
+            .view<const Transformation, const Sprite>()
+            .each([&](const auto id, const auto &transformable, const auto &sprite) {
+                canvas.bind(sprite);
 
-        window.draw(renderable);
+                if (const auto color = mRegistry.try_get<Color>(id); color) {
+                    canvas.setColor(*color);
+                } else {
+                    canvas.setColor(sf::Color::White);
+                }
+
+                window.draw(canvas, transformable.getTransform());
+            });
+
+    helpers::debug([&]() { // display hit-circle on debug builds only
+        mRegistry
+                .view<const Transformation, const HitRadius>()
+                .each([&](const auto &transformable, const auto &hitRadius) {
+                    auto shape = sf::CircleShape(*hitRadius);
+                    helpers::centerOrigin(shape);
+                    shape.setPosition(transformable.getPosition());
+                    shape.setFillColor(sf::Color::Transparent);
+                    shape.setOutlineColor(sf::Color::Red);
+                    shape.setOutlineThickness(1);
+                    window.draw(shape);
+                });
     });
+
+    window.draw(mReport);
 }
 
 Scene &PlanetAssault::setup(const sf::RenderWindow &window, nongravitar::Assets &assets) {
@@ -112,59 +127,51 @@ void PlanetAssault::operator()(const PlanetEntered &message) {
 
         for (const auto sourcePlayerId : message.registry.view<Player>()) {
             const auto[windowWidth, windowHeight] = sf::Vector2f(message.window.getSize());
-            auto tractorId = mRegistry.create();
-            auto tractorRenderable = sf::CircleShape(TRACTOR_RADIUS, 256);
-
-            helpers::centerOrigin(tractorRenderable, tractorRenderable.getLocalBounds());
-            tractorRenderable.setFillColor(sf::Color::Transparent);
-            tractorRenderable.setOutlineThickness(1.0f);
-            tractorRenderable.setOutlineColor(sf::Color(100, 150, 250, 80));
-            mRegistry.assign<Hidden>(tractorId);
-            mRegistry.assign<Tractor>(tractorId);
-            mRegistry.assign<HitRadius>(tractorId, TRACTOR_RADIUS);
-            mRegistry.assign<Renderable>(tractorId, std::move(tractorRenderable));
-
+            const auto tractorId = mRegistry.create();
             const auto playerId = mRegistry.create(sourcePlayerId, message.registry);
-            mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
-            mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
 
-            auto &playerRenderable = mRegistry.get<Renderable>(playerId);
-            playerRenderable->setRotation(90.0f);
-            playerRenderable->setPosition(windowWidth / 2.0f, windowHeight / 4.0f);
+            // player
+            auto &playerTransformation = mRegistry.get<Transformation>(playerId);
+            playerTransformation.setRotation(90.0f);
+            playerTransformation.setPosition(windowWidth / 2.0f, windowHeight / 4.0f);
+            mRegistry.assign<EntityRef<Tractor>>(playerId, tractorId);
+
+            // tractor
+            mRegistry.assign<Tractor>(tractorId);
+            mRegistry.assign<EntityRef<Player>>(tractorId, playerId);
         }
     }
 }
 
 void PlanetAssault::initializeGroups() {
     // render
-    mRegistry.group<const Renderable>(entt::exclude < Hidden > );
+    mRegistry.group<const Transformation, const Sprite>();
 
     // motionSystem
-    mRegistry.group<Velocity>(entt::get < Renderable > );
+    mRegistry.group<Velocity>(entt::get < Transformation > );
 
     // collisionSystem
-    mRegistry.group<Health>(entt::get < Renderable, HitRadius > );
-    mRegistry.group<Damage>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Health>(entt::get < Transformation, HitRadius > );
+    mRegistry.group<Damage>(entt::get < Transformation, HitRadius > );
 
-    mRegistry.group<Player>(entt::get < Renderable, HitRadius > );
-    mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
-    mRegistry.group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > );
-    mRegistry.group<Bullet>(entt::get < Renderable, HitRadius, Velocity > );
-    mRegistry.group<Supply<Energy>>(entt::get < Renderable, HitRadius > );
-    mRegistry.group<Supply<Health>>(entt::get < Renderable, HitRadius > );
+    mRegistry.group<Player>(entt::get < Transformation, HitRadius > );
+    mRegistry.group<Terrain>(entt::get < Transformation, HitRadius > );
+    mRegistry.group<Tractor>(entt::get < Transformation, HitRadius, EntityRef<Player>>);
+    mRegistry.group<Bullet>(entt::get < Transformation, HitRadius, Velocity > );
+    mRegistry.group<Supply<Energy>>(entt::get < Transformation, HitRadius > );
+    mRegistry.group<Supply<Health>>(entt::get < Transformation, HitRadius > );
 
     // AISystem
-    mRegistry.group<AI1>(entt::get < Renderable, HitRadius, ReloadTime > );
-    mRegistry.group<AI2>(entt::get < Renderable, HitRadius, ReloadTime > );
+    mRegistry.group<AI1>(entt::get < Transformation, HitRadius, ReloadTime > );
+    mRegistry.group<AI2>(entt::get < Transformation, HitRadius, ReloadTime > );
 }
 
 void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &assets, const sf::Color terrainColor) {
     const auto halfWindowHeight = window.getSize().y / 2.0f;
     const auto viewport = sf::FloatRect(window.getViewport(window.getView()));
 
-    const auto terrainFrame = assets.getSpriteSheetsManager().getFrame(SpriteSheetId::Terrain, 0);
-    const auto terrainHitDiameter = std::max(terrainFrame.width, terrainFrame.height);
-    const auto terrainHitRadius = terrainHitDiameter / 2.0f;
+    const auto terrainHitRadius = assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Terrain, 0).getRadius();
+    const auto terrainHitDiameter = terrainHitRadius * 2.0f;
     auto rotationDistribution = FloatDistribution(-32.0f, 32.0f);
     auto terrainPosition = sf::Vector2f(
             0.0f,
@@ -175,22 +182,21 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         const auto terrainRotation = rotationDistribution(mRandomEngine);
 
         for (auto i = 0u; i < TERRAIN_SEGMENTS_PER_UNIT; i++) {
-            auto terrainId = mRegistry.create();
-            auto terrainRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Terrain, 0);
-            const auto terrainBounds = terrainRenderable.getLocalBounds();
+            const auto terrainId = mRegistry.create();
             const auto terrainOffset = helpers::makeVector2(terrainRotation, terrainHitRadius);
+            const auto &terrainSprite = mRegistry.assign<Sprite>(terrainId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Terrain, 0));
+            auto &terrainTransformation = mRegistry.assign<Transformation>(terrainId);
 
-            helpers::centerOrigin(terrainRenderable, terrainBounds);
+            terrainTransformation.setOrigin(sf::Vector2f(terrainSprite.getSize()) / 2.0f);
 
             terrainPosition += terrainOffset;
-            terrainRenderable.setColor(terrainColor);
-            terrainRenderable.setPosition(terrainPosition);
-            terrainRenderable.setRotation(terrainRotation);
+            terrainTransformation.setPosition(terrainPosition);
+            terrainTransformation.setRotation(terrainRotation);
             terrainPosition += terrainOffset;
 
             mRegistry.assign<Terrain>(terrainId);
+            mRegistry.assign<Color>(terrainId, terrainColor);
             mRegistry.assign<HitRadius>(terrainId, terrainHitRadius);
-            mRegistry.assign<Renderable>(terrainId, std::move(terrainRenderable));
         }
     } while (viewport.contains(terrainPosition));
 
@@ -199,87 +205,79 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto energySupplyDistribution = FloatDistribution(2000.0f, 4000.0f);
     auto entityDistribution = IntDistribution(1, 16);
 
-    const auto terrain = mRegistry.view<Terrain, Renderable>();
-    for (auto terrainCursor = terrain.begin(); terrainCursor != terrain.end(); std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
-        const auto &terrainRenderable = terrain.get<Renderable>(*terrainCursor);
-        const auto position = terrainRenderable->getPosition() +
-                              helpers::makeVector2(terrainRenderable->getRotation() + 180.0f, terrainHitRadius * (TERRAIN_SEGMENTS_PER_UNIT - 1u));
+    const auto terrains = mRegistry.view<Terrain, Transformation>();
+    for (auto terrainCursor = terrains.begin(); terrainCursor != terrains.end(); std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
+        const auto &terrainTransformation = terrains.get<Transformation>(*terrainCursor);
+        const auto position = terrainTransformation.getPosition() +
+                              helpers::makeVector2(terrainTransformation.getRotation() + 180.0f, terrainHitRadius * (TERRAIN_SEGMENTS_PER_UNIT - 1u));
 
         switch (entityDistribution(mRandomEngine)) {
             case 2:
             case 16: {
-                auto bunkerId = mRegistry.create();
-                auto bunkerRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Bunker, 0);
-                const auto bunkerBounds = bunkerRenderable.getLocalBounds();
-                const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
+                const auto bunkerId = mRegistry.create();
+                const auto &bunkerSprite = mRegistry.assign<Sprite>(bunkerId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Bunker, 0));
+                auto &bunkerTransformation = mRegistry.assign<Transformation>(bunkerId);
 
-                helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-                bunkerRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                bunkerRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
+                bunkerTransformation.setOrigin(sf::Vector2f(bunkerSprite.getSize()) / 2.0f);
+                bunkerTransformation.setRotation(terrainTransformation.getRotation() + 180.0f);
+                bunkerTransformation.setPosition(position + helpers::makeVector2(terrainTransformation.getRotation() + 270.0f, bunkerSprite.getRadius()));
 
                 mRegistry.assign<AI1>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
                 mRegistry.assign<Damage>(bunkerId, 2);
                 mRegistry.assign<Health>(bunkerId, 1);
+                mRegistry.assign<HitRadius>(bunkerId, bunkerSprite.getRadius());
                 mRegistry.assign<ReloadTime>(bunkerId, AI1ReloadDistribution(mRandomEngine));
-                mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
-                mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
             }
                 break;
 
             case 8: {
-                auto bunkerId = mRegistry.create();
-                auto bunkerRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Bunker, 1);
-                const auto bunkerBounds = bunkerRenderable.getLocalBounds();
-                const auto bunkerHitRadius = std::max(bunkerBounds.width, bunkerBounds.height) / 2.0f;
+                const auto bunkerId = mRegistry.create();
+                const auto &bunkerSprite = mRegistry.assign<Sprite>(bunkerId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Bunker, 1));
+                auto &bunkerTransformation = mRegistry.assign<Transformation>(bunkerId);
 
-                helpers::centerOrigin(bunkerRenderable, bunkerBounds);
-                bunkerRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                bunkerRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, bunkerHitRadius));
+                bunkerTransformation.setOrigin(sf::Vector2f(bunkerSprite.getSize()) / 2.0f);
+                bunkerTransformation.setRotation(terrainTransformation.getRotation() + 180.0f);
+                bunkerTransformation.setPosition(position + helpers::makeVector2(terrainTransformation.getRotation() + 270.0f, bunkerSprite.getRadius()));
 
                 mRegistry.assign<AI2>(bunkerId);
                 mRegistry.assign<Bunker>(bunkerId);
                 mRegistry.assign<Damage>(bunkerId, 3);
                 mRegistry.assign<Health>(bunkerId, 2);
+                mRegistry.assign<HitRadius>(bunkerId, bunkerSprite.getRadius());
                 mRegistry.assign<ReloadTime>(bunkerId, AI2ReloadDistribution(mRandomEngine));
-                mRegistry.assign<HitRadius>(bunkerId, bunkerHitRadius);
-                mRegistry.assign<Renderable>(bunkerId, std::move(bunkerRenderable));
             }
                 break;
 
             case 4: {
-                auto supplyId = mRegistry.create();
-                auto supplyRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Supply, 1);
-                const auto supplyBounds = supplyRenderable.getLocalBounds();
-                const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
+                const auto supplyId = mRegistry.create();
+                const auto &supplySprite = mRegistry.assign<Sprite>(supplyId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Supply, 1));
+                auto &supplyTransformation = mRegistry.assign<Transformation>(supplyId);
 
-                helpers::centerOrigin(supplyRenderable, supplyBounds);
-                supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
+                supplyTransformation.setOrigin(sf::Vector2f(supplySprite.getSize()) / 2.0f);
+                supplyTransformation.setRotation(terrainTransformation.getRotation() + 180.0f);
+                supplyTransformation.setPosition(position + helpers::makeVector2(terrainTransformation.getRotation() + 270.0f, supplySprite.getRadius()));
 
                 mRegistry.assign<Damage>(supplyId, 1);
                 mRegistry.assign<Health>(supplyId, 1);
-                mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
-                mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
+                mRegistry.assign<HitRadius>(supplyId, supplySprite.getRadius());
                 mRegistry.assign<Supply<Energy>>(supplyId, energySupplyDistribution(mRandomEngine));
             }
                 break;
 
             case 6:
             case 12: {
-                auto supplyId = mRegistry.create();
-                auto supplyRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Supply, 0);
-                const auto supplyBounds = supplyRenderable.getLocalBounds();
-                const auto supplyHitRadius = std::max(supplyBounds.width, supplyBounds.height) / 2.0f;
+                const auto supplyId = mRegistry.create();
+                const auto &supplySprite = mRegistry.assign<Sprite>(supplyId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Supply, 0));
+                auto &supplyTransformation = mRegistry.assign<Transformation>(supplyId);
 
-                helpers::centerOrigin(supplyRenderable, supplyBounds);
-                supplyRenderable.setRotation(terrainRenderable->getRotation() + 180.0f);
-                supplyRenderable.setPosition(position + helpers::makeVector2(terrainRenderable->getRotation() + 270.0f, supplyHitRadius));
+                supplyTransformation.setOrigin(sf::Vector2f(supplySprite.getSize()) / 2.0f);
+                supplyTransformation.setRotation(terrainTransformation.getRotation() + 180.0f);
+                supplyTransformation.setPosition(position + helpers::makeVector2(terrainTransformation.getRotation() + 270.0f, supplySprite.getRadius()));
 
                 mRegistry.assign<Damage>(supplyId, 1);
                 mRegistry.assign<Health>(supplyId, 1);
-                mRegistry.assign<HitRadius>(supplyId, supplyHitRadius);
-                mRegistry.assign<Renderable>(supplyId, std::move(supplyRenderable));
+                mRegistry.assign<HitRadius>(supplyId, supplySprite.getRadius());
                 mRegistry.assign<Supply<Health>>(supplyId, 1);
             }
                 break;
@@ -289,8 +287,8 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         }
     }
 
-    mRegistry.view<Bunker, Renderable>().each([&](const auto bunkerId, const auto, const auto &bunkerRenderable) {
-        if (not viewport.contains(bunkerRenderable->getPosition())) {
+    mRegistry.view<Bunker, Transformation>().each([&](const auto bunkerId, const auto, const auto &bunkerTransformation) {
+        if (not viewport.contains(bunkerTransformation.getPosition())) {
             mRegistry.destroy(bunkerId);
         }
     });
@@ -304,38 +302,33 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) {
     const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
-            .view<Player, HitRadius, Renderable, Energy, Velocity, ReloadTime>()
-            .each([&](const auto playerId, const auto, const auto &playerHitRadius, auto &playerRenderable,
+            .view<Player, HitRadius, EntityRef<Tractor>, Transformation, Energy, Velocity, ReloadTime>()
+            .each([&](const auto, const auto &playerHitRadius, const auto &playerTractorRef, auto &playerTransformation,
                       auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
-                const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
-                auto playerSpeed = PLAYER_SPEED;
+                const auto tractorId = *playerTractorRef;
+                const auto speed = isKeyPressed(Key::W) ? PLAYER_SPEED_FAST : isKeyPressed(Key::S) ? PLAYER_SPEED_SLOW : PLAYER_SPEED_DEFAULT;
+                const auto rotationSign = isKeyPressed(Key::A) ? -1.0f : isKeyPressed(Key::D) ? 1.0f : 0.0f;
 
-                if (isKeyPressed(Key::W)) {
-                    playerSpeed *= 1.32f;
-                } else if (isKeyPressed(Key::S)) {
-                    playerSpeed *= 0.88f;
-                }
-
-                if (isKeyPressed(Key::A)) {
-                    playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                }
-
-                if (isKeyPressed(Key::D)) {
-                    playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
-                }
-
-                playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
-                playerEnergy.consume(playerSpeed * elapsed.asSeconds());
+                playerTransformation.rotate(rotationSign * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
+                playerVelocity.value = helpers::makeVector2(playerTransformation.getRotation(), speed);
+                playerEnergy.consume(speed * elapsed.asSeconds());
 
                 if (isKeyPressed(Key::RShift)) {
-                    mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
-                    mRegistry.reset<Hidden>(tractorId);
+                    const auto &tractorSprite = mRegistry.assign_or_replace<Sprite>(tractorId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Tractor, 0));
+                    auto &tractorTransformation = mRegistry.assign_or_replace<Transformation>(tractorId);
+
+                    tractorTransformation.setOrigin(sf::Vector2f(tractorSprite.getSize()) / 2.0f);
+                    tractorTransformation.setPosition(playerTransformation.getPosition());
+
+                    mRegistry.assign_or_replace<HitRadius>(tractorId, tractorSprite.getRadius());
                 } else {
-                    mRegistry.assign_or_replace<Hidden>(tractorId);
+                    mRegistry.reset<Transformation>(tractorId);
+                    mRegistry.reset<HitRadius>(tractorId);
+                    mRegistry.reset<Sprite>(tractorId);
 
                     if (playerReloadTime.canShoot() and isKeyPressed(Key::Space)) {
-                        const auto bulletRotation = playerRenderable->getRotation();
-                        const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, 1.0f + *playerHitRadius);
+                        const auto bulletRotation = playerTransformation.getRotation();
+                        const auto bulletPosition = playerTransformation.getPosition() + helpers::makeVector2(bulletRotation, 1.0f + *playerHitRadius);
                         playerReloadTime.reset();
                         // NOTE for a future me: be aware that this invalidates some component references !!!
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
@@ -345,8 +338,8 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) {
 }
 
 void PlanetAssault::motionSystem(const sf::Time elapsed) {
-    mRegistry.group<Velocity>(entt::get < Renderable > ).each([&](const auto &velocity, auto &renderable) {
-        renderable->move(velocity.value * elapsed.asSeconds());
+    mRegistry.group<Velocity>(entt::get < Transformation > ).each([&](const auto &velocity, auto &transformable) {
+        transformable.move(velocity.value * elapsed.asSeconds());
     });
 }
 
@@ -356,15 +349,15 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
     auto isTractorActive = false;
 
     // general entities collisions
-    const auto g1 = mRegistry.group<Health>(entt::get < Renderable, HitRadius > );
-    const auto g2 = mRegistry.group<Damage>(entt::get < Renderable, HitRadius > );
+    const auto g1 = mRegistry.group<Health>(entt::get < Transformation, HitRadius > );
+    const auto g2 = mRegistry.group<Damage>(entt::get < Transformation, HitRadius > );
     for (auto e1 : g1) {
         for (auto e2 : g2) {
             if (e1 != e2) {
-                const auto &[entityRenderable1, entityHitRadius1] = g1.get<Renderable, HitRadius>(e1);
-                const auto &[entityRenderable2, entityHitRadius2] = g2.get<Renderable, HitRadius>(e2);
+                const auto &[entityTransformation1, entityHitRadius1] = g1.get<Transformation, HitRadius>(e1);
+                const auto &[entityTransformation2, entityHitRadius2] = g2.get<Transformation, HitRadius>(e2);
 
-                if (helpers::magnitude(entityRenderable1->getPosition(), entityRenderable2->getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
+                if (helpers::magnitude(entityTransformation1.getPosition(), entityTransformation2.getPosition()) <= *entityHitRadius1 + *entityHitRadius2) {
                     assets.getAudioManager().play(SoundId::Hit);
                     g1.get<Health>(e1).harm(g2.get<Damage>(e2));
                 }
@@ -374,28 +367,28 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
     // tractor hits supply
     mRegistry
-            .group<Tractor>(entt::get < Renderable, HitRadius, EntityRef<Player>> , entt::exclude < Hidden > )
-    .each([&](const auto, const auto &tractorRenderable, const auto &tractorHitRadius, const auto &playerRef) {
+            .group<Tractor>(entt::get < Transformation, HitRadius, EntityRef<Player>>)
+    .each([&](const auto, const auto &tractorTransformation, const auto &tractorHitRadius, const auto &playerRef) {
         const auto playerId = *playerRef;
 
         mRegistry
-                .group<Bullet>(entt::get < Renderable, HitRadius, Velocity > )
-                .each([&](const auto, auto &bulletRenderable, const auto &bulletHitRadius, auto &velocity) {
-                    if (helpers::magnitude(tractorRenderable->getPosition(), bulletRenderable->getPosition()) <= *tractorHitRadius + *bulletHitRadius) {
+                .group<Bullet>(entt::get < Transformation, HitRadius, Velocity > )
+                .each([&](const auto, auto &bulletTransformation, const auto &bulletHitRadius, auto &velocity) {
+                    if (helpers::magnitude(tractorTransformation.getPosition(), bulletTransformation.getPosition()) <= *tractorHitRadius + *bulletHitRadius) {
                         const auto rotationDiff = helpers::shortestRotation(
-                                bulletRenderable->getRotation(),
-                                helpers::rotation(bulletRenderable->getPosition(), tractorRenderable->getPosition())
+                                bulletTransformation.getRotation(),
+                                helpers::rotation(bulletTransformation.getPosition(), tractorTransformation.getPosition())
                         );
 
-                        bulletRenderable->rotate(helpers::signum(rotationDiff) * 220.0f * elapsed.asSeconds());
-                        velocity.value = helpers::makeVector2(bulletRenderable->getRotation(), BULLET_SPEED);
+                        bulletTransformation.rotate(helpers::signum(rotationDiff) * 220.0f * elapsed.asSeconds());
+                        velocity.value = helpers::makeVector2(bulletTransformation.getRotation(), BULLET_SPEED);
                     }
                 });
 
         mRegistry
-                .group<Supply<Energy>>(entt::get < Renderable, HitRadius > )
-                .each([&](const auto supplyId, const auto &supply, const auto &supplyRenderable, const auto &supplyHitRadius) {
-                    if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                .group<Supply<Energy>>(entt::get < Transformation, HitRadius > )
+                .each([&](const auto supplyId, const auto &supply, const auto &supplyTransformation, const auto &supplyHitRadius) {
+                    if (helpers::magnitude(tractorTransformation.getPosition(), supplyTransformation.getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                         mRegistry.get<Health>(supplyId).kill();
                         mRegistry.get<Energy>(playerId).recharge(supply);
                         isTractorActive = true;
@@ -403,9 +396,9 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
                 });
 
         mRegistry
-                .group<Supply<Health>>(entt::get < Renderable, HitRadius > )
-                .each([&](const auto supplyId, const auto &supply, const auto &supplyRenderable, const auto &supplyHitRadius) {
-                    if (helpers::magnitude(tractorRenderable->getPosition(), supplyRenderable->getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
+                .group<Supply<Health>>(entt::get < Transformation, HitRadius > )
+                .each([&](const auto supplyId, const auto &supply, const auto &supplyTransformation, const auto &supplyHitRadius) {
+                    if (helpers::magnitude(tractorTransformation.getPosition(), supplyTransformation.getPosition()) <= *tractorHitRadius + *supplyHitRadius) {
                         mRegistry.get<Health>(supplyId).kill();
                         mRegistry.get<Health>(playerId).heal(supply);
                         isTractorActive = true;
@@ -415,14 +408,14 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
     // bullet exits screen / bullet hits terrain
     mRegistry
-            .view<Bullet, Renderable, HitRadius>()
-            .each([&](const auto bulletId, const auto, const auto &bulletRenderable, const auto &bulletHitRadius) {
-                if (viewport.contains(bulletRenderable->getPosition())) {
-                    const auto terrains = mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
+            .view<Bullet, Transformation, HitRadius>()
+            .each([&](const auto bulletId, const auto, const auto &bulletTransformation, const auto &bulletHitRadius) {
+                if (viewport.contains(bulletTransformation.getPosition())) {
+                    const auto terrains = mRegistry.group<Terrain>(entt::get < Transformation, HitRadius > );
 
                     for (const auto terrainId : terrains) {
-                        const auto &[terrainRenderable, terrainHitRadius] = terrains.get<Renderable, HitRadius>(terrainId);
-                        if (helpers::magnitude(terrainRenderable->getPosition(), bulletRenderable->getPosition()) <= *terrainHitRadius + *bulletHitRadius) {
+                        const auto &[terrainTransformation, terrainHitRadius] = terrains.get<Transformation, HitRadius>(terrainId);
+                        if (helpers::magnitude(terrainTransformation.getPosition(), bulletTransformation.getPosition()) <= *terrainHitRadius + *bulletHitRadius) {
                             mRegistry.get<Health>(bulletId).kill();
                             break;
                         }
@@ -434,23 +427,23 @@ void PlanetAssault::collisionSystem(const sf::RenderWindow &window, Assets &asse
 
     // player exits screen / player hits terrain
     mRegistry
-            .group<Player>(entt::get < Renderable, HitRadius > )
-            .each([&](const auto playerId, const auto, auto &playerRenderable, const auto &playerHitRadius) {
-                if (viewport.contains(playerRenderable->getPosition())) {
-                    const auto terrains = mRegistry.group<Terrain>(entt::get < Renderable, HitRadius > );
+            .group<Player>(entt::get < Transformation, HitRadius > )
+            .each([&](const auto playerId, const auto, auto &playerTransformation, const auto &playerHitRadius) {
+                if (viewport.contains(playerTransformation.getPosition())) {
+                    const auto terrains = mRegistry.group<Terrain>(entt::get < Transformation, HitRadius > );
 
                     for (const auto terrainId : terrains) {
-                        const auto &[terrainRenderable, terrainHitRadius] = terrains.get<Renderable, HitRadius>(terrainId);
-                        if (helpers::magnitude(terrainRenderable->getPosition(), playerRenderable->getPosition()) <= *terrainHitRadius + *playerHitRadius) {
+                        const auto &[terrainTransformation, terrainHitRadius] = terrains.get<Transformation, HitRadius>(terrainId);
+                        if (helpers::magnitude(terrainTransformation.getPosition(), playerTransformation.getPosition()) <= *terrainHitRadius + *playerHitRadius) {
                             assets.getAudioManager().play(SoundId::Explosion);
                             mRegistry.get<Health>(playerId).harm(Damage(1));
-                            playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
+                            playerTransformation.setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
                             break;
                         }
                     }
                 } else {
                     solarSystemExited = true;
-                    playerRenderable->setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
+                    playerTransformation.setPosition({viewport.width / 2.0f, viewport.height / 4.0f});
                 }
             });
 
@@ -476,26 +469,26 @@ void PlanetAssault::AISystem(Assets &assets) {
     auto AI1Precision = FloatDistribution(-16.0f, 16.0f);
     auto AI2Precision = FloatDistribution(-8.0f, 8.0f);
 
-    mRegistry.view<Player, Renderable>().each([&](const auto, const auto playerRenderable) {
+    mRegistry.view<Player, Transformation>().each([&](const auto, const auto playerTransformation) {
         mRegistry
-                .group<AI1>(entt::get < Renderable, HitRadius, ReloadTime > )
-                .each([&](const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
+                .group<AI1>(entt::get < Transformation, HitRadius, ReloadTime > )
+                .each([&](const auto, const auto &AITransformation, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
-                        const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
+                        const auto bulletRotation = helpers::rotation(AITransformation.getPosition(), playerTransformation.getPosition()) +
                                                     AI1Precision(mRandomEngine);
-                        const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
                 });
 
         mRegistry
-                .group<AI2>(entt::get < Renderable, HitRadius, ReloadTime > )
-                .each([&](const auto, const auto &AIRenderable, const auto &AIHitRadius, auto &AIReloadTime) {
+                .group<AI2>(entt::get < Transformation, HitRadius, ReloadTime > )
+                .each([&](const auto, const auto &AITransformation, const auto &AIHitRadius, auto &AIReloadTime) {
                     if (AIReloadTime.canShoot()) {
-                        const auto bulletRotation = helpers::rotation(AIRenderable->getPosition(), playerRenderable->getPosition()) +
+                        const auto bulletRotation = helpers::rotation(AITransformation.getPosition(), playerTransformation.getPosition()) +
                                                     AI2Precision(mRandomEngine);
-                        const auto bulletPosition = AIRenderable->getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
                         AIReloadTime.reset();
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
@@ -541,28 +534,25 @@ void PlanetAssault::reportSystem(const sf::RenderWindow &window) {
                 "health: %02d energy: %05.0f score: %05u",
                 health.getValue(), energy.getValue(), score.value
         );
-        helpers::centerOrigin(mReport, mReport.getLocalBounds());
-
+        helpers::centerOrigin(mReport);
         mReport.setString(mBuffer);
         mReport.setPosition(window.getSize().x / 2.0f, 18.0f);
     });
 }
 
 void shoot(entt::registry &registry, Assets &assets, const sf::Vector2f &position, const float rotation) {
-    auto bulletRenderable = assets.getSpriteSheetsManager().instanceSprite(SpriteSheetId::Bullet, 0);
-    const auto bulletBounds = bulletRenderable.getLocalBounds();
     const auto bulletId = registry.create();
-    static const auto bulletHitRadius = std::max(bulletBounds.width, bulletBounds.height) / 2.0f;
+    const auto &bulletSprite = registry.assign<Sprite>(bulletId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Bullet, 0));
+    auto &bulletTransformation = registry.assign<Transformation>(bulletId);
 
-    helpers::centerOrigin(bulletRenderable, bulletBounds);
-    bulletRenderable.setRotation(rotation);
-    bulletRenderable.setPosition(position);
+    bulletTransformation.setOrigin(sf::Vector2f(bulletSprite.getSize()) / 2.0f);
+    bulletTransformation.setRotation(rotation);
+    bulletTransformation.setPosition(position);
 
     registry.assign<Bullet>(bulletId);
     registry.assign<Health>(bulletId, 1);
     registry.assign<Damage>(bulletId, 1);
-    registry.assign<HitRadius>(bulletId, bulletHitRadius);
-    registry.assign<Renderable>(bulletId, std::move(bulletRenderable));
+    registry.assign<HitRadius>(bulletId, bulletSprite.getRadius());
     registry.assign<Velocity>(bulletId, helpers::makeVector2(rotation, BULLET_SPEED));
 
     assets.getAudioManager().play(SoundId::Shot);

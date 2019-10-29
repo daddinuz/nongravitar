@@ -167,10 +167,18 @@ namespace nongravitar::components {
         float mInstance;
     };
 
-    /// Custom implementation of transformable, basically a shrank version of the SFML's one.
-    class Transformable final {
+    /// Custom implementation of SFML's transformable, basically a shrank version without caching capabilities.
+    class Transformation final {
     public:
-        Transformable() = default;
+        Transformation() = default;
+
+        void setScale(float factorX, float factorY);
+
+        void setScale(const sf::Vector2f &factors);
+
+        void setOrigin(float x, float y);
+
+        void setOrigin(const sf::Vector2f &origin);
 
         void setPosition(float x, float y);
 
@@ -178,15 +186,23 @@ namespace nongravitar::components {
 
         void setRotation(float angle);
 
-        void setOrigin(float x, float y);
+        void scale(float factorX, float factorY);
 
-        void setOrigin(const sf::Vector2f &origin);
+        void scale(const sf::Vector2f &factors);
 
         void move(float offsetX, float offsetY);
 
         void move(const sf::Vector2f &offset);
 
         void rotate(float angle);
+
+        [[nodiscard]] inline const sf::Vector2f &getScale() const {
+            return mScale;
+        }
+
+        [[nodiscard]] inline const sf::Vector2f &getOrigin() const {
+            return mOrigin;
+        }
 
         [[nodiscard]] inline const sf::Vector2f &getPosition() const {
             return mPosition;
@@ -196,44 +212,15 @@ namespace nongravitar::components {
             return mRotation;
         }
 
-        [[nodiscard]] inline const sf::Vector2f &getOrigin() const {
-            return mOrigin;
-        }
-
         [[nodiscard]] sf::Transform getTransform() const;
 
     private:
+        sf::Vector2f mScale{1.0f, 1.0f};
         sf::Vector2f mOrigin;
         sf::Vector2f mPosition;
         float mRotation = 0.0f;
     };
 
+    using Color = sf::Color;
     using Sprite = nongravitar::Sprite;
-
-    class Renderable final : public sf::Drawable {
-    public:
-        template<typename ...Args>
-        explicit Renderable(Args &&... args) : mInstance{std::forward<Args>(args)...} {}
-
-        [[nodiscard]] sf::Transformable &operator*();
-        [[nodiscard]] const sf::Transformable &operator*() const;
-
-        [[nodiscard]] sf::Transformable *operator->();
-        [[nodiscard]] const sf::Transformable *operator->() const;
-
-        template<typename T>
-        [[nodiscard]] inline T &as() {
-            return std::get<T>(mInstance);
-        }
-
-        template<typename T>
-        [[nodiscard]] inline const T &as() const {
-            return std::get<T>(mInstance);
-        }
-
-    private:
-        void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
-
-        std::variant<sf::Sprite, sf::CircleShape> mInstance;
-    };
 }

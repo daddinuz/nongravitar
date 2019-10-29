@@ -55,6 +55,6 @@ namespace nongravitar::scene {
         void operator()(const messages::GameOver &message) final;
 
         sf::Text mGameOverTitle;
-        sf::Text mSpaceLabel;
+        sf::Text mEscLabel;
     };
 }

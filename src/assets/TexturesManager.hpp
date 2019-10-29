@@ -40,6 +40,7 @@ namespace nongravitar::assets {
         Supply = 4,
         Terrain = 5,
         Title = 6,
+        Tractor = 7,
     };
 
     class TexturesManager final {
@@ -59,6 +60,6 @@ namespace nongravitar::assets {
     private:
         void load(const char *filename, TextureId textureId);
 
-        std::array<sf::Texture, 7> mTextures;
+        std::array<sf::Texture, 8> mTextures;
     };
 }

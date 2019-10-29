@@ -36,17 +36,20 @@ namespace nongravitar {
 
         Sprite(const sf::Texture &texture, sf::IntRect frame);
 
+        [[nodiscard]] inline float getRadius() const {
+            return std::max(mFrame.width, mFrame.height) / 2.0f;
+        }
+
         [[nodiscard]] inline sf::IntRect getFrame() const {
             return mFrame;
         }
 
-        [[nodiscard]] inline const sf::Texture *getTexture() const {
-            return mTexture;
+        [[nodiscard]] inline sf::Vector2i getSize() const {
+            return {mFrame.width, mFrame.height};
         }
 
-        // TODO: find a better name ;D
-        [[nodiscard]] inline float getRadius() const {
-            return std::max(mFrame.width, mFrame.height) / 2.0f;
+        [[nodiscard]] inline const sf::Texture *getTexture() const {
+            return mTexture;
         }
 
     private:

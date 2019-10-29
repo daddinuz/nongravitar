@@ -50,9 +50,19 @@ namespace nongravitar::helpers {
 
     float rad2deg(float rad);
 
-    template<typename T, typename U>
-    void centerOrigin(T &self, const sf::Rect<U> &bounds) {
-        self.setOrigin(bounds.left + bounds.width / U(2), bounds.top + bounds.height / U(2));
+    inline void centerOrigin(sf::Sprite &self) {
+        const auto bounds = self.getLocalBounds();
+        self.setOrigin(bounds.width / 2, bounds.height / 2);
+    }
+
+    inline void centerOrigin(sf::Shape &self) {
+        const auto bounds = self.getLocalBounds();
+        self.setOrigin(bounds.width / 2, bounds.height / 2);
+    }
+
+    inline void centerOrigin(sf::Text &self) {
+        const auto bounds = self.getLocalBounds();
+        self.setOrigin(bounds.width / 2, bounds.height / 2);
     }
 
     template<typename T>
