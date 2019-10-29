@@ -32,10 +32,10 @@
 namespace nongravitar::constants {
     inline constexpr auto PLAYER_HEALTH = 8;
     inline constexpr auto PLAYER_ENERGY = 20'000.0f;
-    inline constexpr auto PLAYER_RELOAD_TIME = 0.5f;
+    inline constexpr auto PLAYER_RELOAD_TIME = 0.45f;
     inline constexpr auto PLAYER_SPEED_SLOW = 180.0f;
     inline constexpr auto PLAYER_SPEED_DEFAULT = 220.0f;
-    inline constexpr auto PLAYER_SPEED_FAST = 320.0f;
+    inline constexpr auto PLAYER_SPEED_FAST = 300.0f;
     inline constexpr auto PLAYER_ROTATION_SPEED = 220.0f;
 
     inline constexpr auto BULLET_SPEED = 1'024.0f;
