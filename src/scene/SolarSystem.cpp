@@ -58,7 +58,7 @@ void SolarSystem::addPlanet(const sf::RenderWindow &window, Assets &assets, sf::
     const auto[windowWidth, windowHeight] = sf::Vector2f(window.getSize());
     const auto windowCenter = sf::Vector2f(windowWidth / 2.0f, windowHeight / 2.0f);
 
-    auto planetScaleDistribution = FloatDistribution(0.5f, 1.0f);
+    auto planetScaleDistribution = FloatDistribution(0.75f, 1.0f);
     auto planetXDistribution = FloatDistribution(WINDOW_PADDING, windowWidth - WINDOW_PADDING);
     auto planetYDistribution = FloatDistribution(WINDOW_PADDING, windowHeight - WINDOW_PADDING);
 
