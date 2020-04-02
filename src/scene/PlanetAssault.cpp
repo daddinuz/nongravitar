@@ -46,14 +46,15 @@ using helpers::RandomDevice;
 using helpers::IntDistribution;
 using helpers::FloatDistribution;
 
+constexpr auto BULLET_SPAWN_OFFSET = 8.0f;
 constexpr auto TERRAIN_SEGMENTS_PER_UNIT = 4u;
 
 struct SignalHandlers {
-    inline void playExplosion(const entt::entity, const entt::registry &) {
+    void playExplosion(const entt::entity, const entt::registry &) {
         assets.getAudioManager().play(SoundId::Explosion);
     }
 
-    inline void publishScore(const entt::entity id, const entt::registry &registry) {
+    void publishScore(const entt::entity id, const entt::registry &registry) {
         (void) assets; // Note: this method cannot be static due to entt sink requirements
         pubsub::publish<GameOver>(registry.get<Score>(id).value);
     }
@@ -226,7 +227,9 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
     auto entityDistribution = IntDistribution(1, 16);
 
     const auto terrains = mRegistry.view<Terrain, Transformation>();
-    for (auto terrainCursor = terrains.begin(); terrainCursor != terrains.end(); std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
+    for (auto terrainCursor = terrains.begin();
+         std::distance(terrainCursor, terrains.end()) > TERRAIN_SEGMENTS_PER_UNIT;
+         std::advance(terrainCursor, TERRAIN_SEGMENTS_PER_UNIT)) {
         const auto &terrainTransformation = terrains.get<Transformation>(*terrainCursor);
         const auto position = terrainTransformation.getPosition() +
                               helpers::makeVector2(terrainTransformation.getRotation() + 180.0f, terrainHitRadius * (TERRAIN_SEGMENTS_PER_UNIT - 1u));
@@ -307,12 +310,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
         }
     }
 
-    mRegistry.view<Bunker, Transformation>().each([&](const auto bunkerId, const auto, const auto &bunkerTransformation) {
-        if (not viewport.contains(bunkerTransformation.getPosition())) {
-            mRegistry.destroy(bunkerId);
-        }
-    });
-
     mBonus += SCORE_PER_AI1 * std::distance(mRegistry.view<AI1>().begin(), mRegistry.view<AI1>().end());
     mBonus += SCORE_PER_AI2 * std::distance(mRegistry.view<AI2>().begin(), mRegistry.view<AI2>().end());
 }
@@ -348,7 +345,7 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) {
 
                     if (playerReloadTime.canShoot() and isKeyPressed(Key::Space)) {
                         const auto bulletRotation = playerTransformation.getRotation();
-                        const auto bulletPosition = playerTransformation.getPosition() + helpers::makeVector2(bulletRotation, 1.0f + *playerHitRadius);
+                        const auto bulletPosition = playerTransformation.getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + BULLET_SPAWN_OFFSET);
                         playerReloadTime.reset();
                         // NOTE for a future me: be aware that this invalidates some component references !!!
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
@@ -499,7 +496,8 @@ void PlanetAssault::AISystem(Assets &assets) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AITransformation.getPosition(), playerTransformation.getPosition()) +
                                                     AI1Precision(mRandomEngine);
-                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + BULLET_SPAWN_OFFSET);
+
                         AIReloadTime.reset();
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
@@ -511,7 +509,7 @@ void PlanetAssault::AISystem(Assets &assets) {
                     if (AIReloadTime.canShoot()) {
                         const auto bulletRotation = helpers::rotation(AITransformation.getPosition(), playerTransformation.getPosition()) +
                                                     AI2Precision(mRandomEngine);
-                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + 1.0f);
+                        const auto bulletPosition = AITransformation.getPosition() + helpers::makeVector2(bulletRotation, *AIHitRadius + BULLET_SPAWN_OFFSET);
                         AIReloadTime.reset();
                         shoot(mRegistry, assets, bulletPosition, bulletRotation);
                     }
