@@ -28,6 +28,7 @@
 #pragma once
 
 #include <array>
+#include <limits>
 #include <SFML/Audio.hpp>
 
 namespace nongravitar::assets {

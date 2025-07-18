@@ -316,21 +316,20 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) {
     using Key = sf::Keyboard::Key;
-    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, HitRadius, EntityRef<Tractor>, Transformation, Energy, Velocity, ReloadTime>()
             .each([&](const auto, const auto &playerHitRadius, const auto &playerTractorRef, auto &playerTransformation,
                       auto &playerEnergy, auto &playerVelocity, auto &playerReloadTime) {
                 const auto tractorId = *playerTractorRef;
-                const auto speed = isKeyPressed(Key::W) ? PLAYER_SPEED_FAST : isKeyPressed(Key::S) ? PLAYER_SPEED_SLOW : PLAYER_SPEED_DEFAULT;
-                const auto rotationSign = isKeyPressed(Key::A) ? -1.0f : isKeyPressed(Key::D) ? 1.0f : 0.0f;
+                const auto speed = sf::Keyboard::isKeyPressed(Key::W) ? PLAYER_SPEED_FAST : sf::Keyboard::isKeyPressed(Key::S) ? PLAYER_SPEED_SLOW : PLAYER_SPEED_DEFAULT;
+                const auto rotationSign = sf::Keyboard::isKeyPressed(Key::A) ? -1.0f : sf::Keyboard::isKeyPressed(Key::D) ? 1.0f : 0.0f;
 
                 playerTransformation.rotate(rotationSign * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 playerVelocity.value = helpers::makeVector2(playerTransformation.getRotation(), speed);
                 playerEnergy.consume(speed * elapsed.asSeconds());
 
-                if (isKeyPressed(Key::RShift)) {
+                if (sf::Keyboard::isKeyPressed(Key::RShift)) {
                     const auto &tractorSprite = mRegistry.assign_or_replace<Sprite>(tractorId, assets.getSpriteSheetsManager().getSprite(SpriteSheetId::Tractor, 0));
                     auto &tractorTransformation = mRegistry.assign_or_replace<Transformation>(tractorId);
 
@@ -343,7 +342,7 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) {
                     mRegistry.reset<HitRadius>(tractorId);
                     mRegistry.reset<Sprite>(tractorId);
 
-                    if (playerReloadTime.canShoot() and isKeyPressed(Key::Space)) {
+                    if (playerReloadTime.canShoot() and sf::Keyboard::isKeyPressed(Key::Space)) {
                         const auto bulletRotation = playerTransformation.getRotation();
                         const auto bulletPosition = playerTransformation.getPosition() + helpers::makeVector2(bulletRotation, *playerHitRadius + BULLET_SPAWN_OFFSET);
                         playerReloadTime.reset();

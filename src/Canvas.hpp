@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <array>
 #include <SFML/Graphics.hpp>
 #include <Sprite.hpp>
 

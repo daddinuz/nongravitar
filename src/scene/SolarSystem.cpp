@@ -230,13 +230,12 @@ void SolarSystem::initializePlanets(const sf::RenderWindow &window, SceneManager
 
 void SolarSystem::inputSystem(const sf::Time elapsed) {
     using Key = sf::Keyboard::Key;
-    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, Transformation, Velocity, Energy>()
             .each([&](const auto, auto &transformable, auto &velocity, auto &energy) {
-                const auto speed = isKeyPressed(Key::W) ? PLAYER_SPEED_FAST : isKeyPressed(Key::S) ? PLAYER_SPEED_SLOW : PLAYER_SPEED_DEFAULT;
-                const auto rotationSign = isKeyPressed(Key::A) ? -1.0f : isKeyPressed(Key::D) ? 1.0f : 0.0f;
+                const auto speed = sf::Keyboard::isKeyPressed(Key::W) ? PLAYER_SPEED_FAST : sf::Keyboard::isKeyPressed(Key::S) ? PLAYER_SPEED_SLOW : PLAYER_SPEED_DEFAULT;
+                const auto rotationSign = sf::Keyboard::isKeyPressed(Key::A) ? -1.0f : sf::Keyboard::isKeyPressed(Key::D) ? 1.0f : 0.0f;
 
                 transformable.rotate(rotationSign * PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 velocity.value = helpers::makeVector2(transformable.getRotation(), speed);
