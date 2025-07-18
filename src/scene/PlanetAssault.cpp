@@ -310,7 +310,6 @@ void PlanetAssault::initializeTerrain(const sf::RenderWindow &window, Assets &as
 
 void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, HitRadius, Renderable, Energy, Velocity, ReloadTime>()
@@ -319,30 +318,30 @@ void PlanetAssault::inputSystem(Assets &assets, const sf::Time elapsed) noexcept
                 const auto tractorId = *mRegistry.get<EntityRef<Tractor>>(playerId);
                 auto playerSpeed = PLAYER_SPEED;
 
-                if (isKeyPressed(Key::W)) {
+                if (sf::Keyboard::isKeyPressed(Key::W)) {
                     playerSpeed *= 1.32f;
-                } else if (isKeyPressed(Key::S)) {
+                } else if (sf::Keyboard::isKeyPressed(Key::S)) {
                     playerSpeed *= 0.88f;
                 }
 
-                if (isKeyPressed(Key::A)) {
+                if (sf::Keyboard::isKeyPressed(Key::A)) {
                     playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 }
 
-                if (isKeyPressed(Key::D)) {
+                if (sf::Keyboard::isKeyPressed(Key::D)) {
                     playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 }
 
                 playerVelocity.value = helpers::makeVector2(playerRenderable->getRotation(), playerSpeed);
                 playerEnergy.consume(playerSpeed * elapsed.asSeconds());
 
-                if (isKeyPressed(Key::RShift)) {
+                if (sf::Keyboard::isKeyPressed(Key::RShift)) {
                     mRegistry.get<Renderable>(tractorId)->setPosition(playerRenderable->getPosition());
                     mRegistry.reset<Hidden>(tractorId);
                 } else {
                     mRegistry.assign_or_replace<Hidden>(tractorId);
 
-                    if (playerReloadTime.canShoot() and isKeyPressed(Key::Space)) {
+                    if (playerReloadTime.canShoot() and sf::Keyboard::isKeyPressed(Key::Space)) {
                         const auto bulletRotation = playerRenderable->getRotation();
                         const auto bulletPosition = playerRenderable->getPosition() + helpers::makeVector2(bulletRotation, 1.0f + *playerHitRadius);
                         playerReloadTime.reset();

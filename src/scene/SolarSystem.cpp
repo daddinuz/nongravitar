@@ -224,24 +224,23 @@ void SolarSystem::resetPlanets(const sf::RenderWindow &window, SceneManager &sce
 
 void SolarSystem::inputSystem(const sf::Time elapsed) noexcept {
     using Key = sf::Keyboard::Key;
-    const auto isKeyPressed = &sf::Keyboard::isKeyPressed;
 
     mRegistry
             .view<Player, Energy, Velocity, Renderable>()
             .each([&](const auto, auto &playerEnergy, auto &playerVelocity, auto &playerRenderable) {
                 auto speed = PLAYER_SPEED;
 
-                if (isKeyPressed(Key::W)) {
+                if (sf::Keyboard::isKeyPressed(Key::W)) {
                     speed *= 1.32f;
-                } else if (isKeyPressed(Key::S)) {
+                } else if (sf::Keyboard::isKeyPressed(Key::S)) {
                     speed *= 0.88f;
                 }
 
-                if (isKeyPressed(Key::A)) {
+                if (sf::Keyboard::isKeyPressed(Key::A)) {
                     playerRenderable->rotate(-PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 }
 
-                if (isKeyPressed(Key::D)) {
+                if (sf::Keyboard::isKeyPressed(Key::D)) {
                     playerRenderable->rotate(PLAYER_ROTATION_SPEED * elapsed.asSeconds());
                 }
 
