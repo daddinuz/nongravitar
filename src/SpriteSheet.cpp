@@ -30,9 +30,6 @@
 
 using namespace nongravitar;
 
-SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept
-        : mBuffer(std::move(buffer)), mTexture(texture) {}
-
 SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u frameSize, const sf::Vector2u startCoord) {
     const auto[textureWidth, textureHeight] = texture.getSize();
     const auto columns = textureWidth / frameSize.x, rows = textureHeight / frameSize.y;
@@ -52,25 +49,24 @@ SpriteSheet SpriteSheet::from(const sf::Texture &texture, const sf::Vector2u fra
         }
     }
 
-    return SpriteSheet(texture, std::move(buffer));
+    return SpriteSheet(texture, std::move(buffer), {columns, rows});
 }
 
-SpriteSheet::const_iterator SpriteSheet::cbegin() const noexcept {
-    return mBuffer.cbegin();
+sf::IntRect SpriteSheet::getRect(const sf::Vector2u &coord) const {
+    return mBuffer.at(coord.x + coord.y * getSize().x);
 }
 
-SpriteSheet::const_iterator SpriteSheet::cend() const noexcept {
-    return mBuffer.cend();
+sf::Sprite SpriteSheet::getSprite(const sf::Vector2u &coord) const {
+    return {mTexture, getRect(coord)};
 }
 
-const SpriteSheet::Buffer &SpriteSheet::getBuffer() const noexcept {
-    return mBuffer;
+sf::Vector2u SpriteSheet::getSize() const noexcept {
+    return mSize;
 }
 
 const sf::Texture &SpriteSheet::getTexture() const noexcept {
     return mTexture;
 }
 
-sf::Sprite SpriteSheet::instanceSprite(const std::size_t frameIndex) const {
-    return sf::Sprite(mTexture, mBuffer.at(frameIndex));
-}
+SpriteSheet::SpriteSheet(const sf::Texture &texture, Buffer &&buffer, const sf::Vector2u size) noexcept
+        : mBuffer(std::move(buffer)), mSize(size), mTexture(texture) {}

@@ -73,6 +73,7 @@ namespace nongravitar::scene {
         void motionSystem(sf::Time elapsed) noexcept;
         void collisionSystem(const sf::RenderWindow &window) noexcept;
         void livenessSystem(const sf::RenderWindow &window, SceneManager &sceneManager, Assets &assets) noexcept;
+        void animationSystem(sf::Time elapsed) noexcept;
         void reportSystem(const sf::RenderWindow &window) noexcept;
 
         entt::registry mRegistry;

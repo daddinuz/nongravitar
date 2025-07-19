@@ -124,6 +124,7 @@ SceneId SolarSystem::update(const sf::RenderWindow &window, SceneManager &sceneM
     motionSystem(elapsed);
     collisionSystem(window);
     livenessSystem(window, sceneManager, assets);
+    animationSystem(elapsed);
     reportSystem(window);
 
     return mNextSceneId;
@@ -185,7 +186,7 @@ void SolarSystem::initializeReport(Assets &assets) noexcept {
 
 void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &assets) noexcept {
     auto playerId = mRegistry.create();
-    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).instanceSprite(0);
+    auto playerRenderable = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip).getSprite({0, 0});
     const auto playerBounds = playerRenderable.getLocalBounds();
 
     helpers::centerOrigin(playerRenderable, playerBounds);
@@ -199,6 +200,7 @@ void SolarSystem::initializePlayers(const sf::RenderWindow &window, Assets &asse
     mRegistry.assign<Energy>(playerId, PLAYER_ENERGY);
     mRegistry.assign<Velocity>(playerId);
     mRegistry.assign<ReloadTime>(playerId, PLAYER_RELOAD_TIME);
+    mRegistry.assign<SpaceShipAnimation>(playerId, assets);
     mRegistry.assign<HitRadius>(playerId, std::max(playerBounds.width, playerBounds.height) / 2.0f);
     mRegistry.assign<Renderable>(playerId, std::move(playerRenderable));
 }
@@ -315,6 +317,17 @@ void SolarSystem::livenessSystem(const sf::RenderWindow &window, SceneManager &s
     }
 
     mRegistry.destroy(entitiesToDestroy.begin(), entitiesToDestroy.end());
+}
+
+void SolarSystem::animationSystem(const sf::Time elapsed) noexcept {
+    mRegistry.view<SpaceShipAnimation, Renderable>().each([&](auto &animation, auto &renderable) {
+        if (const auto rect = animation.update(elapsed); rect) {
+            renderable.template as<sf::Sprite>().setTextureRect(*rect);
+        } else {
+            animation.reset();
+            animation.setState(SpaceShipAnimation::State::Default).reset();
+        }
+    });
 }
 
 void SolarSystem::reportSystem(const sf::RenderWindow &window) noexcept {

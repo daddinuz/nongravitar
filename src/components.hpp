@@ -31,6 +31,7 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <Scene.hpp>
+#include <Animation.hpp>
 
 namespace nongravitar::components {
     struct Velocity final {
@@ -180,5 +181,31 @@ namespace nongravitar::components {
         void draw(sf::RenderTarget &target, sf::RenderStates states) const final;
 
         std::variant<sf::Sprite, sf::CircleShape> mInstance;
+    };
+
+    class SpaceShipAnimation final : public animation::Animation<sf::IntRect> {
+    public:
+        enum class State {
+            Default,
+            Hit,
+        };
+
+        SpaceShipAnimation() = delete;
+
+        explicit SpaceShipAnimation(Assets &assets);
+
+        SpaceShipAnimation &setState(State state) noexcept;
+
+        [[nodiscard]] State getState() const noexcept;
+
+        [[nodiscard]] const sf::IntRect *current() const noexcept final;
+
+        const sf::IntRect *update(sf::Time elapsed) noexcept final;
+
+        const sf::IntRect *reset() noexcept final;
+
+    private:
+        std::map<State, animation::BaseAnimation<sf::IntRect>> mDelegates;
+        State mState{State::Default};
     };
 }

@@ -28,46 +28,37 @@
 #pragma once
 
 #include <vector>
+#include <functional>
 #include <SFML/Graphics.hpp>
 
 namespace nongravitar {
     class SpriteSheet final {
     public:
-        using Frame = sf::IntRect;
-        using Buffer = std::vector<Frame>;
-
-        using const_iterator = Buffer::const_iterator;
-
-        using difference_type = Buffer::difference_type;
-        using value_type = Buffer::value_type;
-        using pointer = Buffer::pointer;
-        using reference = Buffer::reference;
-        using iterator_category = std::random_access_iterator_tag;
+        using Buffer = std::vector<sf::IntRect>;
 
         SpriteSheet() = delete; // no default-constructible
-
-        SpriteSheet(const sf::Texture &texture, Buffer &&buffer) noexcept;
 
         SpriteSheet(const SpriteSheet &) = delete; // no copy-constructible;
         SpriteSheet &operator=(const SpriteSheet &) = delete; // no copy-assignable;
 
         SpriteSheet(SpriteSheet &&) noexcept = default; // move-constructible;
-        SpriteSheet &operator=(SpriteSheet &&) noexcept = delete; // no move-assignable;
+        SpriteSheet &operator=(SpriteSheet &&) noexcept = default; // move-assignable;
 
         [[nodiscard]] static SpriteSheet from(const sf::Texture &texture, sf::Vector2u frameSize, sf::Vector2u startCoord = {0, 0});
 
-        [[nodiscard]] const Buffer &getBuffer() const noexcept;
+        [[nodiscard]] sf::IntRect getRect(const sf::Vector2u &coord) const;
+
+        [[nodiscard]] sf::Sprite getSprite(const sf::Vector2u &coord) const;
+
+        [[nodiscard]] sf::Vector2u getSize() const noexcept;
 
         [[nodiscard]] const sf::Texture &getTexture() const noexcept;
 
-        [[nodiscard]] sf::Sprite instanceSprite(std::size_t frameIndex) const;
-
-        [[nodiscard]] const_iterator cbegin() const noexcept;
-
-        [[nodiscard]] const_iterator cend() const noexcept;
-
     private:
+        SpriteSheet(const sf::Texture &texture, Buffer &&buffer, sf::Vector2u size) noexcept;
+
         Buffer mBuffer;
-        const sf::Texture &mTexture;
+        sf::Vector2u mSize;
+        std::reference_wrapper<const sf::Texture> mTexture;
     };
 }
