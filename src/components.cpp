@@ -145,14 +145,14 @@ struct SpaceShipDefaultAnimation final : public BaseAnimation<sf::IntRect> {
     explicit SpaceShipDefaultAnimation(Assets &assets) {
         const auto &sheet = assets.getSpriteSheetsManager().get(SpriteSheetId::SpaceShip);
 
-        addStep(sheet.getRect({0, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({1, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({2, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({3, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({4, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({5, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({6, 0}), sf::seconds(0.0625f));
-        addStep(sheet.getRect({7, 0}), sf::seconds(0.0625f));
+        addStep(sheet.getRect({0, 0}), sf::seconds(0.10f));
+        addStep(sheet.getRect({1, 0}), sf::seconds(0.05f));
+        addStep(sheet.getRect({2, 0}), sf::seconds(0.02f));
+        addStep(sheet.getRect({3, 0}), sf::seconds(0.04f));
+        addStep(sheet.getRect({4, 0}), sf::seconds(0.04f));
+        addStep(sheet.getRect({5, 0}), sf::seconds(0.02f));
+        addStep(sheet.getRect({6, 0}), sf::seconds(0.05f));
+        addStep(sheet.getRect({7, 0}), sf::seconds(0.10f));
     }
 };
 
